@@ -15,11 +15,8 @@ class CreateFasesTable extends Migration
     {
         Schema::create('fases', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('modalidad_id')
-                    ->constrained('modalidades')
-                    ->onDelete('cascade');
-            $table->foreignId('carrera_id')
-                    ->constrained('carreras')
+            $table->foreignId('carrera_modalidad_id')
+                    ->constrained('carrera_modalidades')
                     ->onDelete('cascade');
             $table->string('nombre_fase', 50);
             $table->string('descripcion_fase', 300)->nullable();

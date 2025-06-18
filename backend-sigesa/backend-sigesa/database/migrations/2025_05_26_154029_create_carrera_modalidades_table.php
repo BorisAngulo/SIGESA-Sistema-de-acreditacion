@@ -23,6 +23,9 @@ class CreateCarreraModalidadesTable extends Migration
                   ->onDelete('cascade');
             $table->boolean('estado_modalidad')->default(false);
             $table->integer('id_usuario_updated_carrera_modalidad')->nullable();
+            $table->dateTime('fecha_ini_aprobacion')->nullable();
+            $table->dateTime('fecha_fin_aprobacion')->nullable();
+            $table->string('certificado')->nullable();
             $table->timestamps();
         });
     }
