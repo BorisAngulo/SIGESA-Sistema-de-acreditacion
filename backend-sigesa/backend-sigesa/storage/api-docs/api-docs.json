@@ -1,0 +1,165 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Api Sistema de Acreditación UMSS SIGESA",
+        "description": "Documentación de la API del Sistema de Acreditación UMSS SIGESA",
+        "contact": {
+            "name": "Boris Anthony Angulo Urquieta",
+            "url": "https://github.com/borisangulo/Sistema-de-Acreditacion-UMSS-SIGESA",
+            "email": "borisanthony03@gmail.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0"
+    },
+    "servers": [
+        {
+            "url": "http://127.0.0.1:8000"
+        }
+    ],
+    "paths": {
+        "/api/facultades": {
+            "get": {
+                "tags": [
+                    "Facultad"
+                ],
+                "summary": "Listado de todas las facultades",
+                "operationId": "688bf5d9faa2f030e34959a18d3dc1de",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "rows": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "number",
+                                                        "example": "1"
+                                                    },
+                                                    "nombre_facultad": {
+                                                        "type": "string",
+                                                        "example": "Facultad de Ciencias y Tecnología"
+                                                    },
+                                                    "codigo_facultad": {
+                                                        "type": "string",
+                                                        "example": "FCyT"
+                                                    },
+                                                    "pagina_facultad": {
+                                                        "type": "string",
+                                                        "example": "https://fcyt.umss.edu.bo"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "example": "2023-02-23T00:09:16.000000Z"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "example": "2023-02-23T12:33:45.000000Z"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Facultad"
+                ],
+                "summary": "Crear una nueva facultad",
+                "operationId": "e575d3b871321349ca2692058c4bacf6",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "nombre_facultad": {
+                                        "type": "string",
+                                        "example": "Facultad de Ciencias y Tecnología"
+                                    },
+                                    "codigo_facultad": {
+                                        "type": "string",
+                                        "example": "FCyT"
+                                    },
+                                    "pagina_facultad": {
+                                        "type": "string",
+                                        "example": "https://fcyt.umss.edu.bo"
+                                    },
+                                    "id_usuario_updated_facultad": {
+                                        "type": "integer",
+                                        "example": "1"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "CREATED",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "number",
+                                            "example": 1
+                                        },
+                                        "nombre_facultad": {
+                                            "type": "string",
+                                            "example": "Facultad de Ciencias y Tecnología"
+                                        },
+                                        "codigo_facultad": {
+                                            "type": "string",
+                                            "example": "FCyT"
+                                        },
+                                        "pagina_facultad": {
+                                            "type": "string",
+                                            "example": "https://fcyt.umss.edu.bo"
+                                        },
+                                        "id_usuario_updated_facultad": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "example": "2023-02-23T00:09:16.000000Z"
+                                        },
+                                        "updated_at": {
+                                            "type": "string",
+                                            "example": "2023-02-23T12:33:45.000000Z"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Facultad",
+            "description": "Operaciones relacionadas con las facultades del sistema de acreditación UMSS SIGESA",
+            "externalDocs": {
+                "description": "Documentación de la API",
+                "url": "https://github.com/borisangulo/Sistema-de-Acreditacion-UMSS-SIGESA/blob/main/backend-sigesa/backend-sigesa/README.md"
+            }
+        }
+    ]
+}
