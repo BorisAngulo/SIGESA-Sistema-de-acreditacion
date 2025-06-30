@@ -1,0 +1,203 @@
+.pa-container {
+  width: 280px;
+  margin: 0 auto;
+  padding: 4px; 
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Mascota */
+.pa-mascota {
+  text-align: center;
+  margin-bottom: 8px; 
+}
+
+.pa-img {
+  margin: 0 auto;
+  width: 120px;
+  height: 90px;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Botones de certificados */
+.pa-botones {
+  display: flex;
+  flex-direction: column;
+  gap: 4px; 
+  margin-bottom: 10x; 
+}
+
+.pa-btn {
+  color: white;
+  font-weight: 300;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  height: 40px;
+  font-size: 12px;
+  width: 100%;
+}
+
+.pa-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.pa-btn-activo {
+  transform: scale(1.02);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
+}
+
+.pa-btn-rojo {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.pa-btn-rojo:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.pa-btn-azul {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.pa-btn-azul:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+.pa-btn-gris {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+}
+
+.pa-btn-gris:hover {
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+}
+
+.pa-btn-icono {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.pa-btn-texto {
+  text-align: left;
+  line-height: 1.2;
+  flex-grow: 1;
+}
+
+/* Título */
+.pa-titulo {
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 8px; 
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Contenedor de pasos */
+.pa-pasos-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px; 
+}
+
+/* Cada paso */
+.pa-paso {
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  border-left: 3px solid #3b82f6;
+  border-radius: 6px;
+  padding: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s ease;
+}
+
+.pa-paso:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.pa-paso-contenido {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.pa-paso-numero {
+  flex-shrink: 0;
+}
+
+.pa-numero-circulo {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+}
+
+.pa-paso-info {
+  flex-grow: 1;
+}
+
+.pa-paso-titulo {
+  font-size: 14px;
+  font-weight: 300;
+  color: #1f2937;
+  margin-bottom: 4px;
+  margin-top: 0;
+}
+
+.pa-paso-descripcion {
+  color: #4b5563;
+  line-height: 1.4;
+  margin: 0;
+  font-size: 13px;
+}
+
+/* Indicador de pasos */
+.pa-indicador {
+  margin-top: 8px; 
+  text-align: center;
+}
+
+.pa-indicador-contenido {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #eff6ff;
+  border-radius: 16px;
+  padding: 6px 12px;
+}
+
+.pa-indicador-texto {
+  color: #2563eb;
+  font-weight: 300;
+  font-size: 12px;
+}
+
+.pa-indicador-puntos {
+  display: flex;
+  gap: 3px;
+}
+
+.pa-punto {
+  width: 6px;
+  height: 6px;
+  background: #60a5fa;
+  border-radius: 20%;
+}
