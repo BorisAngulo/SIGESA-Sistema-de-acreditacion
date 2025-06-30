@@ -91,7 +91,7 @@ class FacultadController extends Controller
         return response()->json($facultades);
     }
 
-    /**
+/**
      * Crear una nueva facultad
      * @OA\Post (
      *     path="/api/facultades",
@@ -118,6 +118,7 @@ class FacultadController extends Controller
      *                 @OA\Property(
      *                     property="id_usuario_updated_facultad",
      *                     type="integer",
+     *                     description="ID del usuario que actualiza la facultad",
      *                     example="1"
      *                 )
      *             )
