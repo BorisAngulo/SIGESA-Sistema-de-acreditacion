@@ -1,0 +1,21 @@
+.header-container {
+  background-color: #072543;
+  color: white;
+  text-align: center;
+  padding: 1rem;
+}
+
+.header-logo {
+  height: 60px;
+}
+
+.header-nav {
+  margin-top: 10px;
+}
+
+.header-link {
+  color: white;
+  margin: 0 10px;
+  text-decoration: underline;
+  font-size: 14px;
+}

@@ -1,0 +1,84 @@
+.pa-container {
+  flex: 1;
+  background-color: #F5F7FA;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.pa-mascota {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.pa-img {
+  width: 90px;
+  height: 90px;
+}
+
+.pa-botones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+}
+
+.pa-btn {
+  padding: 0.5rem;
+  font-size: 0.85rem;
+  border-radius: 0.5rem;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.pa-btn.rojo {
+  background-color: #c0392b;
+}
+
+.pa-btn.rojo:hover {
+  background-color: #a93226;
+}
+
+.pa-btn.azul {
+  background-color: #2c3e50;
+}
+
+.pa-btn.azul:hover {
+  background-color: #1c2833;
+}
+
+.pa-btn.gris {
+  background-color: #95a5a6;
+}
+
+.pa-btn.gris:hover {
+  background-color: #7f8c8d;
+}
+
+.pa-titulo {
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.pa-paso {
+  background: white;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 4px rgba(0,0,0,0.05);
+}
+
+.pa-paso h4 {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.pa-paso p {
+  font-size: 0.9rem;
+  color: #444;
+}
