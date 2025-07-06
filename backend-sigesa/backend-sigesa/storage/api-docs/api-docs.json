@@ -372,7 +372,15 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "rows": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "datos": {
                                             "type": "array",
                                             "items": {
                                                 "properties": {
@@ -403,6 +411,40 @@
                                                 },
                                                 "type": "object"
                                             }
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 500
+                                        },
+                                        "datos": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Error al obtener las facultades: mensaje de error"
                                         }
                                     },
                                     "type": "object"
@@ -486,6 +528,83 @@
                                 }
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/api/facultades/{id}": {
+            "get": {
+                "tags": [
+                    "Facultad"
+                ],
+                "summary": "Obtener una facultad específica",
+                "operationId": "fc5855fc2458e54542c3b4073b4d54cb",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la facultad",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Facultad encontrada"
+                    },
+                    "404": {
+                        "description": "Facultad no encontrada"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Facultad"
+                ],
+                "summary": "Actualizar una facultad",
+                "operationId": "b10eebfe7a431fe431619e38a995cc31",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "nombre_facultad": {
+                                        "type": "string"
+                                    },
+                                    "codigo_facultad": {
+                                        "type": "string"
+                                    },
+                                    "pagina_facultad": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Facultad actualizada"
+                    },
+                    "404": {
+                        "description": "Facultad no encontrada"
+                    },
+                    "422": {
+                        "description": "Errores de validación"
                     }
                 }
             }
