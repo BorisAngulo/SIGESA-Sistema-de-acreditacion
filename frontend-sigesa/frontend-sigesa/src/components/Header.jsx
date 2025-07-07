@@ -1,15 +1,25 @@
 import React from 'react';
+import { NavLink } from 'react-router-dom'; 
 import departamento from '../assets/departamento.png';
 import './Header.css';
 
 const Header = () => {
   return (
     <header className="header-container">
-      <img src={departamento} alt="Logo general" className="header-logo" />
+      <div className="header-left">
+        <img src={departamento} alt="Logo general" className="header-logo" />
+      </div>
+
       <nav className="header-nav">
-        <a href="/" className="header-link">Inicio</a>
-        <a href="/facultades" className="header-link">Facultades</a>
-        <a href="/login" className="header-link">Iniciar Sesión</a>
+        <NavLink to="/" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
+          Inicio
+        </NavLink>
+        <NavLink to="/facultad" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
+          Facultades
+        </NavLink>
+        <NavLink to="/login" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
+          Iniciar Sesión
+        </NavLink>
       </nav>
     </header>
   );
