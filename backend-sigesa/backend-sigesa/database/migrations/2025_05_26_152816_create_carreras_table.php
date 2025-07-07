@@ -19,7 +19,7 @@ class CreateCarrerasTable extends Migration
                   ->constrained('facultades')
                   ->onDelete('cascade');
             $table->string('codigo_carrera', )->unique();
-            $table->string('nombre_carrera', 50);
+            $table->string('nombre_carrera', 200);
             $table->string('pagina_carrera', 100)-> nullable();
             $table->integer('id_usuario_updated_carrera')->nullable();
             $table->timestamps();
