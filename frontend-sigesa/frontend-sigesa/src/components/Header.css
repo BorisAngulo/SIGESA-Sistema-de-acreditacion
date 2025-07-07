@@ -1,0 +1,41 @@
+.header-container {
+  background-color: #072543;
+  color: white;
+  text-align: center;
+  padding: 1rem;
+}
+
+.header-logo {
+  height: 60px;
+}
+
+.header-nav {
+  margin-top: 10px;
+}
+
+.header-link {
+  color: white;
+  margin: 0 20px;
+  text-decoration: underline;
+  font-size: 14px;
+}
+
+.header-link {
+  color: #eff6e0;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.header-link:hover {
+  background-color: #124559;
+  color: #ffffff;
+}
+
+.header-link.active {
+  background-color: #eff6e0;
+  color: #072543;
+  font-weight: bold;
+}

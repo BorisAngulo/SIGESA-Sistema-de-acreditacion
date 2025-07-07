@@ -1,0 +1,32 @@
+[
+  {
+    "carrera": "Ingeniería de Sistemas",
+    "facultad": "Facultad de Ciencias y Tecnología",
+    "descripcion": "Actualizó Subfase de entrega de Matriz de planificación",
+    "fecha": "2025-05-22"
+  },
+  {
+    "carrera": "Administración de Empresas",
+    "facultad": "Facultad de Ciencias Económicas",
+    "descripcion": "Actualizó Subfase de entrega de documentos de autoevaluación y retroalimentación",
+    "fecha": "2025-05-16"
+  },
+  {
+    "carrera": "Licenciatura en Bioquímica y Farmacia",
+    "facultad": "Ciencias Farmacéuticas y Bioquímicas",
+    "descripcion": "Actualizó Subfase de entrega de documentos financieros",
+    "fecha": "2025-04-16"
+  },
+  {
+    "carrera": "Licenciatura en Sociología",
+    "facultad": "Ciencias Sociales",
+    "descripcion": "Actualizó Subfase de entrega de documentos para habilitar el proceso de Acreditación",
+    "fecha": "2025-03-18"
+  },
+  {
+    "carrera": "Licenciatura en Ciencias Jurídicas",
+    "facultad": "Ciencias Jurídicas y Políticas",
+    "descripcion": "Actualizó Subfase de entrega de documentos de autoevaluación y retroalimentación",
+    "fecha": "2025-03-13"
+  }
+]
