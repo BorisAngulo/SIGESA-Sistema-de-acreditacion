@@ -13,6 +13,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // User::factory(10)->create();
+        // Ejecutar seeders en orden
+        $this->call([
+            FacultadSeeder::class,
+            CarreraSeeder::class,
+            // ModalidadSeeder::class, // Descomenta cuando lo crees
+        ]);
+
+        $this->command->info('🎉 Base de datos poblada exitosamente!');
     }
 }

@@ -29,23 +29,31 @@
                 "operationId": "c306ace13bc538822c8319dbef62f554",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Carreras obtenidas exitosamente",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "rows": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "datos": {
                                             "type": "array",
                                             "items": {
                                                 "properties": {
                                                     "id": {
-                                                        "type": "number",
-                                                        "example": "1"
+                                                        "type": "integer",
+                                                        "example": 1
                                                     },
                                                     "facultad_id": {
                                                         "description": "ID de la facultad (Foreign Key)",
-                                                        "type": "number",
-                                                        "example": "1"
+                                                        "type": "integer",
+                                                        "example": 1
                                                     },
                                                     "nombre_carrera": {
                                                         "type": "string",
@@ -70,6 +78,40 @@
                                                 },
                                                 "type": "object"
                                             }
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 500
+                                        },
+                                        "datos": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Error al obtener las carreras: mensaje de error"
                                         }
                                     },
                                     "type": "object"
@@ -154,6 +196,425 @@
                                         "updated_at": {
                                             "type": "string",
                                             "example": "2023-02-23T12:33:45.000000Z"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/carreras/{id}": {
+            "get": {
+                "tags": [
+                    "Carrera"
+                ],
+                "summary": "Mostrar una carrera específica",
+                "operationId": "93d91e0ee45ed57b43846dd0bf54e1dc",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la carrera",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Carrera encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "datos": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "facultad_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "nombre_carrera": {
+                                                    "type": "string",
+                                                    "example": "Ingeniería de Sistemas"
+                                                },
+                                                "codigo_carrera": {
+                                                    "type": "string",
+                                                    "example": "INGSIS"
+                                                },
+                                                "pagina_carrera": {
+                                                    "type": "string",
+                                                    "example": "https://cs.umss.edu.bo"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "example": "2023-02-23T00:09:16.000000Z"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "example": "2023-02-23T12:33:45.000000Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Carrera no encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 404
+                                        },
+                                        "datos": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Carrera no encontrada"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Carrera"
+                ],
+                "summary": "Actualizar una carrera",
+                "operationId": "7c4437011107dc3d80b25cc90f789622",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la carrera",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "facultad_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "codigo_carrera": {
+                                        "type": "string",
+                                        "example": "INGSIS"
+                                    },
+                                    "nombre_carrera": {
+                                        "type": "string",
+                                        "example": "Ingeniería de Sistemas"
+                                    },
+                                    "pagina_carrera": {
+                                        "type": "string",
+                                        "example": "https://cs.umss.edu.bo"
+                                    },
+                                    "id_usuario_updated_carrera": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Carrera actualizada exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "datos": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "facultad_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "nombre_carrera": {
+                                                    "type": "string",
+                                                    "example": "Ingeniería de Sistemas"
+                                                },
+                                                "codigo_carrera": {
+                                                    "type": "string",
+                                                    "example": "INGSIS"
+                                                },
+                                                "pagina_carrera": {
+                                                    "type": "string",
+                                                    "example": "https://cs.umss.edu.bo"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "example": "2023-02-23T00:09:16.000000Z"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "example": "2023-02-23T12:33:45.000000Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Carrera"
+                ],
+                "summary": "Eliminar una carrera",
+                "operationId": "508b0760ae7e0af00b4916b0ed62d975",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la carrera",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Carrera eliminada exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "datos": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/facultades/{facultad}/carreras": {
+            "get": {
+                "tags": [
+                    "Carrera"
+                ],
+                "summary": "Obtener carreras de una facultad específica",
+                "operationId": "de556b34f7d0d90764c132290b9f7139",
+                "parameters": [
+                    {
+                        "name": "facultad",
+                        "in": "path",
+                        "description": "ID de la facultad",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Carreras de la facultad obtenidas exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "datos": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "facultad_id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "nombre_carrera": {
+                                                        "type": "string",
+                                                        "example": "Ingeniería de Sistemas"
+                                                    },
+                                                    "codigo_carrera": {
+                                                        "type": "string",
+                                                        "example": "INGSIS"
+                                                    },
+                                                    "pagina_carrera": {
+                                                        "type": "string",
+                                                        "example": "https://cs.umss.edu.bo"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/carreras/buscar/{termino}": {
+            "get": {
+                "tags": [
+                    "Carrera"
+                ],
+                "summary": "Buscar carreras por nombre",
+                "operationId": "c3629b6cb8afbe585a1df59581d635c6",
+                "parameters": [
+                    {
+                        "name": "termino",
+                        "in": "path",
+                        "description": "Término de búsqueda",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultados de búsqueda",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "datos": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "facultad_id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "nombre_carrera": {
+                                                        "type": "string",
+                                                        "example": "Ingeniería de Sistemas"
+                                                    },
+                                                    "codigo_carrera": {
+                                                        "type": "string",
+                                                        "example": "INGSIS"
+                                                    },
+                                                    "pagina_carrera": {
+                                                        "type": "string",
+                                                        "example": "https://cs.umss.edu.bo"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
                                         }
                                     },
                                     "type": "object"
