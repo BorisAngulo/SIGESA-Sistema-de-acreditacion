@@ -10,8 +10,17 @@ export default function Carreras({ facultad }) {
   useEffect(() => {
     if (facultad) {
       getCarreras().then((data) => {
-        // Filtra solo las carreras de la facultad seleccionada
-        setCarreras(data.filter((c) => c.facultad_id === facultad.id));
+        // Verificar que data es un array antes de filtrar
+        if (Array.isArray(data)) {
+          // Filtra solo las carreras de la facultad seleccionada
+          setCarreras(data.filter((c) => c.facultad_id === facultad.id));
+        } else {
+          console.error('Los datos de carreras no son un array:', data);
+          setCarreras([]);
+        }
+      }).catch((error) => {
+        console.error('Error al cargar carreras:', error);
+        setCarreras([]);
       });
     }
   }, [facultad]);
@@ -22,18 +31,23 @@ export default function Carreras({ facultad }) {
     e.preventDefault();
     if (!nombreCarrera.trim() || !codigoCarrera.trim()) return;
 
-    const nuevaCarrera = {
-      facultad_id: facultad.id,
-      codigo_carrera: codigoCarrera,
-      nombre_carrera: nombreCarrera,
-      pagina_carrera: paginaCarrera || null,
-    };
+    try {
+      const nuevaCarrera = {
+        facultad_id: facultad.id,
+        codigo_carrera: codigoCarrera,
+        nombre_carrera: nombreCarrera,
+        pagina_carrera: paginaCarrera || null,
+      };
 
-    const creada = await createCarrera(nuevaCarrera);
-    setCarreras([...carreras, creada]);
-    setNombreCarrera("");
-    setCodigoCarrera("");
-    setPaginaCarrera("");
+      const creada = await createCarrera(nuevaCarrera);
+      setCarreras([...carreras, creada]);
+      setNombreCarrera("");
+      setCodigoCarrera("");
+      setPaginaCarrera("");
+    } catch (error) {
+      console.error('Error al crear carrera:', error);
+      alert('Error al crear la carrera. Por favor, intenta de nuevo.');
+    }
   };
 
   return (

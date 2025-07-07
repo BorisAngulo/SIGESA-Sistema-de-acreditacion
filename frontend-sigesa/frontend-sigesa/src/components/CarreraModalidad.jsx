@@ -34,8 +34,14 @@ export default function CarreraModalidad({ carreras }) {
 
   // Cargar carrera-modalidades y modalidades al montar y después de crear una nueva
   const cargarCarreraModalidades = async () => {
-    const data = await getCarreraModalidades();
-    setCarreraModalidades(data);
+    try {
+      const data = await getCarreraModalidades();
+      // Verificar que data es un array
+      setCarreraModalidades(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error al cargar carrera modalidades:', error);
+      setCarreraModalidades([]);
+    }
   };
 
   useEffect(() => {
@@ -46,14 +52,20 @@ export default function CarreraModalidad({ carreras }) {
 
   // Cargar fases y subfases cuando se selecciona una carrera-modalidad existente
   const cargarFasesYSubfases = async (carreraModalidadId) => {
-    const todasFases = await getFases();
-    const fasesFiltradas = todasFases.filter(
-      (f) => Number(f.carrera_modalidad_id) === Number(carreraModalidadId)
-    );
-    setFases(fasesFiltradas);
+    try {
+      const todasFases = await getFases();
+      const fasesFiltradas = Array.isArray(todasFases) ? 
+        todasFases.filter((f) => Number(f.carrera_modalidad_id) === Number(carreraModalidadId)) : 
+        [];
+      setFases(fasesFiltradas);
 
-    const todasSubfases = await getSubfases();
-    setSubfases(todasSubfases);
+      const todasSubfases = await getSubfases();
+      setSubfases(Array.isArray(todasSubfases) ? todasSubfases : []);
+    } catch (error) {
+      console.error('Error al cargar fases y subfases:', error);
+      setFases([]);
+      setSubfases([]);
+    }
   };
 
   const handleAgregar = async (e) => {
@@ -68,11 +80,12 @@ export default function CarreraModalidad({ carreras }) {
     }
 
     // Verifica si ya existe la combinación
-    const existente = carreraModalidades.find(
-      (cm) =>
-        Number(cm.carrera_id) === Number(carreraId) &&
-        Number(cm.modalidad_id) === Number(modalidadId)
-    );
+    const existente = Array.isArray(carreraModalidades) ? 
+      carreraModalidades.find(
+        (cm) =>
+          Number(cm.carrera_id) === Number(carreraId) &&
+          Number(cm.modalidad_id) === Number(modalidadId)
+      ) : null;
 
     if (existente) {
       setMensaje("Ya existe esta Carrera-Modalidad. Mostrando fases...");
