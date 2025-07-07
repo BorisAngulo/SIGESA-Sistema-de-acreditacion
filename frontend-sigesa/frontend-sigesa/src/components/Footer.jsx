@@ -2,6 +2,7 @@ import React from 'react';
 import { Facebook, MessageCircle, Linkedin } from 'lucide-react';
 import logoduea from '../assets/logoDUEA.png';
 import './Footer.css';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   const handleSocialClick = (platform) => {
@@ -38,15 +39,36 @@ const Footer = () => {
 
         <div className="footer-links-row">
           Otros sitios de interés:
-          <a href="#" className="footer-link">UMSS</a>
+          <a
+            href="https://www.umss.edu.bo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="footer-link"
+          >
+            UMSS
+          </a>
           <span className="footer-separator">|</span>
-          <a href="#" className="footer-link">WebSISS</a>
+          <a
+            href="https://websiss.umss.edu.bo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="footer-link"
+          >
+            WebSISS
+          </a>
           <span className="footer-separator">|</span>
-          <a href="#" className="footer-link">DUEA</a>
+          <a
+            href="https://www.umss.edu.bo/direccion-universitaria-de-evaluacion-y-acreditacion/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="footer-link"
+          >
+            DUEA
+          </a>
           <span className="footer-separator">|</span>
-          <a href="#" className="footer-link">Políticas de Privacidad</a>
+          <Link to="/privacidad" className="footer-link">Políticas de Privacidad</Link>
           <span className="footer-separator">|</span>
-          <a href="#" className="footer-link">Términos y Refutación</a>
+          <Link to="/terminos" className="footer-link">Términos y Refutación</Link>
         </div>
 
         <div className="footer-copyright">

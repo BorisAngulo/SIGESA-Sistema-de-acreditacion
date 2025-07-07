@@ -7,6 +7,25 @@
   padding: 0 24px;
 }
 
+.home-title {
+  text-align: center;
+  font-weight: bold;
+  font-size: 24px; 
+}
+
+.home-title div {
+  margin: 0; 
+}
+
+.home-title span {
+  display: block;
+  margin-top: 4px;
+  font-size: 16x;
+  font-weight: bold;
+  color: #555; 
+}
+
+
 .home-content {
   flex: 2.5;
   min-width: 0;

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Home.css';
 import PasosAcreditacion from '../components/PasoAcreditacion';
 import mascota from '../assets/mascota.png';
@@ -9,10 +10,12 @@ const Home = () => {
       {/* Título principal */}
       <header className="home-header">
         <h1 className="home-title">
-          Sistema de Gestión y Seguimiento al Proceso de Acreditación de las Carreras de la Universidad Mayor de San Simón
+          <div>Sistema de Gestión y Seguimiento al Proceso de Acreditación</div>
+          <div>de las Carreras de la Universidad Mayor de San Simón</div>
           <br />
           <span>SIGESA - UMSS</span>
         </h1>
+
       </header>
 
       {/* Contenido principal */}
