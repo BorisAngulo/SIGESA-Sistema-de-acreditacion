@@ -607,6 +607,31 @@
                         "description": "Errores de validación"
                     }
                 }
+            },
+            "delete": {
+                "tags": [
+                    "Facultad"
+                ],
+                "summary": "Eliminar una facultad",
+                "operationId": "007877b143f812524d67d3c812df02b5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Facultad eliminada"
+                    },
+                    "404": {
+                        "description": "Facultad no encontrada"
+                    }
+                }
             }
         },
         "/api/fases": {

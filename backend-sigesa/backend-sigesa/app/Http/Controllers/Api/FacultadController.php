@@ -259,4 +259,43 @@ class FacultadController extends BaseApiController
             return $this->handleGeneralException($e);
         }
     }
+
+    /**
+     * Eliminar una facultad
+     * @OA\Delete(
+     *     path="/api/facultades/{id}",
+     *     tags={"Facultad"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(response=204, description="Facultad eliminada"),
+     *     @OA\Response(response=404, description="Facultad no encontrada")
+     * )
+     */
+    public function destroy($id)
+    {
+        try {
+            $facultad = Facultad::find($id);
+
+            if (!$facultad) {
+                throw ApiException::notFound('facultad', $id);
+            }
+
+            $deleted = $facultad->delete();
+
+            if (!$deleted) {
+                throw ApiException::deletionFailed('facultad');
+            }
+
+            return response()->json(null, 204);
+
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }   
 }
