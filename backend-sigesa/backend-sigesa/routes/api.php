@@ -2,25 +2,45 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\FacultadController;
-use App\Http\Controllers\Api\CarreraController;
-use App\Http\Controllers\Api\ModalidadController;
-use App\Http\Controllers\Api\CarreraModalidadController;
-use App\Http\Controllers\Api\FaseController;
-use App\Http\Controllers\Api\SubfaseController;
 
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| is assigned the "api" middleware group. Enjoy building your API!
+|
+*/
+
+// === AUTENTICACIÓN ===
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::post('/facultades', [FacultadController::class, 'store']);
-Route::post('/carreras', [CarreraController::class, 'store']);
-Route::get('/carreras', [CarreraController::class, 'index']);
-Route::get('/facultades', [FacultadController::class, 'index']);
-Route::post('/modalidades', [ModalidadController::class, 'store']);
-Route::get('/modalidades', [ModalidadController::class, 'index']);
-Route::post('/acreditacion-carreras',[CarreraModalidadController::class, 'store']);
-Route::get('/acreditacion-carreras', [CarreraModalidadController::class, 'index']);
-Route::post('/fases', [FaseController::class, 'store']);
-Route::get('/fases', [FaseController::class, 'index']);
-Route::post('/subfases', [SubfaseController::class, 'store']);
-Route::get('/subfases', [SubfaseController::class, 'index']);
+
+// === INFORMACIÓN DE LA API ===
+Route::get('/', function () {
+    return response()->json([
+        'exito' => true,
+        'estado' => 200,
+        'datos' => [
+            'nombre' => 'SIGESA API',
+            'version' => '1.0.0',
+            'descripcion' => 'Sistema de Gestión de Acreditación',
+            'documentacion' => url('/api/documentation'),
+            'endpoints' => [
+                'instituciones' => 'Gestión de facultades y carreras',
+                'modalidades' => 'Gestión de modalidades de estudio',
+                'procesos' => 'Gestión de fases y subfases de acreditación'
+            ]
+        ]
+    ]);
+});
+
+// === MÓDULOS DE LA API ===
+// Cargar rutas organizadas por módulos
+require __DIR__.'/api/instituciones.php';
+require __DIR__.'/api/modalidades.php';
+require __DIR__.'/api/procesos.php';
+require __DIR__.'/api/utilidades.php';
