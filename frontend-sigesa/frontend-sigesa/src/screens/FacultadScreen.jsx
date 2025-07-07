@@ -11,6 +11,8 @@ export default function FacultadScreen() {
   const [facultadSeleccionada, setFacultadSeleccionada] = useState(null);
   const [carreras, setCarreras] = useState([]);
   const [busqueda, setBusqueda] = useState("");
+  const [mensaje, setMensaje] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     getFacultades().then(setFacultades);
@@ -19,13 +21,25 @@ export default function FacultadScreen() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const nueva = await createFacultad({
-      nombre_facultad: nombre,
-      codigo_facultad: codigo,
-    });
-    setFacultades([...facultades, nueva]);
-    setNombre("");
-    setCodigo("");
+    if (!nombre || !codigo) {
+      setError("Debes completar todos los campos");
+      setMensaje(null);
+      return;
+    }
+    try {
+      const nueva = await createFacultad({
+        nombre_facultad: nombre,
+        codigo_facultad: codigo,
+      });
+      setFacultades([...facultades, nueva]);
+      setNombre("");
+      setCodigo("");
+      setMensaje("✅ Facultad añadida exitosamente");
+      setError(null);
+    } catch (err) {
+      setError("❌ Ocurrió un error al añadir la facultad");
+      setMensaje(null);
+    }
   };
 
   const handleSelectFacultad = (e) => {
@@ -40,43 +54,58 @@ export default function FacultadScreen() {
 
   return (
     <div className="facultades-view">
-      <h2 className="search-title">Búsqueda por Facultades</h2>
-      <input
-        type="text"
-        className="search-input"
-        placeholder="Buscar por facultad..."
-        value={busqueda}
-        onChange={(e) => setBusqueda(e.target.value)}
-      />
+      <section className="busqueda-section">
+        <h2 className="search-title">🔎 Búsqueda por Facultades</h2>
+        <input
+          type="text"
+          className="search-input"
+          placeholder="Buscar por facultad..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+      </section>
 
-      <div className="facultades-list">
+      {mensaje && <div className="mensaje-exito">{mensaje}</div>}
+      {error && <div className="mensaje-error">{error}</div>}
+
+      <section className="formulario-section">
+        <h3 className="form-title">➕ Añadir Nueva Facultad</h3>
+        <form onSubmit={handleSubmit} className="formulario-crear">
+          <input
+            type="text"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            placeholder="Nombre de la Facultad"
+          />
+          <input
+            type="text"
+            value={codigo}
+            onChange={(e) => setCodigo(e.target.value)}
+            placeholder="Código de la Facultad"
+          />
+          <button type="submit" className="btn-submit">Registrar Facultad</button>
+        </form>
+      </section>
+
+      <section className="facultades-list">
         {filteredFacultades.map((f) => (
           <div key={f.id} className="faculty-card">
             <img src={`/logos/${f.codigo_facultad}.png`} alt={f.nombre_facultad} />
-            <div>
+            <div className="faculty-info">
               <h3>{f.nombre_facultad}</h3>
               <ul>
-                <li>Carreras: {f.carreras || 0}</li>
-                <li>Acreditadas: {f.acreditadas || 0}</li>
-                <li>En proceso: {f.en_proceso || 0}</li>
-                <li>Renovación: {f.renovacion || 0}</li>
+                <li><strong>Carreras:</strong> {f.carreras || 0}</li>
+                <li><strong>Acreditadas:</strong> {f.acreditadas || 0}</li>
+                <li><strong>En proceso:</strong> {f.en_proceso || 0}</li>
+                <li><strong>Renovación:</strong> {f.renovacion || 0}</li>
               </ul>
             </div>
           </div>
         ))}
-      </div>
+      </section>
 
-      <div className="buttons-container">
-        <button onClick={handleSubmit} className="btn-add">
-          <span>+</span> Añadir Facultad
-        </button>
-        <button className="btn-delete">
-          <span>-</span> Eliminar Facultad
-        </button>
-      </div>
-
-      <div className="select-container">
-        <label className="select-label">Selecciona una facultad:</label>
+      <section className="select-container">
+        <label className="select-label">🎓 Selecciona una facultad:</label>
         <select
           onChange={handleSelectFacultad}
           value={facultadSeleccionada?.id || ""}
@@ -89,11 +118,15 @@ export default function FacultadScreen() {
             </option>
           ))}
         </select>
-      </div>
+      </section>
 
-      <Carreras facultad={facultadSeleccionada} />
-      <hr className="divider" />
-      <CarreraModalidad carreras={carreras} />
+      {facultadSeleccionada && (
+        <section>
+          <Carreras facultad={facultadSeleccionada} />
+          <hr className="divider" />
+          <CarreraModalidad carreras={carreras} />
+        </section>
+      )}
     </div>
   );
 }
