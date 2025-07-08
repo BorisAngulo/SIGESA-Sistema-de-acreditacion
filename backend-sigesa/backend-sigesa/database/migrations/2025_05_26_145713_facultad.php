@@ -15,7 +15,7 @@ class Facultad extends Migration
     {
         Schema::create('facultades', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre_facultad', 50);
+            $table->string('nombre_facultad', 100);
             $table->string('codigo_facultad', 10)->unique();
             $table->string('pagina_facultad', 100)->nullable();
             $table->integer('id_usuario_updated_facultad')->nullable();

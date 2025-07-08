@@ -52,3 +52,7 @@ $ php artisan l5-swagger:generate
 $ php artisan r:l ---- para verificar donde se encuentra swagger
 
 Generalmente se encuentra en api/documentation 
+
+## Genera los datos para la base de datos
+$ php artisan migrate:fresh
+$ php artisan db:seed
