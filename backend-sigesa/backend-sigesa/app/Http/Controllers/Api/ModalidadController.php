@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Exceptions\ApiException;
 
 use App\Models\Modalidad;
 /**
@@ -16,156 +17,126 @@ use App\Models\Modalidad;
 *     }
 * )
  */
-class ModalidadController extends Controller
+class ModalidadController extends BaseApiController
 {
-/**
-     * Crear una nueva modalidad
-     * @OA\Post (
-     *     path="/api/modalidades",
-     *     tags={"Modalidad"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(
-     *                 property="codigo_modalidad",
-     *                 type="string",
-     *                 example="MOD001"
-     *             ),
-     *             @OA\Property(
-     *                 property="nombre_modalidad",
-     *                 type="string",
-     *                 example="Modalidad Presencial"
-     *             ),
-     *             @OA\Property(
-     *                 property="descripcion_modalidad",
-     *                 type="string",
-     *                 example="Descripción de la modalidad presencial"
-     *             ),
-     *             @OA\Property(
-     *                 property="id_usuario_updated_modalidad",
-     *                 type="integer",
-     *                 description="ID del usuario que actualiza la modalidad",
-     *                 example=1
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="CREATED",
-     *         @OA\JsonContent(
-     *             @OA\Property(
-     *                 property="id",
-     *                 type="integer",
-     *                 example=1
-     *             ),
-     *             @OA\Property(
-     *                 property="codigo_modalidad",
-     *                 type="string",
-     *                 example="CEUB"
-     *             ),
-     *             @OA\Property(
-     *                 property="nombre_modalidad",
-     *                 type="string",
-     *                 example="CEUB"
-     *             ),
-     *             @OA\Property(
-     *                 property="descripcion_modalidad",
-     *                 type="string",
-     *                 example="Descripción de la modalidad CEUB"
-     *             ),
-     *             @OA\Property(
-     *                 property="id_usuario_updated_modalidad",
-     *                 type="integer",
-     *                 example=1
-     *             ),
-     *             @OA\Property(
-     *                 property="created_at",
-     *                 type="string",
-     *                 format="date-time",
-     *                 example="2023-02-23T00:09:16.000000Z"
-     *             ),
-     *             @OA\Property(
-     *                 property="updated_at",
-     *                 type="string",
-     *                 format="date-time",
-     *                 example="2023-02-23T12:33:45.000000Z"
-     *             )
-     *         )
-     *     )
-     * )
-     */
+
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'codigo_modalidad' => 'required|string|unique:modalidades,codigo_modalidad',
-            'nombre_modalidad' => 'required|string|max:50',
-            'descripcion_modalidad' => 'nullable|string|max:255',
-            'id_usuario_updated_modalidad' => 'nullable|integer',
-        ]);
+    {   
+        try{
+            $validated = $request->validate([
+                'codigo_modalidad' => 'required|string|unique:modalidades,codigo_modalidad',
+                'nombre_modalidad' => 'required|string|max:50',
+                'descripcion_modalidad' => 'nullable|string|max:255',
+                'id_usuario_updated_modalidad' => 'nullable|integer',
+            ]);
 
-        $modalidad = Modalidad::create($validated);
+            if (Modalidad::where('codigo_modalidad', $validated['codigo_modalidad'])->exists()){
+                throw ApiException::alreadyExists('modalidad', 'código', $validated['codigo_modalidad']);
+            }
 
-        return response()->json($modalidad, 201);
+            $modalidad = Modalidad::create($validated);
+
+            if( !$modalidad) {
+                throw ApiException::creationFailed('modalidad');
+            }
+
+            return $this->successResponse($modalidad, 'Modalidad creada exitosamente', 201);
+
+        }catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->handleValidationException($e);
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
     }
 
-    /**
-     * Obtener todas las modalidades
-     * @OA\Get (
-     *     path="/api/modalidades",
-     *     tags={"Modalidad"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="OK",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(
-     *                 type="object",
-     *                 @OA\Property(
-     *                     property="id",
-     *                     type="integer",
-     *                     example=1
-     *                 ),
-     *                 @OA\Property(
-     *                     property="codigo_modalidad",
-     *                     type="string",
-     *                     example="CEUB"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="nombre_modalidad",
-     *                     type="string",
-     *                     example="CEUB"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="descripcion_modalidad",
-     *                     type="string",
-     *                     example="Descripción de la modalidad CEUB"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="id_usuario_updated_modalidad",
-     *                     type="integer",
-     *                     description="ID del usuario que actualiza la modalidad (Foreign Key)",
-     *                     example=1
-     *                 ),
-     *                 @OA\Property(
-     *                     property="created_at",
-     *                     type="string",
-     *                     format="date-time",
-     *                     example="2023-02-23T00:09:16.000000Z"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="updated_at",
-     *                     type="string",
-     *                     format="date-time",
-     *                     example="2023-02-23T12:33:45.000000Z"
-     *                 )
-     *             )
-     *         )
-     *     )
-     * )
-     */
     public function index()
     {
-        $modalidades = Modalidad::all();
-        return response()->json($modalidades);
+        try {
+            $modalidades = Modalidad::all();
+
+            if ($modalidades -> isEmpty()){
+                return $this->successResponse([], 'No hay modalidades registradas');
+            }
+
+            return $this->successResponse($modalidades, 'Modalidades obtenidas exitosamente');
+        } catch (\Exception $e) {
+            return $this-> errorResponse('Error al obtener las facultades', 500, $e->getMessage());
+        }
+    }
+
+    public function show($id)
+    {
+        try {
+            $modalidad = Modalidad::find($id);
+
+            if (!$modalidad) {
+                throw ApiException::notFound('modalidad', $id);
+            }
+
+            return $this->successResponse($modalidad, 'Modalidad encontrada');
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $modalidad = Modalidad::find($id);
+
+            if (!$modalidad) {
+                throw ApiException::notFound('modalidad', $id);
+            }
+
+            $validated = $request->validate([
+                'codigo_modalidad' => 'sometimes|required|string|unique:modalidades,codigo_modalidad',
+                'nombre_modalidad' => 'sometimes|required|string|max:50',
+                'descripcion_modalidad' => 'nullable|string|max:255',
+                'id_usuario_updated_modalidad' => 'nullable|integer',
+            ]);
+
+            $updated = $modalidad->update($validated);
+
+            if (!$updated) {
+                throw ApiException::updateFailed('modalidad');
+            }
+
+            return $this->successResponse($modalidad->fresh(), 'modalidad actualizada exitosamente');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->handleValidationException($e);
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $modalidad = Modalidad::find($id);
+
+            if (!$modalidad) {
+                throw ApiException::notFound('modalidad', $id);
+            }
+
+            $deleted = $modalidad->delete();
+
+            if (!$deleted) {
+                throw ApiException::deletionFailed('modalidad');
+            }
+
+            return $this->successResponse(null, 'Modalidad eliminada exitosamente', 200);
+
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
     }
 }
