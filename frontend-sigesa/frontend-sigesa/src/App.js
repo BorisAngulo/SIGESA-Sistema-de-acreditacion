@@ -7,6 +7,9 @@ import Footer from './components/Footer';
 import Home from './screens/home';
 import TecnicoDUEA from './screens/TecnicoDUEA';
 import FacultadScreen from './screens/FacultadScreen';
+import VisualizarFacultades from './screens/VisualizarFacultades';
+import CrearFacultad from './screens/CrearFacultad';
+import AsignarCarreras from './screens/AsignarCarreras';
 
 function App() {
   const styles = {
@@ -30,6 +33,9 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/tecnico" element={<TecnicoDUEA />} />
             <Route path="/facultad" element={<FacultadScreen />} />
+             <Route path="/facultades/visualizar" element={<VisualizarFacultades />} />
+            <Route path="/facultades/crear" element={<CrearFacultad />} />
+            <Route path="/facultades/asignar-carreras" element={<AsignarCarreras />} />
           </Routes>
         </main>
 
