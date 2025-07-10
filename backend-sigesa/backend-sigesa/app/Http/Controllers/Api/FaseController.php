@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Fase;
-
+use App\Exceptions\ApiException;
 /**
 * @OA\Tag(
 *     name="Fase",
@@ -16,117 +16,126 @@ use App\Models\Fase;
 *     }
 * )
  */
-class FaseController extends Controller
+class FaseController extends BaseApiController
 {
-/**
-    * Crear una nueva fase
-    * @OA\Post (
-    *     path="/api/fases",
-    *     tags={"Fase"},
-    *     @OA\RequestBody(
-    *         required=true,
-    *         @OA\JsonContent(
-    *             @OA\Property(
-    *                 property="carrera_modalidad_id",
-    *                 type="integer",
-    *                 description="ID de la carrera modalidad (Foreign Key)",
-    *                 example=1
-    *             ),
-    *             @OA\Property(
-    *                 property="nombre_fase",
-    *                 type="string",
-    *                 example="Fase 1"
-    *             ),
-    *             @OA\Property(
-    *                 property="descripcion_fase",
-    *                 type="string",
-    *                 example="Descripción de la fase 1"
-    *             ),
-    *             @OA\Property(
-    *                 property="fecha_inicio_fase",
-    *                 type="string",
-    *                 format="date",
-    *                 example="2023-01-01"
-    *             ),
-    *             @OA\Property(
-    *                 property="fecha_fin_fase",
-    *                 type="string",
-    *                 format="date",
-    *                 example="2023-12-31"
-    *             ),
-    *             @OA\Property(
-    *                 property="id_usuario_updated_fase",
-    *                 type="integer",
-    *                 description="ID del usuario que actualiza la fase",
-    *                 example=1
-    *             )
-    *         )
-    *     ),
-    *     @OA\Response(
-    *         response=201,
-    *         description="CREATED",
-    *         @OA\JsonContent(
-    *             @OA\Property(property="id", type="integer", example=1),
-    *             @OA\Property(property="carrera_modalidad_id", type="integer", example=1),
-    *             @OA\Property(property="nombre_fase", type="string", example="Fase 1"),
-    *             @OA\Property(property="descripcion_fase", type="string", example="Descripción de la fase 1"),
-    *             @OA\Property(property="fecha_inicio_fase", type="string", format="date", example="2023-01-01"),
-    *             @OA\Property(property="fecha_fin_fase", type="string", format="date", example="2023-12-31"),
-    *             @OA\Property(property="id_usuario_updated_fase", type="integer", example=1),
-    *             @OA\Property(property="created_at", type="string", format="datetime", example="2023-01-01T00:00:00Z"),
-    *             @OA\Property(property="updated_at", type="string", format="datetime", example="2023-01-01T00:00:00Z")
-    *         )
-    *     )
-    * )
-    */
+
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'carrera_modalidad_id' => 'required|exists:carrera_modalidades,id',
-            'nombre_fase' => 'required|string|max:50',
-            'descripcion_fase' => 'nullable|string|max:300',
-            'fecha_inicio_fase' => 'nullable|date',
-            'fecha_fin_fase' => 'nullable|date',
-            'id_usuario_updated_fase' => 'nullable|integer',
-        ]);
+        try {
+            $validated = $request->validate([
+                'carrera_modalidad_id' => 'required|exists:carrera_modalidades,id',
+                'nombre_fase' => 'required|string|max:50',
+                'descripcion_fase' => 'nullable|string|max:300',
+                'fecha_inicio_fase' => 'nullable|date',
+                'fecha_fin_fase' => 'nullable|date',
+                'id_usuario_updated_fase' => 'nullable|integer',
+            ]);
 
-        $fase = Fase::create($validated);
+            $fase = Fase::create($validated);
 
-        return response()->json($fase, 201);
+            if (!$fase) {
+                throw ApiException::creationFailed('fase');
+            }
+
+            return $this->successResponse($fase, 'Fase creada exitosamente', 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->handleValidationException($e);
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
     }
 
-/**
-     *Obtener todas las fases
-     * @OA\Get (
-     *     path="/api/fases",
-     *     tags={"Fase"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="OK",
-     *         @OA\JsonContent(
-     *             @OA\Property(
-     *                 type="array",
-     *                 property="rows",
-     *                 @OA\Items(
-     *                     type="object",
-     *                     @OA\Property(property="id", type="integer", example=1),
-     *                     @OA\Property(property="carrera_modalidad_id", type="integer", example=1),
-     *                     @OA\Property(property="nombre_fase", type="string", example="Fase 1"),
-     *                     @OA\Property(property="descripcion_fase", type="string", example="Descripción de la fase 1"),
-     *                     @OA\Property(property="fecha_inicio_fase", type="string", format="date", example="2023-01-01"),
-     *                     @OA\Property(property="fecha_fin_fase", type="string", format="date", example="2023-12-31"),
-     *                     @OA\Property(property="id_usuario_updated_fase", type="integer", example=1),
-     *                     @OA\Property(property="created_at", type="string", format="datetime", example="2023-01-01T00:00:00Z"),
-     *                     @OA\Property(property="updated_at", type="string", format="datetime", example="2023-01-01T00:00:00Z")
-     *                 )
-     *             )
-     *         )
-     *     )
-     * )
-     */
     public function index()
     {
-        $fases = Fase::all();
-        return response()->json($fases);
+        try {
+            $fases = Fase::all();
+            
+            if ($fases->isEmpty()) {
+                return $this->successResponse([], 'No hay fases registradas', 200);
+            }
+            
+            return $this->successResponse($fases, 'Fases obtenidas exitosamente');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error al obtener las fases', 500, $e->getMessage());
+        }
     }
+
+    public function show($id)
+    {
+        try {
+            $fase = Fase::find($id);
+
+            if (!$fase) {
+                throw ApiException::notFound('fase', $id);
+            }
+
+            return $this->successResponse($fase, 'fase encontrada');
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $fase = Fase::find($id);
+
+            if (!$fase) {
+                throw ApiException::notFound('fase', $id);
+            }
+
+            $validated = $request->validate([
+                'carrera_modalidad_id' => 'sometimes|required|exists:carrera_modalidades,id',
+                'nombre_fase' => 'sometimes|required|string|max:50',
+                'descripcion_fase' => 'nullable|string|max:300',
+                'fecha_inicio_fase' => 'nullable|date',
+                'fecha_fin_fase' => 'nullable|date',
+                'id_usuario_updated_fase' => 'nullable|integer',
+            ]);
+
+            $updated = $fase->update($validated);
+
+            if (!$updated) {
+                throw ApiException::updateFailed('fase');
+            }
+
+            return $this->successResponse($fase->fresh(), 'Fase actualizada exitosamente');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->handleValidationException($e);
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $fase = Fase::find($id);
+
+            if (!$fase) {
+                throw ApiException::notFound('fase', $id);
+            }
+
+            $deleted = $fase->delete();
+
+            if (!$deleted) {
+                throw ApiException::deletionFailed('fase');
+            }
+
+            return $this->successResponse(null, 'Fase eliminada exitosamente', 200);
+
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }  
 }
