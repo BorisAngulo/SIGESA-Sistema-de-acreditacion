@@ -625,200 +625,6 @@
                 }
             }
         },
-        "/api/carrera-modalidades": {
-            "get": {
-                "tags": [
-                    "CarreraModalidad"
-                ],
-                "summary": "Listar todas las modalidades asociadas a carreras",
-                "operationId": "b6495545e3b87ecf7c3ea5f10d2da6e2",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "properties": {
-                                            "id": {
-                                                "type": "integer",
-                                                "example": 1
-                                            },
-                                            "carrera_id": {
-                                                "description": "ID de la carrera (Foreign Key)",
-                                                "type": "integer",
-                                                "example": 1
-                                            },
-                                            "modalidad_id": {
-                                                "description": "ID de la modalidad (Foreign Key)",
-                                                "type": "integer",
-                                                "example": 1
-                                            },
-                                            "estado_modalidad": {
-                                                "description": "Estado de la modalidad",
-                                                "type": "boolean",
-                                                "example": true
-                                            },
-                                            "id_usuario_updated_carrera_modalidad": {
-                                                "description": "ID del usuario que actualiza (Foreign Key)",
-                                                "type": "integer",
-                                                "example": 1
-                                            },
-                                            "fecha_ini_aprobacion": {
-                                                "description": "Fecha de inicio de aprobación",
-                                                "type": "string",
-                                                "format": "date",
-                                                "example": "2023-01-01"
-                                            },
-                                            "fecha_fin_aprobacion": {
-                                                "description": "Fecha de fin de aprobación",
-                                                "type": "string",
-                                                "format": "date",
-                                                "example": "2023-12-31"
-                                            },
-                                            "certificado": {
-                                                "description": "Certificado asociado",
-                                                "type": "string",
-                                                "example": "Certificado de Acreditación"
-                                            },
-                                            "created_at": {
-                                                "type": "string",
-                                                "format": "date-time",
-                                                "example": "2023-01-01T00:00:00Z"
-                                            },
-                                            "updated_at": {
-                                                "type": "string",
-                                                "format": "date-time",
-                                                "example": "2023-01-01T00:00:00Z"
-                                            }
-                                        },
-                                        "type": "object"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "tags": [
-                    "CarreraModalidad"
-                ],
-                "summary": "Crear una nueva modalidad asociada a una carrera",
-                "operationId": "4e2378572c58fa7c5657d9f65121d271",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "carrera_id": {
-                                        "description": "ID de la carrera (Foreign Key)",
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "modalidad_id": {
-                                        "description": "ID de la modalidad (Foreign Key)",
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "estado_modalidad": {
-                                        "description": "Estado de la modalidad (true para activa, false para inactiva)",
-                                        "type": "boolean",
-                                        "example": true
-                                    },
-                                    "id_usuario_updated_carrera_modalidad": {
-                                        "description": "ID del usuario que actualiza la carrera modalidad",
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "fecha_ini_aprobacion": {
-                                        "description": "Fecha de inicio de aprobación",
-                                        "type": "string",
-                                        "format": "date",
-                                        "example": "2023-01-01"
-                                    },
-                                    "fecha_fin_aprobacion": {
-                                        "description": "Fecha de fin de aprobación",
-                                        "type": "string",
-                                        "format": "date",
-                                        "example": "2023-12-31"
-                                    },
-                                    "certificado": {
-                                        "description": "Certificado asociado a la carrera modalidad",
-                                        "type": "string",
-                                        "example": "Certificado de Acreditación"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "CREATED",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "id": {
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "carrera_id": {
-                                            "description": "ID de la carrera (Foreign Key)",
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "modalidad_id": {
-                                            "description": "ID de la modalidad (Foreign Key)",
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "estado_modalidad": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "id_usuario_updated_carrera_modalidad": {
-                                            "description": "ID del usuario que actualiza (Foreign Key)",
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "fecha_ini_aprobacion": {
-                                            "type": "string",
-                                            "format": "date",
-                                            "example": "2023-01-01"
-                                        },
-                                        "fecha_fin_aprobacion": {
-                                            "type": "string",
-                                            "format": "date",
-                                            "example": "2023-12-31"
-                                        },
-                                        "certificado": {
-                                            "type": "string",
-                                            "example": "Certificado de Acreditación"
-                                        },
-                                        "created_at": {
-                                            "type": "string",
-                                            "format": "date-time",
-                                            "example": "2023-01-01T00:00:00Z"
-                                        },
-                                        "updated_at": {
-                                            "type": "string",
-                                            "format": "date-time",
-                                            "example": "2023-01-01T00:00:00Z"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/facultades": {
             "get": {
                 "tags": [
@@ -1095,21 +901,40 @@
                 }
             }
         },
-        "/api/fases": {
+        "/api/fases/{fase}/subfases": {
             "get": {
                 "tags": [
-                    "Fase"
+                    "Subfase"
                 ],
-                "summary": "Obtener todas las fases",
-                "operationId": "68a8d0620b7b471811caeb6d38f8e116",
+                "summary": "Obtener subfases de una fase específica",
+                "operationId": "c225d0317520a2d23b76db3c1eca55b3",
+                "parameters": [
+                    {
+                        "name": "fase",
+                        "in": "path",
+                        "description": "ID de la fase",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "subfases de la fase obtenidas exitosamente",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "rows": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "datos": {
                                             "type": "array",
                                             "items": {
                                                 "properties": {
@@ -1117,315 +942,50 @@
                                                         "type": "integer",
                                                         "example": 1
                                                     },
-                                                    "carrera_modalidad_id": {
+                                                    "fase_id": {
                                                         "type": "integer",
                                                         "example": 1
                                                     },
-                                                    "nombre_fase": {
+                                                    "nombre_subfase": {
                                                         "type": "string",
-                                                        "example": "Fase 1"
+                                                        "example": "subfase autoevaluacion"
                                                     },
-                                                    "descripcion_fase": {
+                                                    "descripcion_subfase": {
                                                         "type": "string",
-                                                        "example": "Descripción de la fase 1"
+                                                        "example": "descripcion de la subfase de autoevaluacion"
                                                     },
-                                                    "fecha_inicio_fase": {
+                                                    "fecha_inicio_subfase": {
                                                         "type": "string",
-                                                        "format": "date",
-                                                        "example": "2023-01-01"
+                                                        "format": "date-time",
+                                                        "example": "2023-01-01T00:00:00Z"
                                                     },
-                                                    "fecha_fin_fase": {
+                                                    "fecha_fin_subfase": {
                                                         "type": "string",
-                                                        "format": "date",
-                                                        "example": "2023-12-31"
+                                                        "format": "date-time",
+                                                        "example": "2023-01-31T23:59:59Z"
                                                     },
-                                                    "id_usuario_updated_fase": {
+                                                    "id_usuario_updated_subfase": {
                                                         "type": "integer",
                                                         "example": 1
                                                     },
                                                     "created_at": {
                                                         "type": "string",
-                                                        "format": "datetime",
+                                                        "format": "date-time",
                                                         "example": "2023-01-01T00:00:00Z"
                                                     },
                                                     "updated_at": {
                                                         "type": "string",
-                                                        "format": "datetime",
+                                                        "format": "date-time",
                                                         "example": "2023-01-01T00:00:00Z"
                                                     }
                                                 },
                                                 "type": "object"
                                             }
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "tags": [
-                    "Fase"
-                ],
-                "summary": "Crear una nueva fase",
-                "operationId": "55fe643ed2634641327f6562e05a8de3",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "carrera_modalidad_id": {
-                                        "description": "ID de la carrera modalidad (Foreign Key)",
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "nombre_fase": {
-                                        "type": "string",
-                                        "example": "Fase 1"
-                                    },
-                                    "descripcion_fase": {
-                                        "type": "string",
-                                        "example": "Descripción de la fase 1"
-                                    },
-                                    "fecha_inicio_fase": {
-                                        "type": "string",
-                                        "format": "date",
-                                        "example": "2023-01-01"
-                                    },
-                                    "fecha_fin_fase": {
-                                        "type": "string",
-                                        "format": "date",
-                                        "example": "2023-12-31"
-                                    },
-                                    "id_usuario_updated_fase": {
-                                        "description": "ID del usuario que actualiza la fase",
-                                        "type": "integer",
-                                        "example": 1
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "CREATED",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "id": {
-                                            "type": "integer",
-                                            "example": 1
                                         },
-                                        "carrera_modalidad_id": {
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "nombre_fase": {
+                                        "error": {
                                             "type": "string",
-                                            "example": "Fase 1"
-                                        },
-                                        "descripcion_fase": {
-                                            "type": "string",
-                                            "example": "Descripción de la fase 1"
-                                        },
-                                        "fecha_inicio_fase": {
-                                            "type": "string",
-                                            "format": "date",
-                                            "example": "2023-01-01"
-                                        },
-                                        "fecha_fin_fase": {
-                                            "type": "string",
-                                            "format": "date",
-                                            "example": "2023-12-31"
-                                        },
-                                        "id_usuario_updated_fase": {
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "created_at": {
-                                            "type": "string",
-                                            "format": "datetime",
-                                            "example": "2023-01-01T00:00:00Z"
-                                        },
-                                        "updated_at": {
-                                            "type": "string",
-                                            "format": "datetime",
-                                            "example": "2023-01-01T00:00:00Z"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/subfases": {
-            "get": {
-                "tags": [
-                    "Subfase"
-                ],
-                "summary": "Listado de todas las subfases",
-                "operationId": "2bd81fbef0dd53a1e740e2fe68bdbdc5",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "properties": {
-                                            "id": {
-                                                "type": "integer",
-                                                "example": 1
-                                            },
-                                            "fase_id": {
-                                                "description": "ID de la fase (Foreign Key)",
-                                                "type": "integer",
-                                                "example": 1
-                                            },
-                                            "nombre_subfase": {
-                                                "type": "string",
-                                                "example": "Subfase 1"
-                                            },
-                                            "descripcion_subfase": {
-                                                "type": "string",
-                                                "example": "Descripción de la subfase 1"
-                                            },
-                                            "fecha_inicio_subfase": {
-                                                "type": "string",
-                                                "format": "date",
-                                                "example": "2023-01-01"
-                                            },
-                                            "fecha_fin_subfase": {
-                                                "type": "string",
-                                                "format": "date",
-                                                "example": "2023-12-31"
-                                            },
-                                            "id_usuario_updated_subfase": {
-                                                "description": "ID del usuario que actualiza la subfase (Foreign Key)",
-                                                "type": "integer",
-                                                "example": 1
-                                            },
-                                            "created_at": {
-                                                "type": "string",
-                                                "format": "date-time",
-                                                "example": "2023-01-01T00:00:00Z"
-                                            },
-                                            "updated_at": {
-                                                "type": "string",
-                                                "format": "date-time",
-                                                "example": "2023-01-01T00:00:00Z"
-                                            }
-                                        },
-                                        "type": "object"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "tags": [
-                    "Subfase"
-                ],
-                "summary": "Crear una nueva subfase",
-                "operationId": "95df97d41a9e0325e43acad0ca37dc2f",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "fase_id": {
-                                        "description": "ID de la fase (Foreign Key)",
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "nombre_subfase": {
-                                        "type": "string",
-                                        "example": "Subfase 1"
-                                    },
-                                    "descripcion_subfase": {
-                                        "type": "string",
-                                        "example": "Descripción de la subfase 1"
-                                    },
-                                    "fecha_inicio_subfase": {
-                                        "type": "string",
-                                        "format": "date",
-                                        "example": "2023-01-01"
-                                    },
-                                    "fecha_fin_subfase": {
-                                        "type": "string",
-                                        "format": "date",
-                                        "example": "2023-12-31"
-                                    },
-                                    "id_usuario_updated_subfase": {
-                                        "description": "ID del usuario que actualiza la subfase",
-                                        "type": "integer",
-                                        "example": 1
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "CREATED",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "id": {
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "fase_id": {
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "nombre_subfase": {
-                                            "type": "string",
-                                            "example": "Subfase 1"
-                                        },
-                                        "descripcion_subfase": {
-                                            "type": "string",
-                                            "example": "Descripción de la subfase 1"
-                                        },
-                                        "fecha_inicio_subfase": {
-                                            "type": "string",
-                                            "format": "date",
-                                            "example": "2023-01-01"
-                                        },
-                                        "fecha_fin_subfase": {
-                                            "type": "string",
-                                            "format": "date",
-                                            "example": "2023-12-31"
-                                        },
-                                        "id_usuario_updated_subfase": {
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "created_at": {
-                                            "type": "string",
-                                            "format": "date-time",
-                                            "example": "2023-01-01T00:00:00Z"
-                                        },
-                                        "updated_at": {
-                                            "type": "string",
-                                            "format": "date-time",
-                                            "example": "2023-01-01T00:00:00Z"
+                                            "example": null,
+                                            "nullable": true
                                         }
                                     },
                                     "type": "object"
@@ -1447,24 +1007,8 @@
             }
         },
         {
-            "name": "CarreraModalidad",
-            "description": "Operaciones relacionadas con las modalidades asociadas a las carreras del sistema de acreditación UMSS SIGESA",
-            "externalDocs": {
-                "description": "Documentación de la API",
-                "url": "https://github.com/borisangulo/Sistema-de-Acreditacion-UMSS-SIGESA/blob/main/backend-sigesa/backend-sigesa/README.md"
-            }
-        },
-        {
             "name": "Facultad",
             "description": "Operaciones relacionadas con las facultades del sistema de acreditación UMSS SIGESA",
-            "externalDocs": {
-                "description": "Documentación de la API",
-                "url": "https://github.com/borisangulo/Sistema-de-Acreditacion-UMSS-SIGESA/blob/main/backend-sigesa/backend-sigesa/README.md"
-            }
-        },
-        {
-            "name": "Fase",
-            "description": "Operaciones relacionadas con las fases del sistema de acreditación UMSS SIGESA",
             "externalDocs": {
                 "description": "Documentación de la API",
                 "url": "https://github.com/borisangulo/Sistema-de-Acreditacion-UMSS-SIGESA/blob/main/backend-sigesa/backend-sigesa/README.md"
