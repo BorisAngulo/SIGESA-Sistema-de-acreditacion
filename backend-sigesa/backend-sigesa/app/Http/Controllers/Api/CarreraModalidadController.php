@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\CarreraModalidad;
-
+use App\Exceptions\ApiException;
 /**
  * @OA\Tag(
  *     name="CarreraModalidad",
@@ -16,127 +16,127 @@ use App\Models\CarreraModalidad;
  *    }
  * )
  */
-class CarreraModalidadController extends Controller
+class CarreraModalidadController extends BaseApiController
 {
-/**
-     * Crear una nueva modalidad asociada a una carrera
-     * @OA\Post (
-     *     path="/api/carrera-modalidades",
-     *     tags={"CarreraModalidad"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(
-     *                 property="carrera_id",
-     *                 type="integer",
-     *                 description="ID de la carrera (Foreign Key)",
-     *                 example=1
-     *             ),
-     *             @OA\Property(
-     *                 property="modalidad_id",
-     *                 type="integer",
-     *                 description="ID de la modalidad (Foreign Key)",
-     *                 example=1
-     *             ),
-     *             @OA\Property(
-     *                 property="estado_modalidad",
-     *                 type="boolean",
-     *                 description="Estado de la modalidad (true para activa, false para inactiva)",
-     *                 example=true
-     *             ),
-     *             @OA\Property(
-     *                 property="id_usuario_updated_carrera_modalidad",
-     *                 type="integer",
-     *                 description="ID del usuario que actualiza la carrera modalidad",
-     *                 example=1
-     *             ),
-     *             @OA\Property(
-     *                 property="fecha_ini_aprobacion",
-     *                 type="string",
-     *                 format="date",
-     *                 description="Fecha de inicio de aprobación",
-     *                 example="2023-01-01"
-     *             ),
-     *             @OA\Property(
-     *                 property="fecha_fin_aprobacion",
-     *                 type="string",
-     *                 format="date",
-     *                 description="Fecha de fin de aprobación",
-     *                 example="2023-12-31"
-     *             ),
-     *             @OA\Property(
-     *                 property="certificado",
-     *                 type="string",
-     *                 description="Certificado asociado a la carrera modalidad",
-     *                 example="Certificado de Acreditación"
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="CREATED",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="id", type="integer", example=1),
-     *             @OA\Property(property="carrera_id", type="integer", description="ID de la carrera (Foreign Key)", example=1),
-     *             @OA\Property(property="modalidad_id", type="integer", description="ID de la modalidad (Foreign Key)", example=1),
-     *             @OA\Property(property="estado_modalidad", type="boolean", example=true),
-     *             @OA\Property(property="id_usuario_updated_carrera_modalidad", type="integer", description="ID del usuario que actualiza (Foreign Key)", example=1),
-     *             @OA\Property(property="fecha_ini_aprobacion", type="string", format="date", example="2023-01-01"),
-     *             @OA\Property(property="fecha_fin_aprobacion", type="string", format="date", example="2023-12-31"),
-     *             @OA\Property(property="certificado", type="string", example="Certificado de Acreditación"),
-     *             @OA\Property(property="created_at", type="string", format="date-time", example="2023-01-01T00:00:00Z"),
-     *             @OA\Property(property="updated_at", type="string", format="date-time", example="2023-01-01T00:00:00Z")
-     *        )
-     *    )
-     * )
-     */
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'carrera_id' => 'required|exists:carreras,id',
-            'modalidad_id' => 'required|exists:modalidades,id',
-            'estado_modalidad' => 'boolean',
-            'id_usuario_updated_carrera_modalidad' => 'nullable|integer',
-            'fecha_ini_aprobacion' => 'nullable|date',
-            'fecha_fin_aprobacion' => 'nullable|date',
-            'certificado' => 'nullable|string',
-        ]);
+    {   
+        try {
+            $validated = $request->validate([
+                'carrera_id' => 'required|exists:carreras,id',
+                'modalidad_id' => 'required|exists:modalidades,id',
+                'estado_modalidad' => 'boolean',
+                'id_usuario_updated_carrera_modalidad' => 'nullable|integer',
+                'fecha_ini_aprobacion' => 'nullable|date',
+                'fecha_fin_aprobacion' => 'nullable|date',
+                'certificado' => 'nullable|string',
+            ]);
 
-        $carreraModalidad = CarreraModalidad::create($validated);
+            $carreraModalidad = CarreraModalidad::create($validated);
 
-        return response()->json($carreraModalidad, 201);
+            if (!$carreraModalidad) {
+                throw ApiException::creationFailed('carrera-modalidad');
+            }
+
+            return $this->successResponse($carreraModalidad, 'carrera-modalidad creada exitosamente', 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->handleValidationException($e);
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
     }
 
-    /**
-     * Listar todas las modalidades asociadas a carreras
-     * @OA\Get(
-     *     path="/api/carrera-modalidades",
-     *     tags={"CarreraModalidad"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="OK",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(
-     *                 type="object",
-     *                 @OA\Property(property="id", type="integer", example=1),
-     *                 @OA\Property(property="carrera_id", type="integer", description="ID de la carrera (Foreign Key)", example=1),
-     *                 @OA\Property(property="modalidad_id", type="integer", description="ID de la modalidad (Foreign Key)", example=1),
-     *                 @OA\Property(property="estado_modalidad", type="boolean", description="Estado de la modalidad", example=true),
-     *                 @OA\Property(property="id_usuario_updated_carrera_modalidad", type="integer", description="ID del usuario que actualiza (Foreign Key)", example=1),
-     *                 @OA\Property(property="fecha_ini_aprobacion", type="string", format="date", description="Fecha de inicio de aprobación", example="2023-01-01"),
-     *                 @OA\Property(property="fecha_fin_aprobacion", type="string", format="date", description="Fecha de fin de aprobación", example="2023-12-31"),
-     *                 @OA\Property(property="certificado", type="string", description="Certificado asociado", example="Certificado de Acreditación"),
-     *                 @OA\Property(property="created_at", type="string", format="date-time", example="2023-01-01T00:00:00Z"),
-     *                 @OA\Property(property="updated_at", type="string", format="date-time", example="2023-01-01T00:00:00Z")
-     *             )
-     *         )
-     *     )
-     * )
-     */
     public function index()
     {
-        $carreraModalidades = CarreraModalidad::all();
-        return response()->json($carreraModalidades);
+        try {
+            $carreraModalidad = CarreraModalidad::all();
+            
+            if ($carreraModalidad->isEmpty()) {
+                return $this->successResponse([], 'No hay carreras-modalidades registradas', 200);
+            }
+            
+            return $this->successResponse($carreraModalidad, 'Carreras-modalidades obtenidas exitosamente');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error al obtener las carreras-modalidades', 500, $e->getMessage());
+        }
+    }
+
+    public function show($id)
+    {
+        try {
+            $carreraModalidad = CarreraModalidad::find($id);
+
+            if (!$carreraModalidad) {
+                throw ApiException::notFound('carrera-modalidad', $id);
+            }
+
+            return $this->successResponse($carreraModalidad, 'Carrera-modalidad encontrada');
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $carreraModalidad = CarreraModalidad::find($id);
+
+            if (!$carreraModalidad) {
+                throw ApiException::notFound('carrera-modalidad', $id);
+            }
+
+            $validated = $request->validate([
+                'carrera_id' => 'sometimes|required|exists:carreras,id',
+                'modalidad_id' => 'sometimes|required|exists:modalidades,id',
+                'estado_modalidad' => 'sometimes|boolean',
+                'id_usuario_updated_carrera_modalidad' => 'nullable|integer',
+                'fecha_ini_aprobacion' => 'nullable|date',
+                'fecha_fin_aprobacion' => 'nullable|date',
+                'certificado' => 'nullable|string',
+            ]);
+
+            $updated = $carreraModalidad->update($validated);
+
+            if (!$updated) {
+                throw ApiException::updateFailed('carrera-modalidad');
+            }
+
+            return $this->successResponse($carreraModalidad->fresh(), 'Carrera-modalidad actualizada exitosamente');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->handleValidationException($e);
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $carreraModalidad = CarreraModalidad::find($id);
+
+            if (!$carreraModalidad) {
+                throw ApiException::notFound('carrera-modalidad', $id);
+            }
+
+            $deleted = $carreraModalidad->delete();
+
+            if (!$deleted) {
+                throw ApiException::deletionFailed('carrera-modalidad');
+            }
+
+            return $this->successResponse(null, 'Carrera-modalidad eliminada exitosamente', 200);
+
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
     }
 }
