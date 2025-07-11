@@ -17,7 +17,7 @@ export default function FacultadScreen() {
     setOpcionesVisibles(opcionesVisibles === id ? null : id);
   };
 
-  // Cerrar menú al hacer clic fuera
+  // Cerrar menú al hacer clicc fuera
   const handleOutsideClick = () => {
     setOpcionesVisibles(null);
   };
@@ -34,7 +34,7 @@ export default function FacultadScreen() {
 
   // Función para agregar nueva facultad
   const handleAgregarFacultad = () => {
-    // Aquí puedes agregar la lógica para mostrar modal o navegar a formulario
+    
     alert("Funcionalidad para agregar facultad - Implementar modal o navegación");
   };
 
@@ -42,15 +42,22 @@ export default function FacultadScreen() {
     f.nombre_facultad.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  // Colores para las tarjetas
+  
   const cardColors = [
-    '#e3f2fd', '#f3e5f5', '#e8f5e8', '#fff3e0', '#fce4ec', 
-    '#e0f2f1', '#f1f8e9', '#fff8e1', '#e8eaf6', '#fafafa'
+    'linear-gradient(135deg, #A21426 0%, #7B1221 100%)',
+    'linear-gradient(135deg, #041B2C 0%, #072543 100%)',
+    'linear-gradient(135deg, #7B94AA 0%, #5A748A 100%)',
+    'linear-gradient(135deg, #3C5468 0%, #2A3D4F 100%)',
+    'linear-gradient(135deg, #072543 0%, #041B2C 100%)',
+    'linear-gradient(135deg, #A21426 20%, #3C5468 100%)',
+    'linear-gradient(135deg, #7B94AA 0%, #041B2C 100%)',
+    'linear-gradient(135deg, #3C5468 0%, #A21426 100%)',
+    'linear-gradient(135deg, #072543 0%, #7B94AA 100%)',
+    'linear-gradient(135deg, #041B2C 0%, #A21426 100%)'
   ];
 
   return (
     <div className="facultades-view" onClick={handleOutsideClick}>
-      {/* Buscador */}
       <section className="busqueda-section">
         <h2 className="search-title">Búsqueda por Facultades</h2>
         <div className="search-container">
@@ -83,7 +90,7 @@ export default function FacultadScreen() {
           <div 
             key={f.id} 
             className="faculty-card-horizontal"
-            style={{ backgroundColor: cardColors[index % cardColors.length] }}
+            style={{ background: cardColors[index % cardColors.length] }}
           >
             <img
               src={`/logos/${f.codigo_facultad}.png`}
