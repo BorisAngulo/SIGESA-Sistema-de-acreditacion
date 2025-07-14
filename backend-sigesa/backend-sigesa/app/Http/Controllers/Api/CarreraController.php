@@ -361,7 +361,7 @@ class CarreraController extends BaseApiController
                 throw ApiException::deletionFailed('carrera');
             }
 
-            return response()->json(null, 204);
+            return $this->successResponse(null, 'Carrera eliminada exitosamente', 200);
         } catch (ApiException $e) {
             return $this->handleApiException($e);
         } catch (\Exception $e) {
