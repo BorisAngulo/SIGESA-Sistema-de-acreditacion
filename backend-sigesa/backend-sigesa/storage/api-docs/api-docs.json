@@ -625,6 +625,327 @@
                 }
             }
         },
+        "/api/documentos": {
+            "get": {
+                "tags": [
+                    "Documento"
+                ],
+                "summary": "Obtener todos los documentos con sus asociaciones",
+                "operationId": "067e19c5ca2cdd65707bf4b13f09784d",
+                "responses": {
+                    "200": {
+                        "description": "Documentos obtenidos exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "datos": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "nombre_documento": {
+                                                        "type": "string",
+                                                        "example": "Manual de Procedimientos"
+                                                    },
+                                                    "descripcion_documento": {
+                                                        "type": "string",
+                                                        "example": "Descripción del documento"
+                                                    },
+                                                    "fases": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "subfases": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Documento"
+                ],
+                "summary": "Crear un documento y asociarlo a una fase o subfase",
+                "operationId": "e0401b9d0878a8633dd30deb21fa4629",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "nombre_documento": {
+                                        "type": "string",
+                                        "example": "Manual de Procedimientos"
+                                    },
+                                    "descripcion_documento": {
+                                        "type": "string",
+                                        "example": "Descripción del documento"
+                                    },
+                                    "archivo_documento": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "example": "base64_file_content"
+                                    },
+                                    "tipo_asociacion": {
+                                        "type": "string",
+                                        "enum": [
+                                            "fase",
+                                            "subfase"
+                                        ],
+                                        "example": "fase"
+                                    },
+                                    "fase_id": {
+                                        "description": "ID de la fase (requerido si tipo_asociacion es 'fase')",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "subfase_id": {
+                                        "description": "ID de la subfase (requerido si tipo_asociacion es 'subfase')",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "estado": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "observaciones": {
+                                        "type": "string",
+                                        "example": "Observaciones adicionales"
+                                    },
+                                    "id_usuario_updated": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Documento creado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 201
+                                        },
+                                        "datos": {
+                                            "properties": {
+                                                "documento": {
+                                                    "type": "object"
+                                                },
+                                                "asociacion": {
+                                                    "type": "object"
+                                                },
+                                                "tipo_asociacion": {
+                                                    "type": "string",
+                                                    "example": "fase"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/documentos/{id}": {
+            "get": {
+                "tags": [
+                    "Documento"
+                ],
+                "summary": "Obtener un documento específico con sus asociaciones",
+                "operationId": "ad9f98381c29d64bb9d3fa0f7543b7a1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del documento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Documento encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "datos": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "nombre_documento": {
+                                                    "type": "string",
+                                                    "example": "Manual de Procedimientos"
+                                                },
+                                                "descripcion_documento": {
+                                                    "type": "string",
+                                                    "example": "Descripción del documento"
+                                                },
+                                                "fases": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "subfases": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Documento"
+                ],
+                "summary": "Eliminar un documento",
+                "operationId": "a8ef104d6cdc7c5bf3e0e97eab24ef2d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del documento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Documento eliminado exitosamente"
+                    }
+                }
+            }
+        },
+        "/api/fases/{faseId}/documentos": {
+            "get": {
+                "tags": [
+                    "Documento"
+                ],
+                "summary": "Obtener documentos por fase",
+                "operationId": "22f4679d2250713db361e15ac81b263c",
+                "parameters": [
+                    {
+                        "name": "faseId",
+                        "in": "path",
+                        "description": "ID de la fase",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Documentos de la fase obtenidos exitosamente"
+                    }
+                }
+            }
+        },
+        "/api/subfases/{subfaseId}/documentos": {
+            "get": {
+                "tags": [
+                    "Documento"
+                ],
+                "summary": "Obtener documentos por subfase",
+                "operationId": "eeb58c1e7e28e6968008176eacd1d297",
+                "parameters": [
+                    {
+                        "name": "subfaseId",
+                        "in": "path",
+                        "description": "ID de la subfase",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Documentos de la subfase obtenidos exitosamente"
+                    }
+                }
+            }
+        },
         "/api/facultades": {
             "get": {
                 "tags": [
@@ -1001,6 +1322,14 @@
         {
             "name": "Carrera",
             "description": "Operaciones relacionadas con las carreras del sistema de acreditación UMSS SIGESA",
+            "externalDocs": {
+                "description": "Documentación de la API",
+                "url": "https://github.com/borisangulo/Sistema-de-Acreditacion-UMSS-SIGESA/blob/main/backend-sigesa/backend-sigesa/README.md"
+            }
+        },
+        {
+            "name": "Documento",
+            "description": "Operaciones relacionadas con los documentos del sistema de acreditación UMSS SIGESA",
             "externalDocs": {
                 "description": "Documentación de la API",
                 "url": "https://github.com/borisangulo/Sistema-de-Acreditacion-UMSS-SIGESA/blob/main/backend-sigesa/backend-sigesa/README.md"
