@@ -34,7 +34,7 @@ const Footer = () => {
         </div>
 
         <div className="footer-address">
-          Ubicación: Cuarto piso edificio Vicerrectorado Campus Universitario Las Cuadras Final Jordán
+          Ubicación: Edificio Multiacadémico-Vicerrectorado cuarto piso Campus Central Final Jordán
         </div>
 
         <div className="footer-links-row">
