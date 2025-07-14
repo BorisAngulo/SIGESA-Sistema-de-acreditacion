@@ -1,96 +1,107 @@
 import React, { useEffect, useState } from "react";
-import { getFacultades, createFacultad, getCarreras } from "../services/api";
-import Carreras from "../components/Carreras";
-import CarreraModalidad from "../components/CarreraModalidad";
+import { getFacultades, deleteFacultad } from "../services/api";
+import { Search, Plus, Eye, UserPlus, BarChart3, Trash2, MoreVertical } from "lucide-react";
+import mascota from "../assets/mascota.png";
+import { useNavigate } from "react-router-dom";
 import "./FacultadScreen.css";
 
 export default function FacultadScreen() {
   const [facultades, setFacultades] = useState([]);
-  const [nombre, setNombre] = useState("");
-  const [codigo, setCodigo] = useState("");
-  const [facultadSeleccionada, setFacultadSeleccionada] = useState(null);
-  const [carreras, setCarreras] = useState([]);
   const [busqueda, setBusqueda] = useState("");
-  const [mensaje, setMensaje] = useState(null);
-  const [error, setError] = useState(null);
-
+  const [opcionesVisibles, setOpcionesVisibles] = useState(null);
+  const navigate = useNavigate();
   useEffect(() => {
     getFacultades().then(setFacultades);
-    getCarreras().then(setCarreras);
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!nombre || !codigo) {
-      setError("Debes completar todos los campos");
-      setMensaje(null);
-      return;
-    }
-    try {
-      const nueva = await createFacultad({
-        nombre_facultad: nombre,
-        codigo_facultad: codigo,
-      });
-      setFacultades([...facultades, nueva]);
-      setNombre("");
-      setCodigo("");
-      setMensaje("✅ Facultad añadida exitosamente");
-      setError(null);
-    } catch (err) {
-      setError("❌ Ocurrió un error al añadir la facultad");
-      setMensaje(null);
+  const handleToggleOpciones = (id) => {
+    setOpcionesVisibles(opcionesVisibles === id ? null : id);
+  };
+
+  // Cerrar menú al hacer clicc fuera
+  const handleOutsideClick = () => {
+    setOpcionesVisibles(null);
+  };
+
+  // Función para eliminar facultad
+  const handleEliminarFacultad = async (id, nombre) => {
+    if (window.confirm(`¿Estás seguro de que quieres eliminar la facultad "${nombre}"?`)) {
+      try {
+        await deleteFacultad(id);
+        setFacultades(facultades.filter(f => f.id !== id));
+        setOpcionesVisibles(null);
+        alert("Facultad eliminada correctamente");
+      } catch (err) {
+        alert("No se pudo eliminar la facultad");
+      }
     }
   };
 
-  const handleSelectFacultad = (e) => {
-    const id = Number(e.target.value);
-    const facultad = facultades.find((f) => f.id === id);
-    setFacultadSeleccionada(facultad);
+
+  // Función para agregar nueva facultad
+  const handleAgregarFacultad = () => {
+    navigate("/facultad/crear"); 
   };
 
   const filteredFacultades = facultades.filter((f) =>
     f.nombre_facultad.toLowerCase().includes(busqueda.toLowerCase())
   );
 
+  
+  const cardColors = [
+    'linear-gradient(135deg, #A21426 0%, #7B1221 100%)',
+    'linear-gradient(135deg, #041B2C 0%, #072543 100%)',
+    'linear-gradient(135deg, #7B94AA 0%, #5A748A 100%)',
+    'linear-gradient(135deg, #3C5468 0%, #2A3D4F 100%)',
+    'linear-gradient(135deg, #072543 0%, #041B2C 100%)',
+    'linear-gradient(135deg, #A21426 20%, #3C5468 100%)',
+    'linear-gradient(135deg, #7B94AA 0%, #041B2C 100%)',
+    'linear-gradient(135deg, #3C5468 0%, #A21426 100%)',
+    'linear-gradient(135deg, #072543 0%, #7B94AA 100%)',
+    'linear-gradient(135deg, #041B2C 0%, #A21426 100%)'
+  ];
+
   return (
-    <div className="facultades-view">
+    <div className="facultades-view" onClick={handleOutsideClick}>
       <section className="busqueda-section">
-        <h2 className="search-title">🔎 Búsqueda por Facultades</h2>
-        <input
-          type="text"
-          className="search-input"
-          placeholder="Buscar por facultad..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
-      </section>
-
-      {mensaje && <div className="mensaje-exito">{mensaje}</div>}
-      {error && <div className="mensaje-error">{error}</div>}
-
-      <section className="formulario-section">
-        <h3 className="form-title">➕ Añadir Nueva Facultad</h3>
-        <form onSubmit={handleSubmit} className="formulario-crear">
+        <h2 className="search-title">Búsqueda por Facultades</h2>
+        <div className="search-container">
           <input
             type="text"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            placeholder="Nombre de la Facultad"
+            className="search-input"
+            placeholder="Buscar por facultad..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
           />
-          <input
-            type="text"
-            value={codigo}
-            onChange={(e) => setCodigo(e.target.value)}
-            placeholder="Código de la Facultad"
-          />
-          <button type="submit" className="btn-submit">Registrar Facultad</button>
-        </form>
+          <Search className="search-icon" size={20} />
+        </div>
       </section>
 
+      {/* Header con mascota y botón */}
+      <div className="header-actions">
+        <div className="mascota-container">
+          <img src={mascota} alt="mascota" className="mascota-img" />
+          <span className="mascota-message">¡Gestiona tus facultades!</span>
+        </div>
+        <button className="btn-agregar-facultad" onClick={handleAgregarFacultad}>
+          <Plus size={20} />
+          <span>Añadir Facultad</span>
+        </button>
+      </div>
+
+      {/* Lista de facultades */}
       <section className="facultades-list">
-        {filteredFacultades.map((f) => (
-          <div key={f.id} className="faculty-card">
-            <img src={`/logos/${f.codigo_facultad}.png`} alt={f.nombre_facultad} />
+        {filteredFacultades.map((f, index) => (
+          <div 
+            key={f.id} 
+            className="faculty-card-horizontal"
+            style={{ background: cardColors[index % cardColors.length] }}
+          >
+            <img
+              src={`/logos/${f.codigo_facultad}.png`}
+              alt={f.nombre_facultad}
+              className="faculty-logo"
+            />
             <div className="faculty-info">
               <h3>{f.nombre_facultad}</h3>
               <ul>
@@ -100,33 +111,55 @@ export default function FacultadScreen() {
                 <li><strong>Renovación:</strong> {f.renovacion || 0}</li>
               </ul>
             </div>
+
+            {/* Menú de acciones mejorado */}
+            <div className="menu-toggle-container">
+              <button 
+                className="menu-toggle" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggleOpciones(f.id);
+                }}
+              >
+                <MoreVertical size={20} />
+              </button>
+              {opcionesVisibles === f.id && (
+                <div className="dropdown-menu">
+                  <a href="#" className="dropdown-item view">
+                    <Eye size={16} />
+                    <span>Ver Carreras</span>
+                  </a>
+                  <a href="#" className="dropdown-item add">
+                    <UserPlus size={16} />
+                    <span>Añadir Carrera</span>
+                  </a>
+                  <a href="#" className="dropdown-item report">
+                    <BarChart3 size={16} />
+                    <span>Generar Reportes</span>
+                  </a>
+                  <button 
+                    className="dropdown-item delete"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleEliminarFacultad(f.id, f.nombre_facultad);
+                    }}
+                  >
+                    <Trash2 size={16} />
+                    <span>Eliminar Facultad</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         ))}
+        
+        {filteredFacultades.length === 0 && (
+          <div className="no-results">
+            <Search size={48} className="no-results-icon" />
+            <p>No se encontraron facultades que coincidan con su búsqueda.</p>
+          </div>
+        )}
       </section>
-
-      <section className="select-container">
-        <label className="select-label">🎓 Selecciona una facultad:</label>
-        <select
-          onChange={handleSelectFacultad}
-          value={facultadSeleccionada?.id || ""}
-          className="select-input"
-        >
-          <option value="">-- Selecciona --</option>
-          {facultades.map((f) => (
-            <option key={f.id} value={f.id}>
-              {f.nombre_facultad}
-            </option>
-          ))}
-        </select>
-      </section>
-
-      {facultadSeleccionada && (
-        <section>
-          <Carreras facultad={facultadSeleccionada} />
-          <hr className="divider" />
-          <CarreraModalidad carreras={carreras} />
-        </section>
-      )}
     </div>
   );
 }
