@@ -18,7 +18,7 @@ export default function CrearFacultad({ onNuevaFacultad }) {
 
     try {
       const nueva = await createFacultad({ nombre_facultad: nombre, codigo_facultad: codigo });
-      setMensaje("✅ Facultad añadida exitosamente");
+      setMensaje("Facultad añadida exitosamente");
       setError(null);
       setNombre("");
       setCodigo("");

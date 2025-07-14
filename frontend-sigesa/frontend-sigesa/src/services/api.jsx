@@ -41,6 +41,24 @@ export const createFacultad = async (data) => {
   }
 };
 
+export const deleteFacultad = async (id) => {
+  try {
+    const res = await fetch(`${API_URL}/facultades/${id}`, {
+      method: "DELETE",
+    });
+    if (res.status === 204) {
+      return true;
+    } else {
+      const response = await res.json();
+      console.error('Error al eliminar facultad:', response.error || 'Error desconocido');
+      throw new Error(response.error || 'Error al eliminar facultad');
+    }
+  } catch (error) {
+    console.error('Error al eliminar facultad:', error);
+    throw error;
+  }
+};
+
 // Carreras
 export const getCarreras = async () => {
   try {

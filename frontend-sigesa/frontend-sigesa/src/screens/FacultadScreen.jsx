@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { getFacultades } from "../services/api";
+import { getFacultades, deleteFacultad } from "../services/api";
 import { Search, Plus, Eye, UserPlus, BarChart3, Trash2, MoreVertical } from "lucide-react";
 import mascota from "../assets/mascota.png";
+import { useNavigate } from "react-router-dom";
 import "./FacultadScreen.css";
 
 export default function FacultadScreen() {
   const [facultades, setFacultades] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [opcionesVisibles, setOpcionesVisibles] = useState(null);
-
+  const navigate = useNavigate();
   useEffect(() => {
     getFacultades().then(setFacultades);
   }, []);
@@ -23,19 +24,23 @@ export default function FacultadScreen() {
   };
 
   // Función para eliminar facultad
-  const handleEliminarFacultad = (id, nombre) => {
+  const handleEliminarFacultad = async (id, nombre) => {
     if (window.confirm(`¿Estás seguro de que quieres eliminar la facultad "${nombre}"?`)) {
-      setFacultades(facultades.filter(f => f.id !== id));
-      setOpcionesVisibles(null);
-      // Aquí puedes agregar la llamada a la API para eliminar
-      // deleteFacultad(id);
+      try {
+        await deleteFacultad(id);
+        setFacultades(facultades.filter(f => f.id !== id));
+        setOpcionesVisibles(null);
+        alert("Facultad eliminada correctamente");
+      } catch (err) {
+        alert("No se pudo eliminar la facultad");
+      }
     }
   };
 
+
   // Función para agregar nueva facultad
   const handleAgregarFacultad = () => {
-    
-    alert("Funcionalidad para agregar facultad - Implementar modal o navegación");
+    navigate("/facultad/crear"); 
   };
 
   const filteredFacultades = facultades.filter((f) =>
@@ -151,7 +156,7 @@ export default function FacultadScreen() {
         {filteredFacultades.length === 0 && (
           <div className="no-results">
             <Search size={48} className="no-results-icon" />
-            <p>No se encontraron facultades que coincidan con tu búsqueda.</p>
+            <p>No se encontraron facultades que coincidan con su búsqueda.</p>
           </div>
         )}
       </section>

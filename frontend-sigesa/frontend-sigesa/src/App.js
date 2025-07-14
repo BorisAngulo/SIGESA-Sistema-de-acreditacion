@@ -34,7 +34,7 @@ function App() {
             <Route path="/tecnico" element={<TecnicoDUEA />} />
             <Route path="/facultad" element={<FacultadScreen />} />
              <Route path="/facultades/visualizar" element={<VisualizarFacultades />} />
-            <Route path="/facultades/crear" element={<CrearFacultad />} />
+            <Route path="/facultad/crear" element={<CrearFacultad />} />
             <Route path="/facultades/asignar-carreras" element={<AsignarCarreras />} />
           </Routes>
         </main>
