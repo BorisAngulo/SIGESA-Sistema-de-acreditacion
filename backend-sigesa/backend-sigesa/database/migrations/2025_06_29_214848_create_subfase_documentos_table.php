@@ -16,10 +16,10 @@ class CreateSubfaseDocumentosTable extends Migration
         Schema::create('subfase_documentos', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('id_subfase')
+            $table->foreignId('subfase_id')
                 ->constrained('sub_fases')
                 ->onDelete('cascade');
-            $table->foreignId('id_documento')
+            $table->foreignId('documento_id')
                 ->constrained('documentos')
                 ->onDelete('cascade');
         });

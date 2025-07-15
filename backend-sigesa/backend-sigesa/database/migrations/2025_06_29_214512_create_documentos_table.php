@@ -17,8 +17,11 @@ class CreateDocumentosTable extends Migration
             $table->id();
             $table->timestamps();
             $table->string('nombre_documento', 100)->nullable();
+            $table->string('descripcion_documento', 255)->nullable();
+            $table->string('nombre_archivo_original', 255)->nullable(); // Nombre original del archivo
             $table->string('tipo_mime', 50)->nullable();
-            $table->string('ruta_documento', 255)->nullable(); // Mejor para archivos binarios
+            $table->longText('contenido_archivo')->nullable(); // Contenido del archivo en base64
+            $table->bigInteger('tamano_archivo')->nullable(); // Tamaño del archivo en bytes
             $table->string('tipo_documento', 2);// '01' para especificos, '02' para generales
             $table->integer('id_usuario_updated_documento')->nullable();
 
