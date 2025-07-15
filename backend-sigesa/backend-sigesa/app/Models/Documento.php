@@ -29,7 +29,6 @@ class Documento extends Model
     public function fases()
     {
         return $this->belongsToMany(Fase::class, 'fase_documentos', 'documento_id', 'fase_id')
-                    ->withPivot('estado', 'observaciones', 'id_usuario_updated')
                     ->withTimestamps();
     }
 
@@ -39,7 +38,6 @@ class Documento extends Model
     public function subfases()
     {
         return $this->belongsToMany(Subfase::class, 'subfase_documentos', 'documento_id', 'subfase_id')
-                    ->withPivot('estado', 'observaciones', 'id_usuario_updated')
                     ->withTimestamps();
     }
 

@@ -701,7 +701,7 @@
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "properties": {
                                     "nombre_documento": {
@@ -713,9 +713,16 @@
                                         "example": "Descripción del documento"
                                     },
                                     "archivo_documento": {
+                                        "description": "Archivo a subir",
+                                        "type": "file"
+                                    },
+                                    "tipo_documento": {
                                         "type": "string",
-                                        "format": "binary",
-                                        "example": "base64_file_content"
+                                        "enum": [
+                                            "01",
+                                            "02"
+                                        ],
+                                        "example": "01"
                                     },
                                     "tipo_asociacion": {
                                         "type": "string",
@@ -734,14 +741,6 @@
                                         "description": "ID de la subfase (requerido si tipo_asociacion es 'subfase')",
                                         "type": "integer",
                                         "example": 1
-                                    },
-                                    "estado": {
-                                        "type": "boolean",
-                                        "example": true
-                                    },
-                                    "observaciones": {
-                                        "type": "string",
-                                        "example": "Observaciones adicionales"
                                     },
                                     "id_usuario_updated": {
                                         "type": "integer",
@@ -787,6 +786,34 @@
                                             "type": "string",
                                             "example": null,
                                             "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error en la validación o subida del archivo",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 400
+                                        },
+                                        "datos": {
+                                            "type": "object",
+                                            "nullable": true
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "El archivo es requerido"
                                         }
                                     },
                                     "type": "object"
@@ -942,6 +969,42 @@
                 "responses": {
                     "200": {
                         "description": "Documentos de la subfase obtenidos exitosamente"
+                    }
+                }
+            }
+        },
+        "/api/documentos/{id}/descargar": {
+            "get": {
+                "tags": [
+                    "Documento"
+                ],
+                "summary": "Descargar un documento",
+                "operationId": "9e9cac9c88c55bd8a7d2a2d20930bf68",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del documento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Archivo descargado exitosamente",
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Documento no encontrado o archivo no existe"
                     }
                 }
             }

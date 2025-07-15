@@ -16,10 +16,10 @@ class CreateFaseDocumentosTable extends Migration
         Schema::create('fase_documentos', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('id_fase')
+            $table->foreignId('fase_id')
                 ->constrained('fases')
                 ->onDelete('cascade');
-            $table->foreignId('id_documento')
+            $table->foreignId('documento_id')
                 ->constrained('documentos')
                 ->onDelete('cascade');
         });

@@ -38,8 +38,6 @@ class DocumentoController extends BaseApiController
      *                 @OA\Property(property="tipo_asociacion", type="string", enum={"fase", "subfase"}, example="fase"),
      *                 @OA\Property(property="fase_id", type="integer", example=1, description="ID de la fase (requerido si tipo_asociacion es 'fase')"),
      *                 @OA\Property(property="subfase_id", type="integer", example=1, description="ID de la subfase (requerido si tipo_asociacion es 'subfase')"),
-     *                 @OA\Property(property="estado", type="boolean", example=true),
-     *                 @OA\Property(property="observaciones", type="string", example="Observaciones adicionales"),
      *                 @OA\Property(property="id_usuario_updated", type="integer", example=1)
      *             )
      *         )
@@ -86,8 +84,6 @@ class DocumentoController extends BaseApiController
                 'tipo_asociacion' => 'required|string|in:fase,subfase',
                 'fase_id' => 'required_if:tipo_asociacion,fase|exists:fases,id',
                 'subfase_id' => 'required_if:tipo_asociacion,subfase|exists:subfases,id',
-                'estado' => 'boolean',
-                'observaciones' => 'nullable|string|max:500',
                 'id_usuario_updated' => 'nullable|integer',
             ]);
 
@@ -114,7 +110,6 @@ class DocumentoController extends BaseApiController
                 'contenido_archivo' => $contenidoArchivo, // Se codifica automáticamente en base64 en el modelo
                 'tamano_archivo' => $tamanoArchivo,
                 'tipo_documento' => $validated['tipo_documento'],
-                'id_usuario_updated' => $validated['id_usuario_updated'] ?? null,
                 'id_usuario_updated_documento' => $validated['id_usuario_updated'] ?? null,
             ]);
 
@@ -130,17 +125,11 @@ class DocumentoController extends BaseApiController
                 $asociacion = Fase_documento::create([
                     'documento_id' => $documento->id,
                     'fase_id' => $validated['fase_id'],
-                    'estado' => $validated['estado'] ?? true,
-                    'observaciones' => $validated['observaciones'] ?? null,
-                    'id_usuario_updated' => $validated['id_usuario_updated'] ?? null,
                 ]);
             } elseif ($tipoAsociacion === 'subfase') {
                 $asociacion = Subfase_documento::create([
                     'documento_id' => $documento->id,
                     'subfase_id' => $validated['subfase_id'],
-                    'estado' => $validated['estado'] ?? true,
-                    'observaciones' => $validated['observaciones'] ?? null,
-                    'id_usuario_updated' => $validated['id_usuario_updated'] ?? null,
                 ]);
             }
 
