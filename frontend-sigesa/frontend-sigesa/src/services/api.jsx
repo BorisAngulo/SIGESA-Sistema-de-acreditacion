@@ -46,12 +46,19 @@ export const deleteFacultad = async (id) => {
     const res = await fetch(`${API_URL}/facultades/${id}`, {
       method: "DELETE",
     });
-    if (res.status === 204) {
+    if (res.status === 200 || res.status === 204) {
       return true;
+    } else if (res.status === 404) {
+      throw new Error('Facultad no encontrada');
     } else {
-      const response = await res.json();
-      console.error('Error al eliminar facultad:', response.error || 'Error desconocido');
-      throw new Error(response.error || 'Error al eliminar facultad');
+      try {
+        const response = await res.json();
+        console.error('Error al eliminar facultad:', response.error || response.message || 'Error desconocido');
+        throw new Error(response.error || response.message || 'Error al eliminar facultad');
+      } catch (jsonError) {
+        console.error('Error al eliminar facultad:', res.statusText);
+        throw new Error(`Error al eliminar facultad: ${res.status} ${res.statusText}`);
+      }
     }
   } catch (error) {
     console.error('Error al eliminar facultad:', error);

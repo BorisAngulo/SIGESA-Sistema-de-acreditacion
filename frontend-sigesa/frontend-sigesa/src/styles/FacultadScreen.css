@@ -4,6 +4,8 @@
   margin: 0 auto;
   background: #f8f9fa;
   min-height: 100vh;
+  /* Permitir que el contenido se desborde para mostrar dropdowns */
+  overflow: visible;
 }
 
 /* Sección busqueda */
@@ -115,6 +117,8 @@
   display: grid;
   gap: 20px;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  /* Permitir overflow visible para dropdowns */
+  overflow: visible;
 }
 
 .faculty-card-horizontal {
@@ -127,11 +131,20 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   position: relative;
   color: white;
+  /* Z-index bajo para las tarjetas normales */
+  z-index: 1;
+  /* Permitir overflow visible */
+  overflow: visible;
 }
 
 .faculty-card-horizontal:hover {
   transform: translateY(-3px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Cuando el menú está activo, aumentar z-index de toda la tarjeta */
+.faculty-card-horizontal.menu-active {
+  z-index: 1000;
 }
 
 .faculty-logo {
@@ -185,11 +198,12 @@
   color: white;
 }
 
-/* Menú de Opciones */
+/* Menú de Opciones - COMPLETAMENTE CORREGIDO */
 .menu-toggle-container {
   position: relative;
   flex-shrink: 0;
-  z-index: 1000;
+  /* Z-index alto para el contenedor */
+  z-index: 1001;
 }
 
 .menu-toggle {
@@ -204,6 +218,8 @@
   cursor: pointer;
   transition: all 0.3s ease;
   color: white;
+  position: relative;
+  z-index: 1002;
 }
 
 .menu-toggle:hover {
@@ -213,15 +229,37 @@
 
 .dropdown-menu {
   position: absolute;
-  top: 40px;
+  top: 42px;
   right: 0;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   border: 1px solid #e9ecef;
   min-width: 180px;
-  z-index: 1001;
-  overflow: hidden;
+  /* Z-index muy alto para estar por encima de todo */
+  z-index: 10001;
+  overflow: visible;
+  /* Añadir backdrop-filter para mejor visibilidad */
+  backdrop-filter: blur(10px);
+  /* Asegurar que no se corte */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Agregar una pequeña flecha al dropdown */
+.dropdown-menu::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  right: 15px;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border: 1px solid #e9ecef;
+  border-bottom: none;
+  border-right: none;
+  transform: rotate(45deg);
+  z-index: 10002;
 }
 
 .dropdown-item {
@@ -239,14 +277,23 @@
   width: 100%;
   text-align: left;
   cursor: pointer;
+  font-size: 14px;
+  z-index: 10003;
+  position: relative;
+}
+
+.dropdown-item:first-child {
+  border-radius: 8px 8px 0 0;
 }
 
 .dropdown-item:last-child {
   border-bottom: none;
+  border-radius: 0 0 8px 8px;
 }
 
 .dropdown-item:hover {
   background: #f8f9fa;
+  transform: translateX(2px);
 }
 
 .dropdown-item.view:hover {
@@ -340,6 +387,8 @@
   .dropdown-menu {
     min-width: 150px;
     font-size: 14px;
+    /* En mobile, ajustar posición si es necesario */
+    right: -10px;
   }
   
   .dropdown-item {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getActualizaciones } from '../services/actualizaciones';
 import ActualizacionContenido from '../components/ActualizacionContenido';
-import './TecnicoDUEA.css';
+import '../styles/TecnicoDUEA.css';
 import mascota from '../assets/mascota.png';
 
 const TecnicoDUEA = () => {

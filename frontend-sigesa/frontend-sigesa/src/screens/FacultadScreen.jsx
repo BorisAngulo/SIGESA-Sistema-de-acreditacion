@@ -3,13 +3,14 @@ import { getFacultades, deleteFacultad } from "../services/api";
 import { Search, Plus, Eye, UserPlus, BarChart3, Trash2, MoreVertical } from "lucide-react";
 import mascota from "../assets/mascota.png";
 import { useNavigate } from "react-router-dom";
-import "./FacultadScreen.css";
+import "../styles/FacultadScreen.css";
 
 export default function FacultadScreen() {
   const [facultades, setFacultades] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [opcionesVisibles, setOpcionesVisibles] = useState(null);
   const navigate = useNavigate();
+  
   useEffect(() => {
     getFacultades().then(setFacultades);
   }, []);
@@ -17,10 +18,11 @@ export default function FacultadScreen() {
   const handleToggleOpciones = (id) => {
     setOpcionesVisibles(opcionesVisibles === id ? null : id);
   };
-
-  // Cerrar menú al hacer clicc fuera
-  const handleOutsideClick = () => {
-    setOpcionesVisibles(null);
+  
+  const handleOutsideClick = (e) => {
+    if (!e.target.closest('.menu-toggle-container')) {
+      setOpcionesVisibles(null);
+    }
   };
 
   // Función para eliminar facultad
@@ -37,7 +39,6 @@ export default function FacultadScreen() {
     }
   };
 
-
   // Función para agregar nueva facultad
   const handleAgregarFacultad = () => {
     navigate("/facultad/crear"); 
@@ -47,7 +48,6 @@ export default function FacultadScreen() {
     f.nombre_facultad.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  
   const cardColors = [
     'linear-gradient(135deg, #A21426 0%, #7B1221 100%)',
     'linear-gradient(135deg, #041B2C 0%, #072543 100%)',
@@ -94,7 +94,7 @@ export default function FacultadScreen() {
         {filteredFacultades.map((f, index) => (
           <div 
             key={f.id} 
-            className="faculty-card-horizontal"
+            className={`faculty-card-horizontal ${opcionesVisibles === f.id ? 'menu-active' : ''}`}
             style={{ background: cardColors[index % cardColors.length] }}
           >
             <img
@@ -124,16 +124,19 @@ export default function FacultadScreen() {
                 <MoreVertical size={20} />
               </button>
               {opcionesVisibles === f.id && (
-                <div className="dropdown-menu">
-                  <a href="#" className="dropdown-item view">
+                <div 
+                  className="dropdown-menu"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <a href="#" className="dropdown-item view" onClick={(e) => e.preventDefault()}>
                     <Eye size={16} />
                     <span>Ver Carreras</span>
                   </a>
-                  <a href="#" className="dropdown-item add">
+                  <a href="#" className="dropdown-item add" onClick={(e) => e.preventDefault()}>
                     <UserPlus size={16} />
                     <span>Añadir Carrera</span>
                   </a>
-                  <a href="#" className="dropdown-item report">
+                  <a href="#" className="dropdown-item report" onClick={(e) => e.preventDefault()}>
                     <BarChart3 size={16} />
                     <span>Generar Reportes</span>
                   </a>
@@ -141,6 +144,7 @@ export default function FacultadScreen() {
                     className="dropdown-item delete"
                     onClick={(e) => {
                       e.preventDefault();
+                      e.stopPropagation();
                       handleEliminarFacultad(f.id, f.nombre_facultad);
                     }}
                   >

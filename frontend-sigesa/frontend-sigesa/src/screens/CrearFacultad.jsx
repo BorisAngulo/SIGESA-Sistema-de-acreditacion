@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Upload, Plus, Globe, Image, Building2, Hash, AlertCircle, CheckCircle2 } from "lucide-react";
 import { createFacultad } from "../services/api";
-import "./CrearFacultad.css";
+import "../styles/CrearFacultad.css";
 
 export default function CrearFacultad({ onNuevaFacultad }) {
   const [formData, setFormData] = useState({
