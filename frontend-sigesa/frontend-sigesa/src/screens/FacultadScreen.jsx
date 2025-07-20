@@ -35,7 +35,6 @@ export default function FacultadScreen() {
     setOpcionesVisibles(null); 
   };
 
-  // Función para confirmar eliminación
   const confirmarEliminacion = async () => {
     if (!facultadAEliminar) return;
     
@@ -53,6 +52,7 @@ export default function FacultadScreen() {
       setEliminando(false);
     }
   };
+
   const cancelarEliminacion = () => {
     setModalOpen(false);
     setFacultadAEliminar(null);
@@ -148,18 +148,18 @@ export default function FacultadScreen() {
                   className="dropdown-menu"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <a href="#" className="dropdown-item view" onClick={(e) => e.preventDefault()}>
+                  <button className="dropdown-item view" type="button">
                     <Eye size={16} />
                     <span>Ver Carreras</span>
-                  </a>
-                  <a href="#" className="dropdown-item add" onClick={(e) => e.preventDefault()}>
+                  </button>
+                  <button className="dropdown-item add" type="button">
                     <UserPlus size={16} />
                     <span>Añadir Carrera</span>
-                  </a>
-                  <a href="#" className="dropdown-item report" onClick={(e) => e.preventDefault()}>
+                  </button>
+                  <button className="dropdown-item report" type="button">
                     <BarChart3 size={16} />
                     <span>Generar Reportes</span>
-                  </a>
+                  </button>
                   <button 
                     className="dropdown-item delete"
                     onClick={(e) => {
