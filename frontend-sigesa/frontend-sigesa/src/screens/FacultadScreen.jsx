@@ -3,12 +3,16 @@ import { getFacultades, deleteFacultad } from "../services/api";
 import { Search, Plus, Eye, UserPlus, BarChart3, Trash2, MoreVertical } from "lucide-react";
 import mascota from "../assets/mascota.png";
 import { useNavigate } from "react-router-dom";
+import ModalConfirmacion from "../components/ModalConfirmacion"; 
 import "../styles/FacultadScreen.css";
 
 export default function FacultadScreen() {
   const [facultades, setFacultades] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [opcionesVisibles, setOpcionesVisibles] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [facultadAEliminar, setFacultadAEliminar] = useState(null);
+  const [eliminando, setEliminando] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -25,18 +29,34 @@ export default function FacultadScreen() {
     }
   };
 
-  // Función para eliminar facultad
-  const handleEliminarFacultad = async (id, nombre) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar la facultad "${nombre}"?`)) {
-      try {
-        await deleteFacultad(id);
-        setFacultades(facultades.filter(f => f.id !== id));
-        setOpcionesVisibles(null);
-        alert("Facultad eliminada correctamente");
-      } catch (err) {
-        alert("No se pudo eliminar la facultad");
-      }
+  const handleEliminarFacultad = (id, nombre) => {
+    setFacultadAEliminar({ id, nombre });
+    setModalOpen(true);
+    setOpcionesVisibles(null); 
+  };
+
+  // Función para confirmar eliminación
+  const confirmarEliminacion = async () => {
+    if (!facultadAEliminar) return;
+    
+    setEliminando(true);
+    try {
+      await deleteFacultad(facultadAEliminar.id);
+      setFacultades(facultades.filter(f => f.id !== facultadAEliminar.id));
+      setModalOpen(false);
+      setFacultadAEliminar(null);
+      alert("Facultad eliminada correctamente");
+    } catch (err) {
+      console.error("Error al eliminar facultad:", err);
+      alert("No se pudo eliminar la facultad. Por favor, inténtalo de nuevo.");
+    } finally {
+      setEliminando(false);
     }
+  };
+  const cancelarEliminacion = () => {
+    setModalOpen(false);
+    setFacultadAEliminar(null);
+    setEliminando(false);
   };
 
   // Función para agregar nueva facultad
@@ -164,6 +184,15 @@ export default function FacultadScreen() {
           </div>
         )}
       </section>
+
+      {/* Modal de confirmación */}
+      <ModalConfirmacion
+        isOpen={modalOpen}
+        onClose={cancelarEliminacion}
+        onConfirm={confirmarEliminacion}
+        facultadNombre={facultadAEliminar?.nombre || ""}
+        loading={eliminando}
+      />
     </div>
   );
 }
