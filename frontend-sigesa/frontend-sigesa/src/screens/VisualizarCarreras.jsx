@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import "../styles/VisualizarCarreras.css";
 
-// Componente Modal de Opciones
 const ModalOpciones = ({ 
   isOpen, 
   onClose, 
@@ -360,11 +359,13 @@ export default function VisualizarCarreras() {
     setCarreraSeleccionada(null);
   };
 
+
   const handleVerInformacion = (carrera) => {
     console.log('Ver información de:', carrera);
-    // Aquí puedes navegar a una página de detalle
-    // navigate(`/carrera/${carrera.id}/informacion`);
-    handleCerrarModal();
+    navigate(`/informacion-carrera/${carrera.id}`, { 
+      state: { carrera } 
+    });
+  
   };
 
   const handleGestionarModalidades = (carrera) => {
@@ -383,7 +384,6 @@ export default function VisualizarCarreras() {
 
   const handleEliminar = (carrera) => {
     console.log('Eliminar carrera:', carrera);
-    // Aquí puedes mostrar un modal de confirmación de eliminación
     handleCerrarModal();
   };
 
@@ -533,7 +533,6 @@ export default function VisualizarCarreras() {
         </div>
       )}
 
-      {/* Modal de opciones */}
       <ModalOpciones
         isOpen={modalAbierto}
         onClose={handleCerrarModal}

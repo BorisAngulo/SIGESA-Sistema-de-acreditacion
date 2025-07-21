@@ -286,3 +286,19 @@ export const createSubfase = async (data) => {
     throw error;
   }
 };
+
+export const showCarrera = async (id) => {
+  try {
+    const res = await fetch(`${API_URL}/carreras/${id}`);
+    const response = await res.json();
+
+    if (!res.ok || !response.exito) {
+      throw new Error(response?.error || 'Error al mostrar la carrera');
+    }
+
+    return response.datos;
+  } catch (err) {
+    console.error(`showCarrera(${id}) error:`, err);
+    throw err;
+  }
+};
