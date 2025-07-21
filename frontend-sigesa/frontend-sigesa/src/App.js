@@ -9,7 +9,8 @@ import TecnicoDUEA from './screens/TecnicoDUEA';
 import FacultadScreen from './screens/FacultadScreen';
 import CrearFacultad from './screens/CrearFacultad';
 import AsignarCarreras from './screens/AsignarCarreras';
-import VisualizarCarreras from './components/VisualizarCarreras';
+import VisualizarCarreras from './screens/VisualizarCarreras';
+import CrearCarrera from './screens/CrearCarrera';
 
 function App() {
   const styles = {
@@ -36,6 +37,7 @@ function App() {
             <Route path="/facultad/crear" element={<CrearFacultad />} />
             <Route path="/facultades/asignar-carreras" element={<AsignarCarreras />} />
             <Route path="/visualizar-carreras/:facultadId" element={<VisualizarCarreras />} />
+             <Route path="/carrera/crear/:facultadId" element={<CrearCarrera />} />
           </Routes>
         </main>
 

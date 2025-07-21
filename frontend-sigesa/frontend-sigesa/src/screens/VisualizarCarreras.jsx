@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCarrerasByFacultad, getFacultades } from '../services/api';
 import { ArrowLeft, Plus, ExternalLink, Search } from 'lucide-react';
-import "./VisualizarCarreras.css";
+import "../styles/VisualizarCarreras.css";
 
 export default function VisualizarCarreras() {
   const { facultadId } = useParams();
