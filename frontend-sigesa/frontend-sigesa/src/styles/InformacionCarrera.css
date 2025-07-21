@@ -1,0 +1,94 @@
+.carrera-page {
+  padding: 2rem;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #fff;
+  max-width: 1100px;
+  margin: auto;
+}
+
+.facultad-titulo {
+  color: #003366;
+  font-weight: bold;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.nombre-carrera {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+.botones-acreditacion {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn-arco, .btn-ceub {
+  padding: 0.5rem 1.5rem;
+  border: none;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-arco {
+  background-color: #991f27;
+  color: white;
+}
+
+.btn-ceub {
+  background-color: #b0bccb;
+  color: white;
+}
+
+.acreditacion-box {
+  display: flex;
+  justify-content: space-between;
+  background: #f7f7f7;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+}
+
+.columna-texto {
+  flex: 1;
+  margin-right: 1rem;
+}
+
+.info-acreditacion p,
+.info-acreditacion ul {
+  margin: 0.3rem 0;
+}
+
+.info-acreditacion a {
+  color: #003366;
+  text-decoration: underline;
+}
+
+.columna-imagen {
+  flex-shrink: 0;
+}
+
+.imagen-facultad {
+  width: 280px;
+  height: auto;
+  border-radius: 5px;
+  object-fit: cover;
+}
+
+.loading, .error-container {
+  text-align: center;
+  margin-top: 3rem;
+}
+
+.btn-volver {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #003366;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}

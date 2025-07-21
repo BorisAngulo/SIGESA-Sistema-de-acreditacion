@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Upload, Plus, Globe, Image, Building2, Hash, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Upload, Plus, Globe, Image, Building2, Hash, AlertCircle, CheckCircle2, Trash2 } from "lucide-react";
 import { createFacultad } from "../services/api";
-import "./CrearFacultad.css";
+import ModalConfirmacionCreacion from "../components/ModalConfirmacionCreacion";
+import "../styles/CrearFacultad.css";
 
 export default function CrearFacultad({ onNuevaFacultad }) {
   const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ export default function CrearFacultad({ onNuevaFacultad }) {
   const [errors, setErrors] = useState({});
   const [previewLogo, setPreviewLogo] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const validateNombre = (nombre) => {
     if (!nombre.trim()) return "El nombre es requerido";
@@ -34,7 +36,7 @@ export default function CrearFacultad({ onNuevaFacultad }) {
 
   const validateURL = (url) => {
     if (!url.trim()) return null; // URL es opcional
-    const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+    const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/i;
     if (!urlPattern.test(url)) return "La URL no tiene un formato válido";
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       return "La URL debe comenzar con http:// o https://";
@@ -53,7 +55,6 @@ export default function CrearFacultad({ onNuevaFacultad }) {
       }));
     }
 
-    // Formatear código automáticamente
     const formattedValue = name === 'codigo' ? value.toUpperCase() : value;
     
     setFormData(prev => ({
@@ -114,7 +115,24 @@ export default function CrearFacultad({ onNuevaFacultad }) {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleRemoveLogo = () => {
+    setFormData(prev => ({
+      ...prev,
+      logo: null
+    }));
+    setPreviewLogo(null);
+    setErrors(prev => ({
+      ...prev,
+      logo: null
+    }));
+    
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  };
+
+  const handleSubmitClick = () => {
     const nombreError = validateNombre(formData.nombre);
     const codigoError = validateCodigo(formData.codigo);
     const urlError = validateURL(formData.pagina_web);
@@ -129,7 +147,10 @@ export default function CrearFacultad({ onNuevaFacultad }) {
       setMensaje(null);
       return;
     }
+    setShowConfirmModal(true);
+  };
 
+  const handleConfirmSubmit = async () => {
     setIsLoading(true);
     setMensaje(null);
     setErrors({});
@@ -168,6 +189,7 @@ export default function CrearFacultad({ onNuevaFacultad }) {
         logo: null
       });
       setPreviewLogo(null);
+      setShowConfirmModal(false);
       
       if (onNuevaFacultad) onNuevaFacultad(nueva);
     } catch (error) {
@@ -197,12 +219,27 @@ export default function CrearFacultad({ onNuevaFacultad }) {
         setErrors({ general: "Error al crear la facultad. Intenta nuevamente." });
       }
       setMensaje(null);
+      setShowConfirmModal(false);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleCloseModal = () => {
+    if (!isLoading) {
+      setShowConfirmModal(false);
+    }
+  };
+
   const hasErrors = Object.values(errors).some(error => error !== null);
+
+  // datos para mostrar en el modal
+  const datosParaModal = {
+    nombre: formData.nombre,
+    codigo: formData.codigo,
+    pagina_web: formData.pagina_web || null,
+    logo: formData.logo ? true : false
+  };
 
   return (
     <div className="crear-facultad-container">
@@ -303,25 +340,25 @@ export default function CrearFacultad({ onNuevaFacultad }) {
           </label>
           
           <div className="logo-upload-container">
-            <div className="logo-upload-area">
-              <label className="logo-upload-label">
-                <div className="logo-upload-content">
-                  <Upload className="upload-icon" />
-                  <p className="upload-text">
-                    <span className="upload-text-bold">Clic para subir</span> o arrastra el archivo
-                  </p>
-                  <p className="upload-text-small">PNG, JPG o SVG (Máx. 5MB)</p>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoChange}
-                  className="hidden-file-input"
-                />
-              </label>
-            </div>
-            
-            {previewLogo && (
+            {!previewLogo ? (
+              <div className="logo-upload-area">
+                <label className="logo-upload-label">
+                  <div className="logo-upload-content">
+                    <Upload className="upload-icon" />
+                    <p className="upload-text">
+                      <span className="upload-text-bold">Clic para subir</span> o arrastra el archivo
+                    </p>
+                    <p className="upload-text-small">PNG, JPG o SVG (Máx. 5MB)</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoChange}
+                    className="hidden-file-input"
+                  />
+                </label>
+              </div>
+            ) : (
               <div className="logo-preview">
                 <div className="logo-preview-container">
                   <img
@@ -329,7 +366,24 @@ export default function CrearFacultad({ onNuevaFacultad }) {
                     alt="Preview logo"
                     className="logo-preview-image"
                   />
+                  <button
+                    type="button"
+                    onClick={handleRemoveLogo}
+                    className="logo-remove-button"
+                    title="Eliminar logo"
+                  >
+                    <Trash2 className="remove-icon" />
+                  </button>
                 </div>
+                <p className="logo-preview-text">Logo seleccionado</p>
+                <button
+                  type="button"
+                  onClick={handleRemoveLogo}
+                  className="logo-remove-text-button"
+                >
+                  <Trash2 className="remove-text-icon" />
+                  Eliminar logo
+                </button>
               </div>
             )}
           </div>
@@ -346,24 +400,27 @@ export default function CrearFacultad({ onNuevaFacultad }) {
         <div className="submit-container">
           <button
             type="button"
-            onClick={handleSubmit}
+            onClick={handleSubmitClick}
             disabled={hasErrors || isLoading}
             className={`submit-button ${hasErrors || isLoading ? 'submit-button-disabled' : 'submit-button-enabled'}`}
           >
-            {isLoading ? (
-              <>
-                <div className="loading-spinner"></div>
-                Creando...
-              </>
-            ) : (
-              <>
-                <Plus className="button-icon" />
-                Crear Facultad
-              </>
-            )}
+            <Plus className="button-icon" />
+            Crear Facultad
           </button>
         </div>
       </div>
+
+      <ModalConfirmacionCreacion
+        isOpen={showConfirmModal}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmSubmit}
+        titulo="Confirmar Creación de Facultad"
+        mensaje="¿Estás seguro de que deseas crear esta nueva facultad con los siguientes datos?"
+        datosAMostrar={datosParaModal}
+        textoConfirmar="Sí, crear facultad"
+        textoCancelar="Cancelar"
+        isLoading={isLoading}
+      />
     </div>
   );
 }

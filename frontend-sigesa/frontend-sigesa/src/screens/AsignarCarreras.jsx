@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { getFacultades, getCarreras } from "../services/api";
 import Carreras from "../components/Carreras";
 import CarreraModalidad from "../components/CarreraModalidad";
-import "./AsignarCarreras.css";
+import "../styles/AsignarCarreras.css";
 
 export default function AsignarCarreras() {
   const [facultades, setFacultades] = useState([]);

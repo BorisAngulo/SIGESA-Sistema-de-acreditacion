@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Home.css';
+import '../styles/Home.css';
 import PasosAcreditacion from '../components/PasoAcreditacion';
 import mascota from '../assets/mascota.png';
 

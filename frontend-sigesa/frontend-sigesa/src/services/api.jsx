@@ -46,12 +46,19 @@ export const deleteFacultad = async (id) => {
     const res = await fetch(`${API_URL}/facultades/${id}`, {
       method: "DELETE",
     });
-    if (res.status === 204) {
+    if (res.status === 200 || res.status === 204) {
       return true;
+    } else if (res.status === 404) {
+      throw new Error('Facultad no encontrada');
     } else {
-      const response = await res.json();
-      console.error('Error al eliminar facultad:', response.error || 'Error desconocido');
-      throw new Error(response.error || 'Error al eliminar facultad');
+      try {
+        const response = await res.json();
+        console.error('Error al eliminar facultad:', response.error || response.message || 'Error desconocido');
+        throw new Error(response.error || response.message || 'Error al eliminar facultad');
+      } catch (jsonError) {
+        console.error('Error al eliminar facultad:', res.statusText);
+        throw new Error(`Error al eliminar facultad: ${res.status} ${res.statusText}`);
+      }
     }
   } catch (error) {
     console.error('Error al eliminar facultad:', error);
@@ -94,6 +101,32 @@ export const createCarrera = async (data) => {
     }
   } catch (error) {
     console.error('Error al crear carrera:', error);
+    throw error;
+  }
+};
+
+// Obtener carreras por facultad
+export const getCarrerasByFacultad = async (facultadId) => {
+  try {
+    const response = await fetch(`${API_URL}/facultades/${facultadId}/carreras`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    if (result.exito && result.estado === 200) {
+      return result.datos;
+    } else {
+      throw new Error(result.error || 'Error al obtener las carreras');
+    }
+  } catch (error) {
+    console.error('Error en getCarrerasByFacultad:', error);
     throw error;
   }
 };
@@ -251,5 +284,21 @@ export const createSubfase = async (data) => {
   } catch (error) {
     console.error('Error al crear subfase:', error);
     throw error;
+  }
+};
+
+export const showCarrera = async (id) => {
+  try {
+    const res = await fetch(`${API_URL}/carreras/${id}`);
+    const response = await res.json();
+
+    if (!res.ok || !response.exito) {
+      throw new Error(response?.error || 'Error al mostrar la carrera');
+    }
+
+    return response.datos;
+  } catch (err) {
+    console.error(`showCarrera(${id}) error:`, err);
+    throw err;
   }
 };

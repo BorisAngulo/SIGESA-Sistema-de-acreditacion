@@ -1,53 +1,124 @@
 import React, { useEffect, useState } from "react";
-import { getFacultades, deleteFacultad } from "../services/api";
+import { getFacultades, deleteFacultad, getCarrerasByFacultad } from "../services/api";
 import { Search, Plus, Eye, UserPlus, BarChart3, Trash2, MoreVertical } from "lucide-react";
 import mascota from "../assets/mascota.png";
 import { useNavigate } from "react-router-dom";
-import "./FacultadScreen.css";
+import ModalConfirmacion from "../components/ModalConfirmacion"; 
+import "../styles/FacultadScreen.css";
 
 export default function FacultadScreen() {
   const [facultades, setFacultades] = useState([]);
+  const [facultadesConCarreras, setFacultadesConCarreras] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [opcionesVisibles, setOpcionesVisibles] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [facultadAEliminar, setFacultadAEliminar] = useState(null);
+  const [eliminando, setEliminando] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  
   useEffect(() => {
-    getFacultades().then(setFacultades);
+    const cargarDatos = async () => {
+      try {
+        setLoading(true);
+        
+        const facultadesData = await getFacultades();
+        setFacultades(facultadesData);
+        
+        const facultadesConConteo = await Promise.all(
+          facultadesData.map(async (facultad) => {
+            try {
+              const carreras = await getCarrerasByFacultad(facultad.id);
+              return {
+                ...facultad,
+                numeroCarreras: carreras.length,
+                carreras: carreras
+              };
+            } catch (error) {
+              console.error(`Error al obtener carreras para facultad ${facultad.id}:`, error);
+              return {
+                ...facultad,
+                numeroCarreras: 0,
+                carreras: []
+              };
+            }
+          })
+        );
+        
+        setFacultadesConCarreras(facultadesConConteo);
+      } catch (error) {
+        console.error('Error al cargar datos:', error);
+        setFacultadesConCarreras([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarDatos();
   }, []);
 
   const handleToggleOpciones = (id) => {
     setOpcionesVisibles(opcionesVisibles === id ? null : id);
   };
-
-  // Cerrar menú al hacer clicc fuera
-  const handleOutsideClick = () => {
-    setOpcionesVisibles(null);
-  };
-
-  // Función para eliminar facultad
-  const handleEliminarFacultad = async (id, nombre) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar la facultad "${nombre}"?`)) {
-      try {
-        await deleteFacultad(id);
-        setFacultades(facultades.filter(f => f.id !== id));
-        setOpcionesVisibles(null);
-        alert("Facultad eliminada correctamente");
-      } catch (err) {
-        alert("No se pudo eliminar la facultad");
-      }
+  
+  const handleOutsideClick = (e) => {
+    if (!e.target.closest('.menu-toggle-container')) {
+      setOpcionesVisibles(null);
     }
   };
 
+ const handleVerCarreras = (facultadId) => {
+    navigate(`/visualizar-carreras/${facultadId}`);
+    setOpcionesVisibles(null);
+  };
 
-  // Función para agregar nueva facultad
+
+  const handleAgregarCarrera = (facultadId) => {
+    navigate(`/carrera/crear/${facultadId}`);
+    setOpcionesVisibles(null);
+  };
+
+  const handleEliminarFacultad = (id, nombre) => {
+    setFacultadAEliminar({ id, nombre });
+    setModalOpen(true);
+    setOpcionesVisibles(null); 
+  };
+
+  const confirmarEliminacion = async () => {
+    if (!facultadAEliminar) return;
+    
+    setEliminando(true);
+    try {
+      await deleteFacultad(facultadAEliminar.id);
+      
+      setFacultades(facultades.filter(f => f.id !== facultadAEliminar.id));
+      setFacultadesConCarreras(facultadesConCarreras.filter(f => f.id !== facultadAEliminar.id));
+      
+      setModalOpen(false);
+      setFacultadAEliminar(null);
+      alert("Facultad eliminada correctamente");
+    } catch (err) {
+      console.error("Error al eliminar facultad:", err);
+      alert("No se pudo eliminar la facultad. Por favor, inténtalo de nuevo.");
+    } finally {
+      setEliminando(false);
+    }
+  };
+
+  const cancelarEliminacion = () => {
+    setModalOpen(false);
+    setFacultadAEliminar(null);
+    setEliminando(false);
+  };
+
   const handleAgregarFacultad = () => {
     navigate("/facultad/crear"); 
   };
 
-  const filteredFacultades = facultades.filter((f) =>
+  const filteredFacultades = facultadesConCarreras.filter((f) =>
     f.nombre_facultad.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  
   const cardColors = [
     'linear-gradient(135deg, #A21426 0%, #7B1221 100%)',
     'linear-gradient(135deg, #041B2C 0%, #072543 100%)',
@@ -60,6 +131,15 @@ export default function FacultadScreen() {
     'linear-gradient(135deg, #072543 0%, #7B94AA 100%)',
     'linear-gradient(135deg, #041B2C 0%, #A21426 100%)'
   ];
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Cargando facultades...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="facultades-view" onClick={handleOutsideClick}>
@@ -94,25 +174,39 @@ export default function FacultadScreen() {
         {filteredFacultades.map((f, index) => (
           <div 
             key={f.id} 
-            className="faculty-card-horizontal"
+            className={`faculty-card-horizontal ${opcionesVisibles === f.id ? 'menu-active' : ''}`}
             style={{ background: cardColors[index % cardColors.length] }}
           >
             <img
               src={`/logos/${f.codigo_facultad}.png`}
               alt={f.nombre_facultad}
               className="faculty-logo"
+              onError={(e) => {
+                e.target.src = "/logos/default.png"; // Imagen por defecto si no existe
+              }}
             />
             <div className="faculty-info">
               <h3>{f.nombre_facultad}</h3>
               <ul>
-                <li><strong>Carreras:</strong> {f.carreras || 0}</li>
-                <li><strong>Acreditadas:</strong> {f.acreditadas || 0}</li>
-                <li><strong>En proceso:</strong> {f.en_proceso || 0}</li>
-                <li><strong>Renovación:</strong> {f.renovacion || 0}</li>
+                <li><strong>Carreras:</strong> {f.numeroCarreras}</li>
+                <li><strong>Código:</strong> {f.codigo_facultad}</li>
+                {f.pagina_web && (
+                  <li>
+                    <strong>Web:</strong> 
+                    <a 
+                      href={f.pagina_web} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="web-link"
+                    >
+                      Ver sitio
+                    </a>
+                  </li>
+                )}
               </ul>
             </div>
 
-            {/* Menú de acciones mejorado */}
+            {/* Menú de acciones */}
             <div className="menu-toggle-container">
               <button 
                 className="menu-toggle" 
@@ -124,23 +218,35 @@ export default function FacultadScreen() {
                 <MoreVertical size={20} />
               </button>
               {opcionesVisibles === f.id && (
-                <div className="dropdown-menu">
-                  <a href="#" className="dropdown-item view">
+                <div 
+                  className="dropdown-menu"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button 
+                    className="dropdown-item view" 
+                    type="button"
+                    onClick={() => handleVerCarreras(f.id)}
+                  >
                     <Eye size={16} />
-                    <span>Ver Carreras</span>
-                  </a>
-                  <a href="#" className="dropdown-item add">
+                    <span>Ver Carreras ({f.numeroCarreras})</span>
+                  </button>
+                  <button 
+                    className="dropdown-item add" 
+                    type="button"
+                    onClick={() => handleAgregarCarrera(f.id)}
+                  >
                     <UserPlus size={16} />
                     <span>Añadir Carrera</span>
-                  </a>
-                  <a href="#" className="dropdown-item report">
+                  </button>
+                  <button className="dropdown-item report" type="button">
                     <BarChart3 size={16} />
                     <span>Generar Reportes</span>
-                  </a>
+                  </button>
                   <button 
                     className="dropdown-item delete"
                     onClick={(e) => {
                       e.preventDefault();
+                      e.stopPropagation();
                       handleEliminarFacultad(f.id, f.nombre_facultad);
                     }}
                   >
@@ -153,13 +259,22 @@ export default function FacultadScreen() {
           </div>
         ))}
         
-        {filteredFacultades.length === 0 && (
+        {filteredFacultades.length === 0 && !loading && (
           <div className="no-results">
             <Search size={48} className="no-results-icon" />
             <p>No se encontraron facultades que coincidan con su búsqueda.</p>
           </div>
         )}
       </section>
+
+      {/* Modal de confirmación */}
+      <ModalConfirmacion
+        isOpen={modalOpen}
+        onClose={cancelarEliminacion}
+        onConfirm={confirmarEliminacion}
+        facultadNombre={facultadAEliminar?.nombre || ""}
+        loading={eliminando}
+      />
     </div>
   );
 }
