@@ -12,7 +12,7 @@ import AsignarCarreras from './screens/AsignarCarreras';
 import VisualizarCarreras from './screens/VisualizarCarreras';
 import CrearCarrera from './screens/CrearCarrera';
 import InformacionCarrera from './screens/InformacionCarrera';
-
+import FasesScreen from './screens/FasesScreen';
 function App() {
   const styles = {
     app: {
@@ -40,6 +40,7 @@ function App() {
             <Route path="/visualizar-carreras/:facultadId" element={<VisualizarCarreras />} />
              <Route path="/carrera/crear/:facultadId" element={<CrearCarrera />} />
              <Route path="/informacion-carrera/:carreraId" element={<InformacionCarrera />} />
+              <Route path="/fases" element={<FasesScreen />} />
           </Routes>
         </main>
 
