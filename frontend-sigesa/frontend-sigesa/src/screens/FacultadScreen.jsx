@@ -126,9 +126,9 @@ export default function FacultadScreen() {
               <h3>{f.nombre_facultad}</h3>
               <ul>
                 <li><strong>Carreras:</strong> {f.carreras || 0}</li>
-                <li><strong>Acreditadas:</strong> {f.acreditadas || 0}</li>
-                <li><strong>En proceso:</strong> {f.en_proceso || 0}</li>
-                <li><strong>Renovación:</strong> {f.renovacion || 0}</li>
+                <li><strong>Modalidades:</strong> {f.acreditadas || 0}</li>
+                {/* <li><strong>En proceso:</strong> {f.en_proceso || 0}</li>
+                <li><strong>Renovación:</strong> {f.renovacion || 0}</li> */} 
               </ul>
             </div>
 
