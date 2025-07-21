@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { createCarrera, getFacultades } from '../services/api';
-import { ArrowLeft, Save, AlertCircle, BookOpen, Code, Globe } from 'lucide-react';
+import { ArrowLeft, Save, AlertCircle, BookOpen, Code, Globe, CheckCircle } from 'lucide-react';
 import ModalConfirmacionCreacion from '../components/ModalConfirmacionCreacion';
 import "../styles/CrearCarrera.css";
 
@@ -23,6 +23,7 @@ export default function CrearCarrera() {
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   useEffect(() => {
     const cargarFacultad = async () => {
@@ -87,6 +88,7 @@ export default function CrearCarrera() {
 
   const handleConfirmCreacion = async () => {
     setLoading(true);
+    setError(null);
 
     try {
       const dataToSend = {
@@ -101,12 +103,20 @@ export default function CrearCarrera() {
       
       const response = await createCarrera(dataToSend);
       console.log('Carrera creada:', response);
-
-      navigate(`/facultad/${facultadId}/carreras`, { 
-        state: { 
-          success: `Carrera "${formData.nombre_carrera}" creada exitosamente` 
-        }
+      
+      setSuccessMessage(`La carrera "${formData.nombre_carrera}" ha sido creada exitosamente.`);
+      
+      setFormData({
+        facultad_id: facultadId || '',
+        codigo_carrera: '',
+        nombre_carrera: '',
+        pagina_carrera: '',
+        id_usuario_updated_carrera: 1 
       });
+
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
       
     } catch (error) {
       console.error('Error al crear carrera:', error);
@@ -129,7 +139,7 @@ export default function CrearCarrera() {
   };
 
   const handleVolver = () => {
-    navigate(`/facultad/${facultadId}/carreras`);
+    navigate(`/visualizar-carreras/${facultadId}`);
   };
 
   if (loadingFacultad) {
@@ -177,6 +187,13 @@ export default function CrearCarrera() {
         <div className="error-banner">
           <AlertCircle size={20} />
           <span>{error}</span>
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="success-banner">
+          <CheckCircle size={20} />
+          <span>{successMessage}</span>
         </div>
       )}
 
