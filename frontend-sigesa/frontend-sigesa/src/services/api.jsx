@@ -105,6 +105,32 @@ export const createCarrera = async (data) => {
   }
 };
 
+// Obtener carreras por facultad
+export const getCarrerasByFacultad = async (facultadId) => {
+  try {
+    const response = await fetch(`${API_URL}/facultades/${facultadId}/carreras`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    if (result.exito && result.estado === 200) {
+      return result.datos;
+    } else {
+      throw new Error(result.error || 'Error al obtener las carreras');
+    }
+  } catch (error) {
+    console.error('Error en getCarrerasByFacultad:', error);
+    throw error;
+  }
+};
+
 // Modalidades
 export const getModalidades = async () => {
   try {
