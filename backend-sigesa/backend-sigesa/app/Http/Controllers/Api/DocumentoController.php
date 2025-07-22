@@ -8,6 +8,7 @@ use App\Models\Subfase_documento;
 use App\Models\Fase_documento;
 use App\Exceptions\ApiException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
 * @OA\Tag(
@@ -75,6 +76,7 @@ class DocumentoController extends BaseApiController
         DB::beginTransaction();
         
         try {
+
             // Validación de datos
             $validated = $request->validate([
                 'nombre_documento' => 'required|string|max:255',
