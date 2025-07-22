@@ -30,9 +30,12 @@ Route::get('/', function () {
             'descripcion' => 'Sistema de Gestión de Acreditación',
             'documentacion' => url('/api/documentation'),
             'endpoints' => [
+                'auth' => 'Autenticación y autorización de usuarios',
+                'usuarios' => 'Gestión de usuarios del sistema',
                 'instituciones' => 'Gestión de facultades y carreras',
                 'modalidades' => 'Gestión de modalidades de estudio',
-                'procesos' => 'Gestión de fases y subfases de acreditación'
+                'procesos' => 'Gestión de fases y subfases de acreditación',
+                'documentos' => 'Gestión de documentos del proceso de acreditación'
             ]
         ]
     ]);
@@ -40,6 +43,8 @@ Route::get('/', function () {
 
 // === MÓDULOS DE LA API ===
 // Cargar rutas organizadas por módulos
+require __DIR__.'/api/auth.php';
+require __DIR__.'/api/usuarios.php';
 require __DIR__.'/api/instituciones.php';
 require __DIR__.'/api/modalidades.php';
 require __DIR__.'/api/procesos.php';

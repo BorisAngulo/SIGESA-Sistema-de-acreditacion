@@ -17,7 +17,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             FacultadSeeder::class,
             CarreraSeeder::class,
-            // ModalidadSeeder::class, // Descomenta cuando lo crees
+            ModalidadSeeder::class, // Descomenta cuando lo crees
+            RoleSeeder::class,
+            UserSeeder::class,
         ]);
 
         $this->command->info('🎉 Base de datos poblada exitosamente!');
