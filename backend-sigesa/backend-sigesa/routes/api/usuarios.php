@@ -13,6 +13,9 @@ use App\Http\Controllers\Api\UsuarioController;
 */
 
 Route::prefix('usuarios')->group(function () {
+    // Obtener roles disponibles
+    Route::get('/roles', [UsuarioController::class, 'getRoles']);
+    
     // Obtener todos los usuarios
     Route::get('/', [UsuarioController::class, 'index']);
     

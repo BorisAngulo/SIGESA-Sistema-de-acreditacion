@@ -20,6 +20,287 @@
         }
     ],
     "paths": {
+        "/api/auth/login": {
+            "post": {
+                "tags": [
+                    "Autenticación"
+                ],
+                "summary": "Iniciar sesión",
+                "operationId": "dd51a484b7fa0f97c7680fdbde14cf5f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "admin@sigesa.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    },
+                                    "device_name": {
+                                        "description": "Nombre del dispositivo (opcional)",
+                                        "type": "string",
+                                        "example": "Mi dispositivo"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Inicio de sesión exitoso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "datos": {
+                                            "properties": {
+                                                "access_token": {
+                                                    "type": "string"
+                                                },
+                                                "token_type": {
+                                                    "type": "string",
+                                                    "example": "Bearer"
+                                                },
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Juan"
+                                                        },
+                                                        "lastName": {
+                                                            "type": "string",
+                                                            "example": "Pérez"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "admin@sigesa.com"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Credenciales incorrectas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 401
+                                        },
+                                        "datos": {
+                                            "type": "object",
+                                            "nullable": true
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Credenciales incorrectas"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/logout": {
+            "post": {
+                "tags": [
+                    "Autenticación"
+                ],
+                "summary": "Cerrar sesión",
+                "operationId": "df9bdc6c7a6d9f20b983526b2ec0f698",
+                "responses": {
+                    "200": {
+                        "description": "Sesión cerrada exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "datos": {
+                                            "type": "object",
+                                            "nullable": true
+                                        },
+                                        "mensaje": {
+                                            "type": "string",
+                                            "example": "Sesión cerrada exitosamente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/logout-all": {
+            "post": {
+                "tags": [
+                    "Autenticación"
+                ],
+                "summary": "Cerrar todas las sesiones",
+                "operationId": "cb4dc83917db0d5fff6f1f5a2562c05b",
+                "responses": {
+                    "200": {
+                        "description": "Todas las sesiones cerradas exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "datos": {
+                                            "type": "object",
+                                            "nullable": true
+                                        },
+                                        "mensaje": {
+                                            "type": "string",
+                                            "example": "Todas las sesiones cerradas exitosamente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/me": {
+            "get": {
+                "tags": [
+                    "Autenticación"
+                ],
+                "summary": "Obtener información del usuario autenticado",
+                "operationId": "b5de204f5e452ef51327c691aa99e77c",
+                "responses": {
+                    "200": {
+                        "description": "Información del usuario obtenida exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "datos": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Juan"
+                                                },
+                                                "lastName": {
+                                                    "type": "string",
+                                                    "example": "Pérez"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "admin@sigesa.com"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/carreras": {
             "get": {
                 "tags": [
@@ -1379,9 +1660,441 @@
                     }
                 }
             }
+        },
+        "/api/usuarios": {
+            "get": {
+                "tags": [
+                    "Usuario"
+                ],
+                "summary": "Obtener todos los usuarios",
+                "operationId": "d57cb6c6a223fe9801b81b52dcac45df",
+                "responses": {
+                    "200": {
+                        "description": "Usuarios obtenidos exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "datos": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Juan"
+                                                    },
+                                                    "lastName": {
+                                                        "type": "string",
+                                                        "example": "Pérez"
+                                                    },
+                                                    "email": {
+                                                        "type": "string",
+                                                        "example": "juan.perez@email.com"
+                                                    },
+                                                    "email_verified_at": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string"
+                                                    },
+                                                    "roles": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string",
+                                                                    "example": "General"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Usuario"
+                ],
+                "summary": "Crear un nuevo usuario",
+                "operationId": "96d159a6919ad7ade81fd7af5c7a6be8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Juan"
+                                    },
+                                    "lastName": {
+                                        "type": "string",
+                                        "example": "Pérez"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "juan.perez@email.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    },
+                                    "role": {
+                                        "description": "Rol del usuario: Admin, General, Tecnico, Coordinador",
+                                        "type": "string",
+                                        "example": "General"
+                                    },
+                                    "id_usuario_updated_fase": {
+                                        "type": "integer",
+                                        "example": 1,
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Usuario creado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 201
+                                        },
+                                        "datos": {
+                                            "type": "object"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error en la validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 400
+                                        },
+                                        "datos": {
+                                            "type": "object",
+                                            "nullable": true
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "El email ya está en uso"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/usuarios/{id}": {
+            "get": {
+                "tags": [
+                    "Usuario"
+                ],
+                "summary": "Obtener un usuario específico",
+                "operationId": "377032c75382a00d9fcafd558822f36c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuario encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "datos": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Juan"
+                                                },
+                                                "lastName": {
+                                                    "type": "string",
+                                                    "example": "Pérez"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "juan.perez@email.com"
+                                                },
+                                                "roles": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "General"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Usuario no encontrado"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Usuario"
+                ],
+                "summary": "Actualizar un usuario",
+                "operationId": "ee6ffe04a5be33eeca7f8f90c91d9803",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Juan Carlos"
+                                    },
+                                    "lastName": {
+                                        "type": "string",
+                                        "example": "Pérez González"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "juan.carlos@email.com"
+                                    },
+                                    "password": {
+                                        "description": "Opcional - solo si se quiere cambiar",
+                                        "type": "string",
+                                        "example": "newpassword123"
+                                    },
+                                    "password_confirmation": {
+                                        "description": "Requerido si se envía password",
+                                        "type": "string",
+                                        "example": "newpassword123"
+                                    },
+                                    "role": {
+                                        "description": "Opcional - Rol del usuario: Admin, General, Tecnico, Coordinador",
+                                        "type": "string",
+                                        "example": "Coordinador"
+                                    },
+                                    "id_usuario_updated_fase": {
+                                        "type": "integer",
+                                        "example": 2,
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Usuario actualizado exitosamente"
+                    },
+                    "404": {
+                        "description": "Usuario no encontrado"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Usuario"
+                ],
+                "summary": "Eliminar un usuario",
+                "operationId": "0f00f1d6dae33b81a874725503534c06",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuario eliminado exitosamente"
+                    },
+                    "404": {
+                        "description": "Usuario no encontrado"
+                    }
+                }
+            }
+        },
+        "/api/usuarios/roles": {
+            "get": {
+                "tags": [
+                    "Usuario"
+                ],
+                "summary": "Obtener roles disponibles",
+                "operationId": "7bbcc6f66f2c9c35e978e927690e1804",
+                "responses": {
+                    "200": {
+                        "description": "Roles disponibles obtenidos exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "datos": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Admin"
+                                                    },
+                                                    "guard_name": {
+                                                        "type": "string",
+                                                        "example": "web"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": null,
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "tags": [
+        {
+            "name": "Autenticación",
+            "description": "Operaciones de autenticación y autorización del sistema SIGESA",
+            "externalDocs": {
+                "description": "Documentación de la API",
+                "url": "https://github.com/borisangulo/Sistema-de-Acreditacion-UMSS-SIGESA/blob/main/backend-sigesa/backend-sigesa/README.md"
+            }
+        },
         {
             "name": "Carrera",
             "description": "Operaciones relacionadas con las carreras del sistema de acreditación UMSS SIGESA",
@@ -1409,6 +2122,14 @@
         {
             "name": "Subfase",
             "description": "Operaciones relacionadas con las subfases del sistema de acreditación UMSS SIGESA",
+            "externalDocs": {
+                "description": "Documentación de la API",
+                "url": "https://github.com/borisangulo/Sistema-de-Acreditacion-UMSS-SIGESA/blob/main/backend-sigesa/backend-sigesa/README.md"
+            }
+        },
+        {
+            "name": "Usuario",
+            "description": "Operaciones relacionadas con la gestión de usuarios del sistema SIGESA",
             "externalDocs": {
                 "description": "Documentación de la API",
                 "url": "https://github.com/borisangulo/Sistema-de-Acreditacion-UMSS-SIGESA/blob/main/backend-sigesa/backend-sigesa/README.md"
