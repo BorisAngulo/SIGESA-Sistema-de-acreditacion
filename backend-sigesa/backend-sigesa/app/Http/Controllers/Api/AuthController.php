@@ -79,7 +79,7 @@ class AuthController extends BaseApiController
             ]);
 
             // Verificar credenciales
-            $user = User::where('email', $validated['email'])->first();
+            $user = User::with('roles:name')->where('email', $validated['email'])->first();
 
             if (!$user || !Hash::check($validated['password'], $user->password)) {
                 throw new ApiException('Credenciales incorrectas', 401);
@@ -102,6 +102,7 @@ class AuthController extends BaseApiController
                     'email' => $user->email,
                     'email_verified_at' => $user->email_verified_at,
                     'id_usuario_updated_fase' => $user->id_usuario_updated_fase,
+                    'roles' => $user->roles,
                     'created_at' => $user->created_at,
                     'updated_at' => $user->updated_at,
                 ]
@@ -218,7 +219,7 @@ class AuthController extends BaseApiController
     public function me(Request $request)
     {
         try {
-            $user = $request->user();
+            $user = $request->user()->load('roles:name');
             
             if (!$user) {
                 throw new ApiException('Usuario no autenticado', 401);
@@ -231,6 +232,7 @@ class AuthController extends BaseApiController
                 'email' => $user->email,
                 'email_verified_at' => $user->email_verified_at,
                 'id_usuario_updated_fase' => $user->id_usuario_updated_fase,
+                'roles' => $user->roles,
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at,
             ], 'Información del usuario obtenida exitosamente');

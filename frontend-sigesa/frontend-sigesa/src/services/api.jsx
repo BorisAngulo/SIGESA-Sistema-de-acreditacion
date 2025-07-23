@@ -1,5 +1,60 @@
 const API_URL = "http://127.0.0.1:8000/api";
 
+// Obtener token del localStorage
+const getAuthToken = () => localStorage.getItem('token');
+
+// Headers con autenticación
+const getAuthHeaders = () => {
+  const token = getAuthToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` })
+  };
+};
+
+// Funciones de autenticación
+export const authAPI = {
+  login: async (email, password) => {
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      return await res.json();
+    } catch (error) {
+      console.error('Error en login:', error);
+      throw error;
+    }
+  },
+
+  logout: async () => {
+    try {
+      const res = await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+      });
+      return await res.json();
+    } catch (error) {
+      console.error('Error en logout:', error);
+      throw error;
+    }
+  },
+
+  me: async () => {
+    try {
+      const res = await fetch(`${API_URL}/auth/me`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      });
+      return await res.json();
+    } catch (error) {
+      console.error('Error obteniendo usuario:', error);
+      throw error;
+    }
+  }
+};
+
 // Facultades
 export const getFacultades = async () => {
   try {
