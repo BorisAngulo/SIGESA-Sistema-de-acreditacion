@@ -13,6 +13,8 @@ import VisualizarCarreras from './screens/VisualizarCarreras';
 import CrearCarrera from './screens/CrearCarrera';
 import InformacionCarrera from './screens/InformacionCarrera';
 import FasesScreen from './screens/FasesScreen';
+import Login
+ from './screens/Login';
 function App() {
   const styles = {
     app: {
@@ -41,6 +43,7 @@ function App() {
              <Route path="/carrera/crear/:facultadId" element={<CrearCarrera />} />
              <Route path="/informacion-carrera/:carreraId" element={<InformacionCarrera />} />
               <Route path="/fases" element={<FasesScreen />} />
+              <Route path="/login" element={<Login />} />
           </Routes>
         </main>
 
