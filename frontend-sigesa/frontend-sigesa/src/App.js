@@ -6,7 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import Footer from './components/Footer';
 
-import Home from './screens/Home';
+import Home from './screens/home';
 import Login from './screens/Login';
 import AdminDashboard from './screens/UsersDashboarads/AdminDashboard';
 import CoordinadorDashboard from './screens/UsersDashboarads/CoordinadorDashboard';
