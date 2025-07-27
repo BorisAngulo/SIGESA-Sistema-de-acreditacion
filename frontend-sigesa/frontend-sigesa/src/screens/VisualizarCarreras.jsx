@@ -210,10 +210,6 @@ export default function VisualizarCarreras() {
             <Search className="search-icon" size={20} />
           </div>
         )}
-        
-        <p className="search-subtitle">
-          {carreras.length} {carreras.length === 1 ? 'carrera encontrada' : 'carreras encontradas'}
-        </p>
       </section>
 
       {/* Header con mascota y botón */}
