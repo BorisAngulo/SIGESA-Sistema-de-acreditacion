@@ -142,6 +142,21 @@
   transform: scale(1.1);
 }
 
+.dropdown-item.edit {
+  border-left: 3px solid transparent;
+}
+
+.dropdown-item.edit:hover {
+  background: linear-gradient(135deg, #e1f5fe 0%, #f0f8ff 100%);
+  color: #1976d2;
+  border-left-color: #1976d2;
+}
+
+.dropdown-item.edit:hover svg {
+  color: #1976d2;
+  transform: scale(1.1);
+}
+
 .dropdown-item.report {
   border-left: 3px solid transparent;
 }
@@ -209,13 +224,4 @@
     width: 14px;
     height: 14px;
   }
-}
-
-.dropdown-item.edit {
-  color: #072543
-}
-
-.dropdown-item.edit:hover {
-  background-color: rgba(59, 130, 246, 0.1);
-  color: #072543;
 }

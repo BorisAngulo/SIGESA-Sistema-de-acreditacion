@@ -2,13 +2,13 @@ import React from 'react';
 import { Eye, UserPlus, BarChart3, Trash2, MoreVertical, Settings, Edit2 } from 'lucide-react';
 import './ModalOpciones.css';
 
-const ModalOpciones = ({ 
-  isVisible, 
+const ModalOpciones = ({
+  isVisible,
   onToggle,
   // Props para Facultades
-  onVerCarreras, 
-  onAgregarCarrera, 
-  onEditarFacultad, 
+  onVerCarreras,
+  onAgregarCarrera,
+  onEditarFacultad,
   onEliminarFacultad,
   numeroCarreras,
   facultadId,
@@ -25,7 +25,7 @@ const ModalOpciones = ({
 }) => {
   const handleOptionClick = (action) => {
     action();
-    onToggle(); 
+    onToggle();
   };
 
   const renderFacultadOptions = () => (
@@ -101,7 +101,7 @@ const ModalOpciones = ({
       </button>
       
       <button 
-        className="dropdown-item report"
+        className="dropdown-item edit"
         type="button"
         onClick={() => handleOptionClick(() => onEditarCarrera(carreraId))}
       >
