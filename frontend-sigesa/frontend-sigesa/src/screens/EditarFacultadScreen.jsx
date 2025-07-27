@@ -92,6 +92,9 @@ export default function EditarFacultadScreen() {
           delete newErrors.pagina_facultad;
         }
         break;
+
+      default:
+        break;
     }
 
     setErrors(newErrors);
