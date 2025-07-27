@@ -210,3 +210,12 @@
     height: 14px;
   }
 }
+
+.dropdown-item.edit {
+  color: #072543
+}
+
+.dropdown-item.edit:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #072543;
+}

@@ -120,6 +120,63 @@ export const deleteFacultad = async (id) => {
     throw error;
   }
 };
+// Editar facultad
+export const updateFacultad = async (id, facultadData) => {
+  try {
+    const response = await fetch(`${API_URL}/facultades/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(facultadData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('Facultad no encontrada');
+      }
+      if (response.status === 422) {
+        const errors = data.errors || {};
+        const errorMessages = Object.values(errors).flat();
+        throw new Error(errorMessages.join(', '));
+      }
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return data.data || data;
+  } catch (error) {
+    console.error(`Error al actualizar facultad ${id}:`, error);
+    throw error;
+  }
+};
+
+// Obtener una facultad por id
+export const getFacultadById = async (id) => {
+  try {
+    const res = await fetch(`${API_URL}/facultades/${id}`);
+    const response = await res.json();
+    
+    if (!res.ok) {
+      if (res.status === 404) {
+        throw new Error('Facultad no encontrada');
+      }
+      throw new Error(response.error || `HTTP error! status: ${res.status}`);
+    }
+    if (response.exito && response.datos) {
+      return response.datos;
+    } else {
+      console.error('Error en la respuesta:', response.error || 'Error desconocido');
+      throw new Error(response.error || 'Error al obtener la facultad');
+    }
+  } catch (error) {
+    console.error('Error al obtener facultad por ID:', error);
+    throw error;
+  }
+};
+
 
 // Carreras
 export const getCarreras = async () => {

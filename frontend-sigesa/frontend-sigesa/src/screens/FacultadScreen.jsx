@@ -105,6 +105,10 @@ export default function FacultadScreen() {
     navigate(`/carrera/crear/${facultadId}`);
   };
 
+  const handleEditarFacultad = (facultadId) => {
+    navigate(`/facultad/editar/${facultadId}`);
+  };
+
   const handleEliminarFacultad = (id, nombre) => {
     setFacultadAEliminar({ id, nombre });
     setModalOpen(true);
@@ -247,6 +251,7 @@ export default function FacultadScreen() {
                 onToggle={() => handleToggleOpciones(f.id)}
                 onVerCarreras={handleVerCarreras}
                 onAgregarCarrera={handleAgregarCarrera}
+                onEditarFacultad={handleEditarFacultad}
                 onEliminarFacultad={handleEliminarFacultad}
                 numeroCarreras={f.numeroCarreras}
                 facultadId={f.id}

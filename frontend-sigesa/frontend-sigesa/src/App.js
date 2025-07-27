@@ -18,6 +18,7 @@ import VisualizarCarreras from './screens/VisualizarCarreras';
 import CrearCarrera from './screens/CrearCarrera';
 import InformacionCarrera from './screens/InformacionCarrera';
 import FasesScreen from './screens/FasesScreen';
+import EditarFacultadScreen from './screens/EditarFacultadScreen';
 function App() {
   const styles = {
     app: {
@@ -90,6 +91,12 @@ function App() {
               <Route path="/carrera/crear/:facultadId" element={
                 <ProtectedRoute allowedRoles={['Admin', 'Tecnico', 'Coordinador']}>
                   <CrearCarrera />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/facultad/editar/:id" element={
+                <ProtectedRoute allowedRoles={['Admin']}>
+                  <EditarFacultadScreen />
                 </ProtectedRoute>
               } />
               

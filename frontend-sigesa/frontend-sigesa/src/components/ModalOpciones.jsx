@@ -4,10 +4,11 @@ import './ModalOpciones.css';
 
 const ModalOpciones = ({ 
   isVisible, 
-  onToggle, 
+  onToggle,
   // Props para Facultades
   onVerCarreras, 
   onAgregarCarrera, 
+  onEditarFacultad, 
   onEliminarFacultad,
   numeroCarreras,
   facultadId,
@@ -30,7 +31,7 @@ const ModalOpciones = ({
   const renderFacultadOptions = () => (
     <>
       <button 
-        className="dropdown-item view" 
+        className="dropdown-item view"
         type="button"
         onClick={() => handleOptionClick(() => onVerCarreras(facultadId))}
       >
@@ -39,7 +40,7 @@ const ModalOpciones = ({
       </button>
       
       <button 
-        className="dropdown-item add" 
+        className="dropdown-item add"
         type="button"
         onClick={() => handleOptionClick(() => onAgregarCarrera(facultadId))}
       >
@@ -48,7 +49,16 @@ const ModalOpciones = ({
       </button>
       
       <button 
-        className="dropdown-item report" 
+        className="dropdown-item edit"
+        type="button"
+        onClick={() => handleOptionClick(() => onEditarFacultad(facultadId))}
+      >
+        <Edit2 size={16} />
+        <span>Editar Información</span>
+      </button>
+      
+      <button 
+        className="dropdown-item report"
         type="button"
         onClick={() => handleOptionClick(() => console.log('Generar reportes'))}
       >
@@ -73,7 +83,7 @@ const ModalOpciones = ({
   const renderCarreraOptions = () => (
     <>
       <button 
-        className="dropdown-item view" 
+        className="dropdown-item view"
         type="button"
         onClick={() => handleOptionClick(() => onVerInformacion(carreraId))}
       >
@@ -82,7 +92,7 @@ const ModalOpciones = ({
       </button>
       
       <button 
-        className="dropdown-item add" 
+        className="dropdown-item add"
         type="button"
         onClick={() => handleOptionClick(() => onGestionarModalidades(carreraId))}
       >
@@ -91,7 +101,7 @@ const ModalOpciones = ({
       </button>
       
       <button 
-        className="dropdown-item report" 
+        className="dropdown-item report"
         type="button"
         onClick={() => handleOptionClick(() => onEditarCarrera(carreraId))}
       >
@@ -116,7 +126,7 @@ const ModalOpciones = ({
   return (
     <div className="menu-toggle-container">
       <button 
-        className="menu-toggle" 
+        className="menu-toggle"
         onClick={(e) => {
           e.stopPropagation();
           onToggle();

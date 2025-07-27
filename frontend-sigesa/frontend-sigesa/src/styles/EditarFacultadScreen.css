@@ -1,0 +1,369 @@
+.editar-facultad-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 20px;
+}
+
+.editar-facultad-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 20px;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e9ecef;
+  border-top: 4px solid #A21426;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.editar-facultad-header {
+  max-width: 800px;
+  margin: 0 auto 30px auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #041B2C;
+  padding: 25px 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(4, 27, 44, 0.15);
+  color: white;
+}
+
+.btn-volver {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-volver:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.mascota-header {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid #A21426;
+  background: white;
+  padding: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header-text h1 {
+  margin: 0;
+  font-size: 1.8em;
+  font-weight: 600;
+  color: white;
+}
+
+.header-text p {
+  margin: 5px 0 0 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+}
+
+.alert {
+  max-width: 800px;
+  margin: 0 auto 20px auto;
+  padding: 15px 20px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  animation: slideIn 0.3s ease;
+}
+
+.alert-success {
+  background: #d1eddc;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.editar-facultad-card {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.facultad-form {
+  padding: 40px;
+}
+
+.form-group {
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #041B2C;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 15px 20px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  background: white;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3C5468;
+  box-shadow: 0 0 0 3px rgba(60, 84, 104, 0.1);
+}
+
+.form-input.error {
+  border-color: #dc3545;
+  background: #fdf2f2;
+}
+
+.form-input.error:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.form-input.success {
+  border-color: #28a745;
+  background: #f8fff9;
+}
+
+.form-input.success:focus {
+  border-color: #28a745;
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #dc3545;
+  font-size: 14px;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+.char-counter {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-size: 12px;
+  color: #7B94AA;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 6px;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px solid #e9ecef;
+}
+
+.btn-cancelar,
+.btn-guardar {
+  padding: 15px 25px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  border: none;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.btn-cancelar {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-cancelar:hover:not(:disabled) {
+  background: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+.btn-guardar {
+  background: #A21426;
+  color: white;
+}
+
+.btn-guardar:hover:not(:disabled) {
+  background: #8b1220;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(162, 20, 38, 0.3);
+}
+
+.btn-guardar:disabled,
+.btn-cancelar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+@media (max-width: 768px) {
+  .editar-facultad-container {
+    padding: 15px;
+  }
+
+  .editar-facultad-header {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .facultad-form {
+    padding: 25px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .btn-cancelar,
+  .btn-guardar {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .char-counter {
+    position: static;
+    text-align: right;
+    margin-top: 5px;
+    background: none;
+    padding: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .editar-facultad-header {
+    padding: 15px;
+  }
+
+  .header-text h1 {
+    font-size: 1.5em;
+  }
+
+  .facultad-form {
+    padding: 20px;
+  }
+
+  .form-input {
+    padding: 12px 15px;
+    font-size: 15px;
+  }
+
+  .btn-cancelar,
+  .btn-guardar {
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+}
+
+.editar-facultad-card {
+  animation: fadeInUp 0.4s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-input:hover:not(:focus) {
+  border-color: #adb5bd;
+}
+
+.form-group:hover .char-counter {
+  color: #495057;
+}
+
+.btn-volver:focus-visible,
+.btn-cancelar:focus-visible,
+.btn-guardar:focus-visible {
+  outline: 2px solid #A21426;
+  outline-offset: 2px;
+}
+
+.form-input:focus-visible {
+  outline: 2px solid #3C5468;
+  outline-offset: 2px;
+}
