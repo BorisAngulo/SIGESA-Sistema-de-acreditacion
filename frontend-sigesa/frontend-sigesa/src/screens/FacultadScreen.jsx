@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { getFacultades, deleteFacultad, getCarrerasByFacultad } from "../services/api";
-import { Search, Plus, Eye, UserPlus, BarChart3, Trash2, MoreVertical } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import mascota from "../assets/mascota.png";
 import { useNavigate } from "react-router-dom";
-import ModalConfirmacion from "../components/ModalConfirmacion"; 
+import ModalConfirmacion from "../components/ModalConfirmacion";
+import ModalOpciones from "../components/ModalOpciones";
 import "../styles/FacultadScreen.css";
 
 export default function FacultadScreen() {
@@ -67,21 +68,17 @@ export default function FacultadScreen() {
     }
   };
 
- const handleVerCarreras = (facultadId) => {
+  const handleVerCarreras = (facultadId) => {
     navigate(`/visualizar-carreras/${facultadId}`);
-    setOpcionesVisibles(null);
   };
-
 
   const handleAgregarCarrera = (facultadId) => {
     navigate(`/carrera/crear/${facultadId}`);
-    setOpcionesVisibles(null);
   };
 
   const handleEliminarFacultad = (id, nombre) => {
     setFacultadAEliminar({ id, nombre });
     setModalOpen(true);
-    setOpcionesVisibles(null); 
   };
 
   const confirmarEliminacion = async () => {
@@ -135,8 +132,7 @@ export default function FacultadScreen() {
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Cargando facultades...</p>
+         <p className="loading-text">Cargando facultades...</p>
       </div>
     );
   }
@@ -182,7 +178,7 @@ export default function FacultadScreen() {
               alt={f.nombre_facultad}
               className="faculty-logo"
               onError={(e) => {
-                e.target.src = "/logos/default.png"; // Imagen por defecto si no existe
+                e.target.src = "/logos/default.png";
               }}
             />
             <div className="faculty-info">
@@ -206,56 +202,17 @@ export default function FacultadScreen() {
               </ul>
             </div>
 
-            {/* Menú de acciones */}
-            <div className="menu-toggle-container">
-              <button 
-                className="menu-toggle" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleToggleOpciones(f.id);
-                }}
-              >
-                <MoreVertical size={20} />
-              </button>
-              {opcionesVisibles === f.id && (
-                <div 
-                  className="dropdown-menu"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <button 
-                    className="dropdown-item view" 
-                    type="button"
-                    onClick={() => handleVerCarreras(f.id)}
-                  >
-                    <Eye size={16} />
-                    <span>Ver Carreras ({f.numeroCarreras})</span>
-                  </button>
-                  <button 
-                    className="dropdown-item add" 
-                    type="button"
-                    onClick={() => handleAgregarCarrera(f.id)}
-                  >
-                    <UserPlus size={16} />
-                    <span>Añadir Carrera</span>
-                  </button>
-                  <button className="dropdown-item report" type="button">
-                    <BarChart3 size={16} />
-                    <span>Generar Reportes</span>
-                  </button>
-                  <button 
-                    className="dropdown-item delete"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleEliminarFacultad(f.id, f.nombre_facultad);
-                    }}
-                  >
-                    <Trash2 size={16} />
-                    <span>Eliminar Facultad</span>
-                  </button>
-                </div>
-              )}
-            </div>
+            {/* Modal de opciones */}
+            <ModalOpciones
+              isVisible={opcionesVisibles === f.id}
+              onToggle={() => handleToggleOpciones(f.id)}
+              onVerCarreras={handleVerCarreras}
+              onAgregarCarrera={handleAgregarCarrera}
+              onEliminarFacultad={handleEliminarFacultad}
+              numeroCarreras={f.numeroCarreras}
+              facultadId={f.id}
+              facultadNombre={f.nombre_facultad}
+            />
           </div>
         ))}
         
