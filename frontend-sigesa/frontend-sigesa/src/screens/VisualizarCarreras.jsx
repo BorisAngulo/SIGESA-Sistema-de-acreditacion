@@ -128,30 +128,27 @@ export default function VisualizarCarreras() {
     setEliminando(false);
   };
 
-  const getCardColor = (index) => {
-    const colors = [
-      '#A21426', '#041B2C', '#7B94AA', '#3C5468', '#072543',
-      '#A21426', '#7B94AA', '#3C5468', '#072543', '#041B2C'
-    ];
-    return colors[index % colors.length];
-  };
-
-  const getCardColorDark = (index) => {
-    const darkColors = [
-      '#7B1221', '#072543', '#5A748A', '#2A3D4F', '#041B2C',
-      '#3C5468', '#041B2C', '#A21426', '#7B94AA', '#A21426'
-    ];
-    return darkColors[index % darkColors.length];
-  };
-
   const filteredCarreras = carreras.filter((carrera) =>
     carrera.nombre_carrera?.toLowerCase().includes(busqueda.toLowerCase()) ||
     carrera.codigo_carrera?.toLowerCase().includes(busqueda.toLowerCase())
   );
 
+  const cardColors = [
+    'linear-gradient(135deg, #A21426 0%, #7B1221 100%)',
+    'linear-gradient(135deg, #041B2C 0%, #072543 100%)',
+    'linear-gradient(135deg, #7B94AA 0%, #5A748A 100%)',
+    'linear-gradient(135deg, #3C5468 0%, #2A3D4F 100%)',
+    'linear-gradient(135deg, #072543 0%, #041B2C 100%)',
+    'linear-gradient(135deg, #A21426 20%, #3C5468 100%)',
+    'linear-gradient(135deg, #7B94AA 0%, #041B2C 100%)',
+    'linear-gradient(135deg, #3C5468 0%, #A21426 100%)',
+    'linear-gradient(135deg, #072543 0%, #7B94AA 100%)',
+    'linear-gradient(135deg, #041B2C 0%, #A21426 100%)'
+  ];
+
   if (loading) {
     return (
-      <div className="container loading">
+      <div className="loading-container">
         <p className="loading-text">Cargando carreras...</p>
       </div>
     );
@@ -159,8 +156,8 @@ export default function VisualizarCarreras() {
 
   if (error) {
     return (
-      <div className="container">
-        <div className="error">
+      <div className="carreras-view">
+        <div className="error-container">
           <h2>Error</h2>
           <p>{error}</p>
           <div>
@@ -184,9 +181,10 @@ export default function VisualizarCarreras() {
   }
 
   return (
-    <div className="container" onClick={handleOutsideClick}>
-      <div className="header">
-        <div className="header-top">
+    <div className="carreras-view" onClick={handleOutsideClick}>
+      {/* Sección de búsqueda */}
+      <section className="busqueda-section">
+        <div className="header-navigation">
           <button 
             onClick={handleVolver}
             className="back-btn"
@@ -194,36 +192,17 @@ export default function VisualizarCarreras() {
             <ArrowLeft size={20} />
             <span>Volver a Facultades</span>
           </button>
-          
-          <button 
-            onClick={handleAgregarCarrera}
-            className="add-btn"
-          >
-            <Plus size={20} />
-            <span>Agregar Carrera</span>
-          </button>
         </div>
         
-        <h1 className="title">
+        <h2 className="search-title">
           Carreras de {facultad?.nombre_facultad}
-        </h1>
-        <p className="subtitle">
+        </h2>
+        <p className="search-subtitle">
           {carreras.length} {carreras.length === 1 ? 'carrera encontrada' : 'carreras encontradas'}
         </p>
-      </div>
-
-      {/* Header con mascota */}
-      <div className="header-actions">
-        <div className="mascota-container">
-          <img src={mascota} alt="mascota" className="mascota-img" />
-          <span className="mascota-message">¡Explora las carreras disponibles!</span>
-        </div>
-      </div>
-
-      {carreras.length > 0 && (
-        <div className="search-box">
-          <div className="search-wrapper">
-            <Search className="search-icon" size={20} />
+        
+        {carreras.length > 0 && (
+          <div className="search-container">
             <input
               type="text"
               className="search-input"
@@ -231,51 +210,62 @@ export default function VisualizarCarreras() {
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
             />
+            <Search className="search-icon" size={20} />
           </div>
-        </div>
-      )}
+        )}
+      </section>
 
-      {filteredCarreras.length === 0 && carreras.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">
-            <svg width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-          </div>
-          <h3 className="empty-title">No hay carreras registradas</h3>
-          <p className="empty-message">Esta facultad no tiene carreras registradas aún.</p>
-          <button 
-            onClick={handleAgregarCarrera}
-            className="btn-primary"
-          >
-            Agregar Primera Carrera
-          </button>
+      {/* Header con mascota y botón */}
+      <div className="header-actions">
+        <div className="mascota-container">
+          <img src={mascota} alt="mascota" className="mascota-img" />
+          <span className="mascota-message">¡Explora las carreras disponibles!</span>
         </div>
-      ) : filteredCarreras.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">
-            <Search size={64} />
+        <button className="btn-agregar-facultad" onClick={handleAgregarCarrera}>
+          <Plus size={20} />
+          <span>Añadir Carrera</span>
+        </button>
+      </div>
+
+      {/* Lista de carreras */}
+      <section className="facultades-list">
+        {filteredCarreras.length === 0 && carreras.length === 0 ? (
+          <div className="no-results">
+            <div className="empty-icon">
+              <svg width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+            </div>
+            <h3>No hay carreras registradas</h3>
+            <p>Esta facultad no tiene carreras registradas aún.</p>
+            <button 
+              onClick={handleAgregarCarrera}
+              className="btn-agregar-facultad"
+              style={{ marginTop: '20px' }}
+            >
+              <Plus size={20} />
+              <span>Agregar Primera Carrera</span>
+            </button>
           </div>
-          <h3 className="empty-title">No se encontraron resultados</h3>
-          <p className="empty-message">No hay carreras que coincidan con tu búsqueda.</p>
-        </div>
-      ) : (
-        <div className="carreras-list">
-          {filteredCarreras.map((carrera, index) => (
+        ) : filteredCarreras.length === 0 ? (
+          <div className="no-results">
+            <Search size={48} className="no-results-icon" />
+            <p>No se encontraron carreras que coincidan con su búsqueda.</p>
+          </div>
+        ) : (
+          filteredCarreras.map((carrera, index) => (
             <div 
               key={carrera.id} 
-              className={`carrera-card-horizontal ${opcionesVisibles === carrera.id ? 'menu-active' : ''}`}
-              style={{ 
-                background: `linear-gradient(135deg, ${getCardColor(index)} 0%, ${getCardColorDark(index)} 100%)` 
-              }}
+              className={`faculty-card-horizontal ${opcionesVisibles === carrera.id ? 'menu-active' : ''}`}
+              style={{ background: cardColors[index % cardColors.length] }}
             >
-              <div className="carrera-icon">
+              <div className="faculty-logo">
                 <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
               </div>
               
-              <div className="carrera-info">
+              <div className="faculty-info">
                 <h3>{carrera.nombre_carrera}</h3>
                 <ul>
                   <li><strong>Código:</strong> {carrera.codigo_carrera}</li>
@@ -308,10 +298,11 @@ export default function VisualizarCarreras() {
                 tipo="carrera"
               />
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </section>
 
+      {/* Modal de confirmación */}
       <ModalConfirmacion
         isOpen={modalOpen}
         onClose={cancelarEliminacion}
@@ -320,6 +311,7 @@ export default function VisualizarCarreras() {
         loading={eliminando}
         tipo="carrera"
       />
+      <div style={{ height: '25px' }}></div>
     </div>
   );
 }
