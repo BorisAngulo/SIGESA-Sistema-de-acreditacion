@@ -275,3 +275,126 @@
     font-size: 16px;
   }
 }
+
+/* wwwebbbb*/
+.faculty-web-section {
+  margin-top: 15px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(5px);
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.faculty-web-section .web-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.faculty-web-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.faculty-web-link:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  color: white;
+}
+
+.faculty-web-link:active {
+  transform: translateY(0);
+}
+
+.faculty-web-link::before {
+  content: "🌐";
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.faculty-web-link-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+  max-width: calc(100% - 60px);
+}
+
+.faculty-web-link::after {
+  content: "↗";
+  font-size: 12px;
+  opacity: 0.7;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.faculty-web-section.minimal {
+  background: none;
+  border: none;
+  padding: 8px 0 0 0;
+  margin-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.faculty-web-section.minimal .faculty-web-link {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  justify-content: center;
+}
+
+.faculty-web-section.minimal .faculty-web-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.faculty-web-section.no-link {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.faculty-web-section.no-link .faculty-web-link {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .faculty-web-section {
+    margin-top: 12px;
+    padding: 10px;
+  }
+  
+  .faculty-web-link {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  
+  .faculty-web-section .web-label {
+    font-size: 11px;
+  }
+}

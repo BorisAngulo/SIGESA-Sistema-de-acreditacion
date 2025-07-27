@@ -181,26 +181,30 @@ export default function FacultadScreen() {
                 e.target.src = "/logos/default.png";
               }}
             />
-            <div className="faculty-info">
-              <h3>{f.nombre_facultad}</h3>
-              <ul>
-                <li><strong>Carreras:</strong> {f.numeroCarreras}</li>
-                <li><strong>Código:</strong> {f.codigo_facultad}</li>
-                {f.pagina_web && (
-                  <li>
-                    <strong>Web:</strong> 
-                    <a 
-                      href={f.pagina_web} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="web-link"
-                    >
-                      Ver sitio
-                    </a>
-                  </li>
-                )}
-              </ul>
+           <div className="faculty-info">
+            <h3>{f.nombre_facultad}</h3>
+            <ul>
+              <li><strong>Carreras:</strong> {f.numeroCarreras}</li>
+              <li><strong>Código:</strong> {f.codigo_facultad}</li>
+            </ul>
+            <div className={`faculty-web-section ${!f.pagina_facultad ? 'no-link' : ''}`}>
+              <span className="web-label">Sitio Web</span>
+              {f.pagina_facultad ? (
+                <a 
+                  href={f.pagina_facultad} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="faculty-web-link"
+                >
+                  <span className="faculty-web-link-text">{f.pagina_facultad}</span>
+                </a>
+              ) : (
+                <div className="faculty-web-link">
+                  <span className="faculty-web-link-text">No disponible</span>
+                </div>
+              )}
             </div>
+          </div>
 
             {/* Modal de opciones */}
             <ModalOpciones
