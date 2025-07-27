@@ -197,9 +197,6 @@ export default function VisualizarCarreras() {
         <h2 className="search-title">
           Carreras de {facultad?.nombre_facultad}
         </h2>
-        <p className="search-subtitle">
-          {carreras.length} {carreras.length === 1 ? 'carrera encontrada' : 'carreras encontradas'}
-        </p>
         
         {carreras.length > 0 && (
           <div className="search-container">
@@ -213,6 +210,10 @@ export default function VisualizarCarreras() {
             <Search className="search-icon" size={20} />
           </div>
         )}
+        
+        <p className="search-subtitle">
+          {carreras.length} {carreras.length === 1 ? 'carrera encontrada' : 'carreras encontradas'}
+        </p>
       </section>
 
       {/* Header con mascota y botón */}
@@ -228,7 +229,7 @@ export default function VisualizarCarreras() {
       </div>
 
       {/* Lista de carreras */}
-      <section className="facultades-list">
+      <section className="facultades-list" style={{ padding: '0 20px' }}>
         {filteredCarreras.length === 0 && carreras.length === 0 ? (
           <div className="no-results">
             <div className="empty-icon">
