@@ -343,6 +343,11 @@
   flex: 1;
   min-width: 0;
   max-width: calc(100% - 60px);
+  display: inline-block;
+}
+
+.faculty-web-link-text.truncated {
+  position: relative;
 }
 
 .faculty-web-link::after {
@@ -396,5 +401,25 @@
   
   .faculty-web-section .web-label {
     font-size: 11px;
+  }
+  
+  /* urls más cortas en caso de que se use mobile*/
+  .faculty-web-link-text {
+    max-width: calc(100% - 40px);
+  }
+}
+
+@media (max-width: 480px) {
+  .faculty-web-link-text {
+    max-width: calc(100% - 35px);
+    font-size: 11px;
+  }
+  
+  .faculty-web-link::before {
+    font-size: 12px;
+  }
+  
+  .faculty-web-link::after {
+    font-size: 10px;
   }
 }

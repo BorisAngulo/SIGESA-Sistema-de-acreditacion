@@ -7,6 +7,35 @@ import ModalConfirmacion from "../components/ModalConfirmacion";
 import ModalOpciones from "../components/ModalOpciones";
 import "../styles/FacultadScreen.css";
 
+const truncateUrl = (url, maxLength = 50) => {
+  if (!url || url.length <= maxLength) {
+    return url;
+  }
+  
+  try {
+    const urlObj = new URL(url);
+    const domain = urlObj.hostname;
+    const protocol = urlObj.protocol;
+    if (domain.length > maxLength - 10) {
+      return url.substring(0, maxLength - 3) + '...';
+    }
+    
+    const domainPart = `${protocol}//${domain}`;
+    const remainingLength = maxLength - domainPart.length - 3; 
+    
+    if (remainingLength > 0) {
+      const pathPart = url.substring(domainPart.length);
+      if (pathPart.length > remainingLength) {
+        return domainPart + pathPart.substring(0, remainingLength) + '...';
+      }
+    }
+    
+    return url.substring(0, maxLength - 3) + '...';
+  } catch (error) {
+    return url.substring(0, maxLength - 3) + '...';
+  }
+};
+
 export default function FacultadScreen() {
   const [facultades, setFacultades] = useState([]);
   const [facultadesConCarreras, setFacultadesConCarreras] = useState([]);
@@ -167,58 +196,65 @@ export default function FacultadScreen() {
 
       {/* Lista de facultades */}
       <section className="facultades-list">
-        {filteredFacultades.map((f, index) => (
-          <div 
-            key={f.id} 
-            className={`faculty-card-horizontal ${opcionesVisibles === f.id ? 'menu-active' : ''}`}
-            style={{ background: cardColors[index % cardColors.length] }}
-          >
-            <img
-              src={`/logos/${f.codigo_facultad}.png`}
-              alt={f.nombre_facultad}
-              className="faculty-logo"
-              onError={(e) => {
-                e.target.src = "/logos/default.png";
-              }}
-            />
-           <div className="faculty-info">
-            <h3>{f.nombre_facultad}</h3>
-            <ul>
-              <li><strong>Carreras:</strong> {f.numeroCarreras}</li>
-              <li><strong>Código:</strong> {f.codigo_facultad}</li>
-            </ul>
-            <div className={`faculty-web-section ${!f.pagina_facultad ? 'no-link' : ''}`}>
-              <span className="web-label">Sitio Web</span>
-              {f.pagina_facultad ? (
-                <a 
-                  href={f.pagina_facultad} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="faculty-web-link"
-                >
-                  <span className="faculty-web-link-text">{f.pagina_facultad}</span>
-                </a>
-              ) : (
-                <div className="faculty-web-link">
-                  <span className="faculty-web-link-text">No disponible</span>
+        {filteredFacultades.map((f, index) => {
+          const truncatedUrl = f.pagina_facultad ? truncateUrl(f.pagina_facultad, 50) : null;
+          const isUrlTruncated = truncatedUrl && truncatedUrl.includes('...');
+          
+          return (
+            <div 
+              key={f.id} 
+              className={`faculty-card-horizontal ${opcionesVisibles === f.id ? 'menu-active' : ''}`}
+              style={{ background: cardColors[index % cardColors.length] }}
+            >
+              <img
+                src={`/logos/${f.codigo_facultad}.png`}
+                alt={f.nombre_facultad}
+                className="faculty-logo"
+                onError={(e) => {
+                  e.target.src = "/logos/default.png";
+                }}
+              />
+              <div className="faculty-info">
+                <h3>{f.nombre_facultad}</h3>
+                <ul>
+                  <li><strong>Carreras:</strong> {f.numeroCarreras}</li>
+                  <li><strong>Código:</strong> {f.codigo_facultad}</li>
+                </ul>
+                <div className={`faculty-web-section ${!f.pagina_facultad ? 'no-link' : ''}`}>
+                  <span className="web-label">Sitio Web</span>
+                  {f.pagina_facultad ? (
+                    <a 
+                      href={f.pagina_facultad} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="faculty-web-link"
+                      title={isUrlTruncated ? f.pagina_facultad : undefined}
+                    >
+                      <span className={`faculty-web-link-text ${isUrlTruncated ? 'truncated' : ''}`}>
+                        {truncatedUrl}
+                      </span>
+                    </a>
+                  ) : (
+                    <div className="faculty-web-link">
+                      <span className="faculty-web-link-text">No disponible</span>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
 
-            {/* Modal de opciones */}
-            <ModalOpciones
-              isVisible={opcionesVisibles === f.id}
-              onToggle={() => handleToggleOpciones(f.id)}
-              onVerCarreras={handleVerCarreras}
-              onAgregarCarrera={handleAgregarCarrera}
-              onEliminarFacultad={handleEliminarFacultad}
-              numeroCarreras={f.numeroCarreras}
-              facultadId={f.id}
-              facultadNombre={f.nombre_facultad}
-            />
-          </div>
-        ))}
+              <ModalOpciones
+                isVisible={opcionesVisibles === f.id}
+                onToggle={() => handleToggleOpciones(f.id)}
+                onVerCarreras={handleVerCarreras}
+                onAgregarCarrera={handleAgregarCarrera}
+                onEliminarFacultad={handleEliminarFacultad}
+                numeroCarreras={f.numeroCarreras}
+                facultadId={f.id}
+                facultadNombre={f.nombre_facultad}
+              />
+            </div>
+          );
+        })}
         
         {filteredFacultades.length === 0 && !loading && (
           <div className="no-results">
