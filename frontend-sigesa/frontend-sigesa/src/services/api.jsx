@@ -160,6 +160,42 @@ export const createCarrera = async (data) => {
   }
 };
 
+// Función para eliminar una carrera
+export const deleteCarrera = async (carreraId) => {
+  try {
+    const response = await fetch(`${API_URL}/carreras/${carreraId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        // Agregar aquí headers de autenticación cuando entienda
+      },
+    });
+    if (!response.ok) {
+      let errorMessage = 'Error al eliminar la carrera';
+      
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || errorMessage;
+      } catch (e) {
+        errorMessage = `Error ${response.status}: ${response.statusText}`;
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    // Intentar parsear la respuesta JSON
+    const data = await response.json();
+    if (data.exito !== true) {
+      throw new Error(data.error || 'Error al eliminar la carrera');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error en deleteCarrera:', error);
+    throw error; 
+  }
+};
+
 // Obtener carreras por facultad
 export const getCarrerasByFacultad = async (facultadId) => {
   try {

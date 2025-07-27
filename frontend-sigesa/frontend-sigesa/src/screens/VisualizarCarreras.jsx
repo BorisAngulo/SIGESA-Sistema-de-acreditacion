@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getCarrerasByFacultad, getFacultades } from '../services/api';
+import { getCarrerasByFacultad, getFacultades, deleteCarrera } from '../services/api';
 import { 
   ArrowLeft, 
   Plus, 
   Search
 } from 'lucide-react';
 import ModalOpciones from '../components/ModalOpciones';
+import ModalConfirmacion from '../components/ModalConfirmacion';
 import mascota from "../assets/mascota.png";
 import "../styles/VisualizarCarreras.css";
 
@@ -19,6 +20,9 @@ export default function VisualizarCarreras() {
   const [error, setError] = useState(null);
   const [busqueda, setBusqueda] = useState("");
   const [opcionesVisibles, setOpcionesVisibles] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [carreraAEliminar, setCarreraAEliminar] = useState(null);
+  const [eliminando, setEliminando] = useState(false);
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -93,8 +97,35 @@ export default function VisualizarCarreras() {
   };
 
   const handleEliminarCarrera = (carreraId, carreraNombre) => {
-    console.log('Eliminar carrera:', carreraId, carreraNombre);
-    // Aquí implementarías la lógica de eliminación
+    setCarreraAEliminar({ id: carreraId, nombre: carreraNombre });
+    setModalOpen(true);
+    setOpcionesVisibles(null); 
+  };
+
+  const confirmarEliminacion = async () => {
+    if (!carreraAEliminar) return;
+    
+    setEliminando(true);
+    try {
+      await deleteCarrera(carreraAEliminar.id);
+  
+      setCarreras(carreras.filter(c => c.id !== carreraAEliminar.id));
+      
+      setModalOpen(false);
+      setCarreraAEliminar(null);
+      alert("Carrera eliminada correctamente");
+    } catch (err) {
+      console.error("Error al eliminar carrera:", err);
+      alert("No se pudo eliminar la carrera. Por favor, inténtalo de nuevo.");
+    } finally {
+      setEliminando(false);
+    }
+  };
+
+  const cancelarEliminacion = () => {
+    setModalOpen(false);
+    setCarreraAEliminar(null);
+    setEliminando(false);
   };
 
   const getCardColor = (index) => {
@@ -280,6 +311,15 @@ export default function VisualizarCarreras() {
           ))}
         </div>
       )}
+
+      <ModalConfirmacion
+        isOpen={modalOpen}
+        onClose={cancelarEliminacion}
+        onConfirm={confirmarEliminacion}
+        facultadNombre={carreraAEliminar?.nombre || ""}
+        loading={eliminando}
+        tipo="carrera"
+      />
     </div>
   );
 }
