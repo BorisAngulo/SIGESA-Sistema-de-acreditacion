@@ -20,6 +20,7 @@ import InformacionCarrera from './screens/InformacionCarrera';
 import FasesScreen from './screens/FasesScreen';
 import EditarFacultadScreen from './screens/EditarFacultadScreen';
 import EditarCarreraScreen from './screens/EditarCarreraScreen';
+import ModalidadesScreen from './screens/ModalidadesScreen';
 
 
 function App() {
@@ -115,6 +116,8 @@ function App() {
                 </ProtectedRoute>
               } />
               
+              <Route path="/modalidades/arco-sur" element={<ModalidadesScreen modalidad="arco-sur" />} />
+              <Route path="/modalidades/ceub" element={<ModalidadesScreen modalidad="ceub" />} />
               <Route path="/fases" element={
                 <ProtectedRoute>
                   <FasesScreen />
