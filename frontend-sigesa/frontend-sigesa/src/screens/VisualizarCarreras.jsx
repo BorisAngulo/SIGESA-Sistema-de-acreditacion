@@ -91,11 +91,10 @@ export default function VisualizarCarreras() {
   };
 
   const handleEditarCarrera = (carreraId) => {
-    const carrera = carreras.find(c => c.id === carreraId);
-    console.log('Editar carrera:', carrera);
-    // navigate(`/carrera/${carreraId}/editar`);
+    console.log('Redirigiendo a editar carrera con ID:', carreraId);
+    navigate(`/carrera/editar/${carreraId}`);
   };
-
+  
   const handleEliminarCarrera = (carreraId, carreraNombre) => {
     setCarreraAEliminar({ id: carreraId, nombre: carreraNombre });
     setModalOpen(true);

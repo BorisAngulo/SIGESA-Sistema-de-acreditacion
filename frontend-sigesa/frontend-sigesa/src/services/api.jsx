@@ -196,6 +196,31 @@ export const getCarreras = async () => {
   }
 };
 
+export const getCarreraById = async (id) => {
+  try {
+    const response = await fetch(`${API_URL}/carreras/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    if (result.exito && result.datos) {
+      return result.datos;
+    } else {
+      throw new Error(result.error || 'Error al obtener la carrera');
+    }
+  } catch (error) {
+    console.error('Error en getCarreraById:', error);
+    throw error;
+  }
+};
+
 export const createCarrera = async (data) => {
   try {
     const res = await fetch(`${API_URL}/carreras`, {
@@ -216,6 +241,51 @@ export const createCarrera = async (data) => {
     throw error;
   }
 };
+
+export const updateCarrera = async (id, data) => {
+  try {
+    const dataToSend = {
+      facultad_id: data.id_facultad,
+      codigo_carrera: data.codigo_carrera,
+      nombre_carrera: data.nombre_carrera,
+      pagina_carrera: data.pagina_carrera,
+    };
+
+    Object.keys(dataToSend).forEach(key => {
+      if (dataToSend[key] === undefined || dataToSend[key] === null) {
+        delete dataToSend[key];
+      }
+    });
+
+    const response = await fetch(`${API_URL}/carreras/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(dataToSend),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 422 && result.errors) {
+        const validationErrors = Object.values(result.errors).flat();
+        throw new Error(validationErrors.join(', '));
+      }
+      throw new Error(result.error || `Error ${response.status}: ${response.statusText}`);
+    }
+
+    if (result.exito && result.datos) {
+      return result.datos;
+    } else {
+      throw new Error(result.error || 'Error al actualizar la carrera');
+    }
+  } catch (error) {
+    console.error('Error en updateCarrera:', error);
+    throw error;
+  }
+};
+
 
 // Función para eliminar una carrera
 export const deleteCarrera = async (carreraId) => {
