@@ -6,8 +6,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import Footer from './components/Footer';
 
-import Home from './screens/home';
+import Home from './screens/Home';
 import Login from './screens/Login';
+import UsuariosScreen from './screens/UsuariosScreen';
 import AdminDashboard from './screens/UsersDashboarads/AdminDashboard';
 import CoordinadorDashboard from './screens/UsersDashboarads/CoordinadorDashboard';
 import TecnicoDUEA from './screens/TecnicoDUEA';
@@ -50,6 +51,12 @@ function App() {
               <Route path="/admin" element={
                 <ProtectedRoute allowedRoles={['Admin']}>
                   <AdminDashboard />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/usuarios" element={
+                <ProtectedRoute allowedRoles={['Admin']}>
+                  <UsuariosScreen />
                 </ProtectedRoute>
               } />
               
