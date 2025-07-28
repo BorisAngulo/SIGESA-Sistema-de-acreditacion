@@ -1,105 +1,90 @@
 .fases-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #f5f5f5;
   min-height: 100vh;
-  background: #f8fafc;
-  padding: 0;
-}
-
-.fases-header {
-  background: white;
-  padding: 16px 24px;
-  border-bottom: 1px solid #e2e8f0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
 }
 
 .breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   font-size: 14px;
-  color: #64748b;
+  color: #333;
+  margin-bottom: 20px;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
 }
 
 .breadcrumb .separator {
-  color: #94a3b8;
-  margin: 0 4px;
+  margin: 0 8px;
+  color: #666;
 }
 
 .breadcrumb .current {
-  color: #1e293b;
-  font-weight: 500;
-}
-
-.breadcrumb-link {
-  color: #2563eb;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.breadcrumb-link:hover {
-  color: #1d4ed8;
-  text-decoration: underline;
+  font-weight: 600;
+  color: #1a365d;
 }
 
 .action-buttons-header {
   display: flex;
-  gap: 12px;
+  gap: 15px;
+  margin-bottom: 30px;
 }
 
-.header-btn {
-  padding: 10px 20px;
+.btn-agregar-fase {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s;
+}
+
+.btn-agregar-fase:hover {
+  background-color: #c82333;
+}
+
+.btn-finalizar {
+  background-color: #1a365d;
+  color: white;
   border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.header-btn.add-phase {
-  background: #dc2626;
-  color: white;
-}
-
-.header-btn.add-phase:hover {
-  background: #b91c1c;
-}
-
-.header-btn.finalize {
-  background: #1e40af;
-  color: white;
-}
-
-.header-btn.finalize:hover {
-  background: #1d4ed8;
+.btn-finalizar:hover {
+  background-color: #2d3748;
 }
 
 .fases-list {
-  padding: 0;
-  max-width: 1200px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .fase-item {
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
-  transition: all 0.2s ease;
-}
-
-.fase-item:hover {
-  background: #fafbfc;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .fase-header {
-  padding: 20px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 20px 25px;
   cursor: pointer;
-  user-select: none;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.fase-header:hover {
+  background-color: #f8f9fa;
 }
 
 .fase-info {
@@ -109,244 +94,244 @@
 .fase-nombre {
   font-size: 18px;
   font-weight: 600;
-  color: #1e293b;
+  color: #2d3748;
   margin: 0 0 8px 0;
 }
 
-.fase-detalles {
+.fase-fechas {
   font-size: 14px;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.fase-descripcion {
+  margin-top: 5px;
 }
 
 .descripcion-link {
-  color: #2563eb;
-  text-decoration: none;
-  font-weight: 500;
+  color: #3182ce;
+  text-decoration: underline;
+  font-size: 14px;
+  cursor: pointer;
 }
 
 .descripcion-link:hover {
-  text-decoration: underline;
+  color: #2c5aa0;
 }
 
 .fase-controls {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 15px;
 }
 
-.phase-actions {
+.fase-actions {
   display: flex;
   gap: 8px;
 }
 
-.action-btn-small {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
+.action-icon {
+  width: 36px;
+  height: 36px;
   border: none;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
-.action-btn-small.add {
-  background: #22c55e;
+.action-icon.add {
+  background-color: #48bb78;
   color: white;
 }
 
-.action-btn-small.add:hover {
-  background: #16a34a;
+.action-icon.add:hover {
+  background-color: #38a169;
 }
 
-.action-btn-small.edit {
-  background: #eab308;
+.action-icon.edit {
+  background-color: #ed8936;
   color: white;
 }
 
-.action-btn-small.edit:hover {
-  background: #ca8a04;
+.action-icon.edit:hover {
+  background-color: #dd6b20;
 }
 
-.action-btn-small.delete {
-  background: #ef4444;
+.action-icon.delete {
+  background-color: #f56565;
   color: white;
 }
 
-.action-btn-small.delete:hover {
-  background: #dc2626;
+.action-icon.delete:hover {
+  background-color: #e53e3e;
 }
 
-.porcentaje {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1e293b;
-  min-width: 60px;
-  text-align: right;
+.fase-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 80px;
+}
+
+.progress-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.status-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.status-icon.completed {
+  color: #48bb78;
+}
+
+.status-icon.in-progress {
+  color: #ed8936;
+}
+
+.status-icon.pending {
+  color: #a0aec0;
 }
 
 .expand-icon {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s ease;
-  color: #64748b;
+  transition: transform 0.2s;
+  color: #4a5568;
 }
 
 .expand-icon.expanded {
   transform: rotate(180deg);
 }
 
-.fase-content {
-  border-top: 1px solid #e2e8f0;
-  background: #fafbfc;
+.actividades-list {
+  padding: 0 25px 20px 25px;
+  background-color: #f8f9fa;
 }
 
-.tareas-list {
-  padding: 0;
-}
-
-.tarea-item {
-  padding: 16px 24px 16px 60px;
+.actividad-item {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 15px;
+  padding: 15px 0;
   border-bottom: 1px solid #e2e8f0;
-  position: relative;
 }
 
-.tarea-item:last-child {
+.actividad-item:last-child {
   border-bottom: none;
 }
 
-.tarea-numero {
+.actividad-numero {
   font-weight: 600;
-  color: #64748b;
-  position: absolute;
-  left: 24px;
+  color: #4a5568;
+  min-width: 20px;
 }
 
-.tarea-info {
+.actividad-content {
   flex: 1;
-}
-
-.tarea-nombre {
-  font-size: 16px;
-  color: #1e293b;
-  font-weight: 500;
-}
-
-.fecha-range {
-  color: #64748b;
-  font-weight: 400;
-}
-
-.task-actions {
   display: flex;
-  gap: 6px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.actividad-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.actividad-nombre {
+  font-weight: 500;
+  color: #2d3748;
+  font-size: 15px;
+}
+
+.actividad-fechas {
+  font-size: 13px;
+  color: #666;
+}
+
+.actividad-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .fecha-entrega {
-  font-size: 14px;
-  color: #64748b;
+  background-color: #e2e8f0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #4a5568;
   font-weight: 500;
-  min-width: 80px;
-  text-align: center;
 }
 
-.status-icon {
-  width: 24px;
-  height: 24px;
+.activity-status {
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }
 
-.status-icon.completed {
-  background: #22c55e;
+.activity-status.completed {
+  background-color: #48bb78;
   color: white;
 }
 
-.status-icon.in-progress {
-  background: #eab308;
-  color: white;
+.activity-status.pending {
+  background-color: #fed7d7;
+  color: #e53e3e;
 }
 
-.status-icon.pending {
-  background: #e2e8f0;
-  color: #64748b;
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 18px;
+  color: #666;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
-  .fases-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .breadcrumb {
-    flex-wrap: wrap;
-  }
-  
-  .action-buttons-header {
-    justify-content: center;
+  .fases-container {
+    padding: 15px;
   }
   
   .fase-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
+    padding: 15px;
   }
   
   .fase-controls {
-    justify-content: space-between;
+    gap: 10px;
   }
   
-  .tarea-item {
+  .action-buttons-header {
     flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-    padding: 16px 24px;
+    gap: 10px;
   }
   
-  .tarea-numero {
-    position: static;
+  .btn-agregar-fase,
+  .btn-finalizar {
+    width: 100%;
   }
   
-  .task-actions,
-  .fecha-entrega,
-  .status-icon {
+  .actividades-list {
+    padding: 0 15px 15px 15px;
+  }
+  
+  .actividad-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .actividad-controls {
     align-self: flex-end;
-  }
-}
-
-@media (max-width: 480px) {
-  .fases-header {
-    padding: 12px 16px;
-  }
-  
-  .fase-header {
-    padding: 16px;
-  }
-  
-  .tarea-item {
-    padding: 12px 16px;
-  }
-  
-  .fase-nombre {
-    font-size: 16px;
-  }
-  
-  .header-btn {
-    padding: 8px 16px;
-    font-size: 13px;
   }
 }
