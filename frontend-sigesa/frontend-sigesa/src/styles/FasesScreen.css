@@ -1,0 +1,337 @@
+.fases-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.breadcrumb {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 20px;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.breadcrumb .separator {
+  margin: 0 8px;
+  color: #666;
+}
+
+.breadcrumb .current {
+  font-weight: 600;
+  color: #1a365d;
+}
+
+.action-buttons-header {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.btn-agregar-fase {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-agregar-fase:hover {
+  background-color: #c82333;
+}
+
+.btn-finalizar {
+  background-color: #1a365d;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-finalizar:hover {
+  background-color: #2d3748;
+}
+
+.fases-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.fase-item {
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.fase-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.fase-header:hover {
+  background-color: #f8f9fa;
+}
+
+.fase-info {
+  flex: 1;
+}
+
+.fase-nombre {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 8px 0;
+}
+
+.fase-fechas {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.fase-descripcion {
+  margin-top: 5px;
+}
+
+.descripcion-link {
+  color: #3182ce;
+  text-decoration: underline;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.descripcion-link:hover {
+  color: #2c5aa0;
+}
+
+.fase-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.fase-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-icon {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-icon.add {
+  background-color: #48bb78;
+  color: white;
+}
+
+.action-icon.add:hover {
+  background-color: #38a169;
+}
+
+.action-icon.edit {
+  background-color: #ed8936;
+  color: white;
+}
+
+.action-icon.edit:hover {
+  background-color: #dd6b20;
+}
+
+.action-icon.delete {
+  background-color: #f56565;
+  color: white;
+}
+
+.action-icon.delete:hover {
+  background-color: #e53e3e;
+}
+
+.fase-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 80px;
+}
+
+.progress-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.status-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.status-icon.completed {
+  color: #48bb78;
+}
+
+.status-icon.in-progress {
+  color: #ed8936;
+}
+
+.status-icon.pending {
+  color: #a0aec0;
+}
+
+.expand-icon {
+  transition: transform 0.2s;
+  color: #4a5568;
+}
+
+.expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.actividades-list {
+  padding: 0 25px 20px 25px;
+  background-color: #f8f9fa;
+}
+
+.actividad-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.actividad-item:last-child {
+  border-bottom: none;
+}
+
+.actividad-numero {
+  font-weight: 600;
+  color: #4a5568;
+  min-width: 20px;
+}
+
+.actividad-content {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.actividad-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.actividad-nombre {
+  font-weight: 500;
+  color: #2d3748;
+  font-size: 15px;
+}
+
+.actividad-fechas {
+  font-size: 13px;
+  color: #666;
+}
+
+.actividad-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fecha-entrega {
+  background-color: #e2e8f0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.activity-status {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.activity-status.completed {
+  background-color: #48bb78;
+  color: white;
+}
+
+.activity-status.pending {
+  background-color: #fed7d7;
+  color: #e53e3e;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 18px;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .fases-container {
+    padding: 15px;
+  }
+  
+  .fase-header {
+    padding: 15px;
+  }
+  
+  .fase-controls {
+    gap: 10px;
+  }
+  
+  .action-buttons-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .btn-agregar-fase,
+  .btn-finalizar {
+    width: 100%;
+  }
+  
+  .actividades-list {
+    padding: 0 15px 15px 15px;
+  }
+  
+  .actividad-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .actividad-controls {
+    align-self: flex-end;
+  }
+}

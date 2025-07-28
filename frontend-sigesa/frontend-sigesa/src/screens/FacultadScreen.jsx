@@ -1,10 +1,40 @@
 import React, { useEffect, useState } from "react";
 import { getFacultades, deleteFacultad, getCarrerasByFacultad } from "../services/api";
-import { Search, Plus, Eye, UserPlus, BarChart3, Trash2, MoreVertical } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import mascota from "../assets/mascota.png";
 import { useNavigate } from "react-router-dom";
-import ModalConfirmacion from "../components/ModalConfirmacion"; 
+import ModalConfirmacion from "../components/ModalConfirmacion";
+import ModalOpciones from "../components/ModalOpciones";
 import "../styles/FacultadScreen.css";
+
+const truncateUrl = (url, maxLength = 50) => {
+  if (!url || url.length <= maxLength) {
+    return url;
+  }
+  
+  try {
+    const urlObj = new URL(url);
+    const domain = urlObj.hostname;
+    const protocol = urlObj.protocol;
+    if (domain.length > maxLength - 10) {
+      return url.substring(0, maxLength - 3) + '...';
+    }
+    
+    const domainPart = `${protocol}//${domain}`;
+    const remainingLength = maxLength - domainPart.length - 3; 
+    
+    if (remainingLength > 0) {
+      const pathPart = url.substring(domainPart.length);
+      if (pathPart.length > remainingLength) {
+        return domainPart + pathPart.substring(0, remainingLength) + '...';
+      }
+    }
+    
+    return url.substring(0, maxLength - 3) + '...';
+  } catch (error) {
+    return url.substring(0, maxLength - 3) + '...';
+  }
+};
 
 export default function FacultadScreen() {
   const [facultades, setFacultades] = useState([]);
@@ -67,21 +97,21 @@ export default function FacultadScreen() {
     }
   };
 
- const handleVerCarreras = (facultadId) => {
+  const handleVerCarreras = (facultadId) => {
     navigate(`/visualizar-carreras/${facultadId}`);
-    setOpcionesVisibles(null);
   };
-
 
   const handleAgregarCarrera = (facultadId) => {
     navigate(`/carrera/crear/${facultadId}`);
-    setOpcionesVisibles(null);
+  };
+
+  const handleEditarFacultad = (facultadId) => {
+    navigate(`/facultad/editar/${facultadId}`);
   };
 
   const handleEliminarFacultad = (id, nombre) => {
     setFacultadAEliminar({ id, nombre });
     setModalOpen(true);
-    setOpcionesVisibles(null); 
   };
 
   const confirmarEliminacion = async () => {
@@ -135,8 +165,7 @@ export default function FacultadScreen() {
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Cargando facultades...</p>
+         <p className="loading-text">Cargando facultades...</p>
       </div>
     );
   }
@@ -171,93 +200,66 @@ export default function FacultadScreen() {
 
       {/* Lista de facultades */}
       <section className="facultades-list">
-        {filteredFacultades.map((f, index) => (
-          <div 
-            key={f.id} 
-            className={`faculty-card-horizontal ${opcionesVisibles === f.id ? 'menu-active' : ''}`}
-            style={{ background: cardColors[index % cardColors.length] }}
-          >
-            <img
-              src={`/logos/${f.codigo_facultad}.png`}
-              alt={f.nombre_facultad}
-              className="faculty-logo"
-              onError={(e) => {
-                e.target.src = "/logos/default.png"; // Imagen por defecto si no existe
-              }}
-            />
-            <div className="faculty-info">
-              <h3>{f.nombre_facultad}</h3>
-              <ul>
-                <li><strong>Carreras:</strong> {f.numeroCarreras}</li>
-                <li><strong>Código:</strong> {f.codigo_facultad}</li>
-                {f.pagina_web && (
-                  <li>
-                    <strong>Web:</strong> 
+        {filteredFacultades.map((f, index) => {
+          const truncatedUrl = f.pagina_facultad ? truncateUrl(f.pagina_facultad, 50) : null;
+          const isUrlTruncated = truncatedUrl && truncatedUrl.includes('...');
+          
+          return (
+            <div 
+              key={f.id} 
+              className={`faculty-card-horizontal ${opcionesVisibles === f.id ? 'menu-active' : ''}`}
+              style={{ background: cardColors[index % cardColors.length] }}
+            >
+              <img
+                src={`/logos/${f.codigo_facultad}.png`}
+                alt={f.nombre_facultad}
+                className="faculty-logo"
+                onError={(e) => {
+                  e.target.src = "/logos/default.png";
+                }}
+              />
+              <div className="faculty-info">
+                <h3>{f.nombre_facultad}</h3>
+                <ul>
+                  <li><strong>Carreras:</strong> {f.numeroCarreras}</li>
+                  <li><strong>Código:</strong> {f.codigo_facultad}</li>
+                </ul>
+                <div className={`faculty-web-section ${!f.pagina_facultad ? 'no-link' : ''}`}>
+                  <span className="web-label">Sitio Web</span>
+                  {f.pagina_facultad ? (
                     <a 
-                      href={f.pagina_web} 
+                      href={f.pagina_facultad} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="web-link"
+                      className="faculty-web-link"
+                      title={isUrlTruncated ? f.pagina_facultad : undefined}
                     >
-                      Ver sitio
+                      <span className={`faculty-web-link-text ${isUrlTruncated ? 'truncated' : ''}`}>
+                        {truncatedUrl}
+                      </span>
                     </a>
-                  </li>
-                )}
-              </ul>
-            </div>
-
-            {/* Menú de acciones */}
-            <div className="menu-toggle-container">
-              <button 
-                className="menu-toggle" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleToggleOpciones(f.id);
-                }}
-              >
-                <MoreVertical size={20} />
-              </button>
-              {opcionesVisibles === f.id && (
-                <div 
-                  className="dropdown-menu"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <button 
-                    className="dropdown-item view" 
-                    type="button"
-                    onClick={() => handleVerCarreras(f.id)}
-                  >
-                    <Eye size={16} />
-                    <span>Ver Carreras ({f.numeroCarreras})</span>
-                  </button>
-                  <button 
-                    className="dropdown-item add" 
-                    type="button"
-                    onClick={() => handleAgregarCarrera(f.id)}
-                  >
-                    <UserPlus size={16} />
-                    <span>Añadir Carrera</span>
-                  </button>
-                  <button className="dropdown-item report" type="button">
-                    <BarChart3 size={16} />
-                    <span>Generar Reportes</span>
-                  </button>
-                  <button 
-                    className="dropdown-item delete"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleEliminarFacultad(f.id, f.nombre_facultad);
-                    }}
-                  >
-                    <Trash2 size={16} />
-                    <span>Eliminar Facultad</span>
-                  </button>
+                  ) : (
+                    <div className="faculty-web-link">
+                      <span className="faculty-web-link-text">No disponible</span>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+
+              <ModalOpciones
+                isVisible={opcionesVisibles === f.id}
+                onToggle={() => handleToggleOpciones(f.id)}
+                onVerCarreras={handleVerCarreras}
+                onAgregarCarrera={handleAgregarCarrera}
+                onEditarFacultad={handleEditarFacultad}
+                onEliminarFacultad={handleEliminarFacultad}
+                numeroCarreras={f.numeroCarreras}
+                facultadId={f.id}
+                facultadNombre={f.nombre_facultad}
+              />
             </div>
-          </div>
-        ))}
+          );
+        })}
         
         {filteredFacultades.length === 0 && !loading && (
           <div className="no-results">

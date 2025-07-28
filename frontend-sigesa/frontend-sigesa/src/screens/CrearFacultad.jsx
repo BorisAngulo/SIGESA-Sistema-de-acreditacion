@@ -35,7 +35,8 @@ export default function CrearFacultad({ onNuevaFacultad }) {
   };
 
   const validateURL = (url) => {
-    if (!url.trim()) return null; // URL es opcional
+    if (!url || !url.trim()) return null; // URL es opcional
+    
     const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/i;
     if (!urlPattern.test(url)) return "La URL no tiene un formato válido";
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -135,20 +136,20 @@ export default function CrearFacultad({ onNuevaFacultad }) {
   const handleSubmitClick = () => {
     const nombreError = validateNombre(formData.nombre);
     const codigoError = validateCodigo(formData.codigo);
-    const urlError = validateURL(formData.pagina_web);
+    const urlError = validateURL(formData.pagina_web || "");
 
     const newErrors = {};
-    if (nombreError) newErrors.nombre = nombreError;
-    if (codigoError) newErrors.codigo = codigoError;
-    if (urlError) newErrors.pagina_web = urlError;
+      if (nombreError) newErrors.nombre = nombreError;
+      if (codigoError) newErrors.codigo = codigoError;
+      if (urlError) newErrors.pagina_web = urlError;
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      setMensaje(null);
-      return;
-    }
-    setShowConfirmModal(true);
-  };
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        setMensaje(null);
+        return;
+      }
+      setShowConfirmModal(true);
+    };
 
   const handleConfirmSubmit = async () => {
     setIsLoading(true);
@@ -161,9 +162,9 @@ export default function CrearFacultad({ onNuevaFacultad }) {
         codigo_facultad: formData.codigo
       };
 
-      // Agregar página web solo si existe
+      // Cambiar 'pagina_web' por 'pagina_facultad' para coincidir con la API
       if (formData.pagina_web && formData.pagina_web.trim()) {
-        dataToSend.pagina_web = formData.pagina_web;
+        dataToSend.pagina_facultad = formData.pagina_web; // ← CAMBIO AQUÍ
       }
 
       let nueva;
@@ -172,7 +173,7 @@ export default function CrearFacultad({ onNuevaFacultad }) {
         formDataToSend.append('nombre_facultad', formData.nombre);
         formDataToSend.append('codigo_facultad', formData.codigo);
         if (formData.pagina_web && formData.pagina_web.trim()) {
-          formDataToSend.append('pagina_web', formData.pagina_web);
+        formDataToSend.append('pagina_facultad', formData.pagina_web);
         }
         formDataToSend.append('logo', formData.logo);
         nueva = await createFacultad(formDataToSend);

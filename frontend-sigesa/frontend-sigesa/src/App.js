@@ -1,12 +1,12 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate  } from 'react-router-dom';
 
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import Footer from './components/Footer';
 
-import Home from './screens/Home';
+import Home from './screens/home';
 import Login from './screens/Login';
 import AdminDashboard from './screens/UsersDashboarads/AdminDashboard';
 import CoordinadorDashboard from './screens/UsersDashboarads/CoordinadorDashboard';
@@ -18,6 +18,11 @@ import VisualizarCarreras from './screens/VisualizarCarreras';
 import CrearCarrera from './screens/CrearCarrera';
 import InformacionCarrera from './screens/InformacionCarrera';
 import FasesScreen from './screens/FasesScreen';
+import EditarFacultadScreen from './screens/EditarFacultadScreen';
+import EditarCarreraScreen from './screens/EditarCarreraScreen';
+import ModalidadesScreen from './screens/ModalidadesScreen';
+
+
 function App() {
   const styles = {
     app: {
@@ -86,10 +91,22 @@ function App() {
                   <VisualizarCarreras />
                 </ProtectedRoute>
               } />
+
+              <Route path="/carrera/editar/:id" element={
+                <ProtectedRoute allowedRoles={['Admin', 'Tecnico', 'Coordinador']}>
+                  <EditarCarreraScreen />
+                </ProtectedRoute>
+              } />
               
               <Route path="/carrera/crear/:facultadId" element={
                 <ProtectedRoute allowedRoles={['Admin', 'Tecnico', 'Coordinador']}>
                   <CrearCarrera />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/facultad/editar/:id" element={
+                <ProtectedRoute allowedRoles={['Admin']}>
+                  <EditarFacultadScreen />
                 </ProtectedRoute>
               } />
               
@@ -99,6 +116,19 @@ function App() {
                 </ProtectedRoute>
               } />
               
+             <Route path="/modalidades/arco-sur" element={
+                <ProtectedRoute allowedRoles={['Admin']}>
+                  <ModalidadesScreen modalidad="arco-sur" />
+                </ProtectedRoute>
+              } />
+              <Route path="/modalidades/ceub" element={
+                <ProtectedRoute allowedRoles={['Admin']}>
+                  <ModalidadesScreen modalidad="ceub" />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/modalidades" element={<Navigate to="/modalidades/arco-sur" replace />} />
+
               <Route path="/fases" element={
                 <ProtectedRoute>
                   <FasesScreen />

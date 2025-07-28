@@ -7,12 +7,26 @@ import './Header.css';
 const Header = () => {
   const { user, isAuthenticated, logout, getUserRole } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showModalidadesMenu, setShowModalidadesMenu] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     await logout();
     navigate('/');
     setShowUserMenu(false);
+  };
+
+  const handleModalidadesClick = () => {
+    setShowModalidadesMenu(!showModalidadesMenu);
+  };
+
+  const handleModalidadSelect = (modalidad) => {
+    setShowModalidadesMenu(false);
+    if (modalidad === 'arco-sur') {
+      navigate('/modalidades/arco-sur');
+    } else if (modalidad === 'ceub') {
+      navigate('/modalidades/ceub');
+    }
   };
 
   const renderNavLinks = () => {
@@ -41,6 +55,32 @@ const Header = () => {
         return (
           <>
             {commonLinks}
+            <div className="modalidades-dropdown">
+              <button 
+                className="modalidades-toggle header-link"
+                onClick={handleModalidadesClick}
+              >
+                Modalidades
+                <span className={`dropdown-arrow ${showModalidadesMenu ? 'open' : ''}`}>▼</span>
+              </button>
+              
+              {showModalidadesMenu && (
+                <div className="modalidades-dropdown-menu">
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => handleModalidadSelect('arco-sur')}
+                  >
+                    ARCO SUR
+                  </button>
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => handleModalidadSelect('ceub')}
+                  >
+                    CEUB
+                  </button>
+                </div>
+              )}
+            </div>
             <NavLink to="/admin" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
               Panel Admin
             </NavLink>
@@ -105,50 +145,51 @@ const Header = () => {
 
   return (
     <header className="header-container">
-      <div className="header-left">
+      <div className="header-top">
         <img src={departamento} alt="Logo general" className="header-logo" />
       </div>
-
-      <nav className="header-nav">
-        {renderNavLinks()}
-        
-        {isAuthenticated() && (
-          <div className="user-menu">
-            <button 
-              className="user-menu-toggle"
-              onClick={() => setShowUserMenu(!showUserMenu)}
-            >
-              <span className="user-name">{user?.name}</span>
-              <span className="user-role">({getUserRole()})</span>
-            </button>
-            
-            {showUserMenu && (
-              <div className="user-dropdown">
-                <div className="user-info">
-                  <p className="user-full-name">{user?.name} {user?.lastName}</p>
-                  <p className="user-email">{user?.email}</p>
+      <div className="header-bottom">
+        <nav className="header-nav">
+          {renderNavLinks()}
+          
+          {isAuthenticated() && (
+            <div className="user-menu">
+              <button 
+                className="user-menu-toggle"
+                onClick={() => setShowUserMenu(!showUserMenu)}
+              >
+                <span className="user-name">{user?.name}</span>
+                <span className="user-role">({getUserRole()})</span>
+              </button>
+              
+              {showUserMenu && (
+                <div className="user-dropdown">
+                  <div className="user-info">
+                    <p className="user-full-name">{user?.name} {user?.lastName}</p>
+                    <p className="user-email">{user?.email}</p>
+                  </div>
+                  <hr />
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => {
+                      navigate('/perfil');
+                      setShowUserMenu(false);
+                    }}
+                  >
+                    Mi Perfil
+                  </button>
+                  <button 
+                    className="dropdown-item logout"
+                    onClick={handleLogout}
+                  >
+                    Cerrar Sesión
+                  </button>
                 </div>
-                <hr />
-                <button 
-                  className="dropdown-item"
-                  onClick={() => {
-                    navigate('/perfil');
-                    setShowUserMenu(false);
-                  }}
-                >
-                  Mi Perfil
-                </button>
-                <button 
-                  className="dropdown-item logout"
-                  onClick={handleLogout}
-                >
-                  Cerrar Sesión
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </nav>
+              )}
+            </div>
+          )}
+        </nav>
+      </div>
     </header>
   );
 };

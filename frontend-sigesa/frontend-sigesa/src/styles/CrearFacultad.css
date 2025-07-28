@@ -1,4 +1,3 @@
-/* Contenedor principal */
 .crear-facultad-container {
   max-width: 672px;
   margin: 0 auto;
@@ -131,6 +130,7 @@
 .form-input {
   width: 100%;
   padding: 1rem;
+  color: #1f2937;
   border: 2px solid #e5e7eb;
   border-radius: 0.5rem;
   transition: all 0.2s ease;

@@ -1,300 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getCarrerasByFacultad, getFacultades } from '../services/api';
+import { getCarrerasByFacultad, getFacultades, deleteCarrera } from '../services/api';
 import { 
   ArrowLeft, 
   Plus, 
-  ExternalLink, 
-  Search, 
-  MoreVertical,
-  Eye,
-  Settings,
-  Edit2,
-  Trash2,
-  X
+  Search
 } from 'lucide-react';
+import ModalOpciones from '../components/ModalOpciones';
+import ModalConfirmacion from '../components/ModalConfirmacion';
+import mascota from "../assets/mascota.png";
 import "../styles/VisualizarCarreras.css";
-
-const ModalOpciones = ({ 
-  isOpen, 
-  onClose, 
-  carrera, 
-  onVerInformacion,
-  onGestionarModalidades,
-  onEditar,
-  onEliminar 
-}) => {
-  if (!isOpen) return null;
-
-  const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
-  return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal-opciones">
-        <div className="modal-header">
-          <h3 className="modal-title">{carrera?.nombre_carrera}</h3>
-          <button className="modal-close" onClick={onClose}>
-            <X size={20} />
-          </button>
-        </div>
-        
-        <div className="modal-body">
-          <div className="carrera-info">
-            <span className="carrera-codigo">{carrera?.codigo_carrera}</span>
-            {carrera?.pagina_carrera && (
-              <a 
-                href={carrera.pagina_carrera} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="carrera-link"
-              >
-                <ExternalLink size={14} />
-                Página web
-              </a>
-            )}
-          </div>
-          
-          <div className="opciones-lista">
-            <button 
-              className="opcion-btn info"
-              onClick={() => onVerInformacion(carrera)}
-            >
-              <Eye size={18} />
-              <span>Ver información</span>
-            </button>
-            
-            <button 
-              className="opcion-btn modalidades"
-              onClick={() => onGestionarModalidades(carrera)}
-            >
-              <Settings size={18} />
-              <span>Gestionar modalidades</span>
-            </button>
-            
-            <button 
-              className="opcion-btn editar"
-              onClick={() => onEditar(carrera)}
-            >
-              <Edit2 size={18} />
-              <span>Editar</span>
-            </button>
-            
-            <button 
-              className="opcion-btn eliminar"
-              onClick={() => onEliminar(carrera)}
-            >
-              <Trash2 size={18} />
-              <span>Eliminar</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <style jsx>{`
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-color: rgba(0, 0, 0, 0.5);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 1000;
-          backdrop-filter: blur(2px);
-        }
-
-        .modal-opciones {
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-          max-width: 400px;
-          width: 90%;
-          max-height: 90vh;
-          overflow: hidden;
-          animation: modalSlideIn 0.3s ease-out;
-        }
-
-        @keyframes modalSlideIn {
-          from {
-            opacity: 0;
-            transform: translateY(-20px) scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 20px 24px;
-          border-bottom: 1px solid #e5e7eb;
-          background-color: #f8fafc;
-        }
-
-        .modal-title {
-          margin: 0;
-          font-size: 18px;
-          font-weight: 600;
-          color: #1f2937;
-          max-width: 80%;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .modal-close {
-          background: none;
-          border: none;
-          padding: 4px;
-          cursor: pointer;
-          border-radius: 6px;
-          transition: background-color 0.2s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .modal-close:hover {
-          background-color: rgba(0, 0, 0, 0.1);
-        }
-
-        .modal-body {
-          padding: 24px;
-        }
-
-        .carrera-info {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 20px;
-          padding: 12px;
-          background-color: #f1f5f9;
-          border-radius: 8px;
-        }
-
-        .carrera-codigo {
-          background-color: #3b82f6;
-          color: white;
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 12px;
-          font-weight: 600;
-        }
-
-        .carrera-link {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          color: #3b82f6;
-          text-decoration: none;
-          font-size: 14px;
-          font-weight: 500;
-        }
-
-        .carrera-link:hover {
-          color: #2563eb;
-        }
-
-        .opciones-lista {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .opcion-btn {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          width: 100%;
-          padding: 12px 16px;
-          border: none;
-          border-radius: 8px;
-          background-color: white;
-          border: 1px solid #e5e7eb;
-          cursor: pointer;
-          transition: all 0.2s;
-          font-size: 14px;
-          font-weight: 500;
-          text-align: left;
-        }
-
-        .opcion-btn:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .opcion-btn.info {
-          color: #3b82f6;
-          border-color: #bfdbfe;
-        }
-
-        .opcion-btn.info:hover {
-          background-color: #eff6ff;
-          border-color: #93c5fd;
-        }
-
-        .opcion-btn.modalidades {
-          color: #059669;
-          border-color: #a7f3d0;
-        }
-
-        .opcion-btn.modalidades:hover {
-          background-color: #ecfdf5;
-          border-color: #6ee7b7;
-        }
-
-        .opcion-btn.editar {
-          color: #d97706;
-          border-color: #fed7aa;
-        }
-
-        .opcion-btn.editar:hover {
-          background-color: #fffbeb;
-          border-color: #fdba74;
-        }
-
-        .opcion-btn.eliminar {
-          color: #dc2626;
-          border-color: #fecaca;
-        }
-
-        .opcion-btn.eliminar:hover {
-          background-color: #fef2f2;
-          border-color: #fca5a5;
-        }
-
-        @media (max-width: 640px) {
-          .modal-opciones {
-            width: 95%;
-            margin: 20px;
-          }
-          
-          .modal-header {
-            padding: 16px 20px;
-          }
-          
-          .modal-body {
-            padding: 20px;
-          }
-          
-          .carrera-info {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
-          }
-        }
-      `}</style>
-    </div>
-  );
-};
 
 export default function VisualizarCarreras() {
   const { facultadId } = useParams();
@@ -304,8 +19,10 @@ export default function VisualizarCarreras() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [busqueda, setBusqueda] = useState("");
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [carreraSeleccionada, setCarreraSeleccionada] = useState(null);
+  const [opcionesVisibles, setOpcionesVisibles] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [carreraAEliminar, setCarreraAEliminar] = useState(null);
+  const [eliminando, setEliminando] = useState(false);
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -341,6 +58,16 @@ export default function VisualizarCarreras() {
     }
   }, [facultadId]);
 
+  const handleToggleOpciones = (id) => {
+    setOpcionesVisibles(opcionesVisibles === id ? null : id);
+  };
+
+  const handleOutsideClick = (e) => {
+    if (!e.target.closest('.menu-toggle-container')) {
+      setOpcionesVisibles(null);
+    }
+  };
+
   const handleVolver = () => {
     navigate('/facultad');
   };
@@ -349,42 +76,55 @@ export default function VisualizarCarreras() {
     navigate(`/carrera/crear/${facultadId}`);
   };
 
-  const handleAbrirOpciones = (carrera) => {
-    setCarreraSeleccionada(carrera);
-    setModalAbierto(true);
-  };
-
-  const handleCerrarModal = () => {
-    setModalAbierto(false);
-    setCarreraSeleccionada(null);
-  };
-
-
-  const handleVerInformacion = (carrera) => {
+  const handleVerInformacion = (carreraId) => {
+    const carrera = carreras.find(c => c.id === carreraId);
     console.log('Ver información de:', carrera);
-    navigate(`/informacion-carrera/${carrera.id}`, { 
+    navigate(`/informacion-carrera/${carreraId}`, { 
       state: { carrera } 
     });
-  
   };
 
-  const handleGestionarModalidades = (carrera) => {
+  const handleGestionarModalidades = (carreraId) => {
+    const carrera = carreras.find(c => c.id === carreraId);
     console.log('Gestionar modalidades de:', carrera);
-    // Aquí puedes navegar a la página de modalidades
-    // navigate(`/carrera/${carrera.id}/modalidades`);
-    handleCerrarModal();
+    // navigate(`/carrera/${carreraId}/modalidades`);
   };
 
-  const handleEditar = (carrera) => {
-    console.log('Editar carrera:', carrera);
-    // Aquí puedes navegar a la página de edición
-    // navigate(`/carrera/${carrera.id}/editar`);
-    handleCerrarModal();
+  const handleEditarCarrera = (carreraId) => {
+    console.log('Redirigiendo a editar carrera con ID:', carreraId);
+    navigate(`/carrera/editar/${carreraId}`);
+  };
+  
+  const handleEliminarCarrera = (carreraId, carreraNombre) => {
+    setCarreraAEliminar({ id: carreraId, nombre: carreraNombre });
+    setModalOpen(true);
+    setOpcionesVisibles(null); 
   };
 
-  const handleEliminar = (carrera) => {
-    console.log('Eliminar carrera:', carrera);
-    handleCerrarModal();
+  const confirmarEliminacion = async () => {
+    if (!carreraAEliminar) return;
+    
+    setEliminando(true);
+    try {
+      await deleteCarrera(carreraAEliminar.id);
+  
+      setCarreras(carreras.filter(c => c.id !== carreraAEliminar.id));
+      
+      setModalOpen(false);
+      setCarreraAEliminar(null);
+      alert("Carrera eliminada correctamente");
+    } catch (err) {
+      console.error("Error al eliminar carrera:", err);
+      alert("No se pudo eliminar la carrera. Por favor, inténtalo de nuevo.");
+    } finally {
+      setEliminando(false);
+    }
+  };
+
+  const cancelarEliminacion = () => {
+    setModalOpen(false);
+    setCarreraAEliminar(null);
+    setEliminando(false);
   };
 
   const filteredCarreras = carreras.filter((carrera) =>
@@ -392,19 +132,31 @@ export default function VisualizarCarreras() {
     carrera.codigo_carrera?.toLowerCase().includes(busqueda.toLowerCase())
   );
 
+  const cardColors = [
+    'linear-gradient(135deg, #A21426 0%, #7B1221 100%)',
+    'linear-gradient(135deg, #041B2C 0%, #072543 100%)',
+    'linear-gradient(135deg, #7B94AA 0%, #5A748A 100%)',
+    'linear-gradient(135deg, #3C5468 0%, #2A3D4F 100%)',
+    'linear-gradient(135deg, #072543 0%, #041B2C 100%)',
+    'linear-gradient(135deg, #A21426 20%, #3C5468 100%)',
+    'linear-gradient(135deg, #7B94AA 0%, #041B2C 100%)',
+    'linear-gradient(135deg, #3C5468 0%, #A21426 100%)',
+    'linear-gradient(135deg, #072543 0%, #7B94AA 100%)',
+    'linear-gradient(135deg, #041B2C 0%, #A21426 100%)'
+  ];
+
   if (loading) {
     return (
-      <div className="container loading">
-        <div className="spinner"></div>
-        <p>Cargando carreras...</p>
+      <div className="loading-container">
+        <p className="loading-text">Cargando carreras...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container">
-        <div className="error">
+      <div className="carreras-view">
+        <div className="error-container">
           <h2>Error</h2>
           <p>{error}</p>
           <div>
@@ -428,9 +180,10 @@ export default function VisualizarCarreras() {
   }
 
   return (
-    <div className="container">
-      <div className="header">
-        <div className="header-top">
+    <div className="carreras-view" onClick={handleOutsideClick}>
+      {/* Sección de búsqueda */}
+      <section className="busqueda-section">
+        <div className="header-navigation">
           <button 
             onClick={handleVolver}
             className="back-btn"
@@ -438,28 +191,14 @@ export default function VisualizarCarreras() {
             <ArrowLeft size={20} />
             <span>Volver a Facultades</span>
           </button>
-          
-          <button 
-            onClick={handleAgregarCarrera}
-            className="add-btn"
-          >
-            <Plus size={20} />
-            <span>Agregar Carrera</span>
-          </button>
         </div>
         
-        <h1 className="title">
+        <h2 className="search-title">
           Carreras de {facultad?.nombre_facultad}
-        </h1>
-        <p className="subtitle">
-          {carreras.length} {carreras.length === 1 ? 'carrera encontrada' : 'carreras encontradas'}
-        </p>
-      </div>
-
-      {carreras.length > 0 && (
-        <div className="search-box">
-          <div className="search-wrapper">
-            <Search className="search-icon" size={20} />
+        </h2>
+        
+        {carreras.length > 0 && (
+          <div className="search-container">
             <input
               type="text"
               className="search-input"
@@ -467,81 +206,108 @@ export default function VisualizarCarreras() {
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
             />
+            <Search className="search-icon" size={20} />
           </div>
-        </div>
-      )}
+        )}
+      </section>
 
-      {filteredCarreras.length === 0 && carreras.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">
-            <svg width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-          </div>
-          <h3 className="empty-title">No hay carreras registradas</h3>
-          <p className="empty-message">Esta facultad no tiene carreras registradas aún.</p>
-          <button 
-            onClick={handleAgregarCarrera}
-            className="btn-primary"
-          >
-            Agregar Primera Carrera
-          </button>
+      {/* Header con mascota y botón */}
+      <div className="header-actions">
+        <div className="mascota-container">
+          <img src={mascota} alt="mascota" className="mascota-img" />
+          <span className="mascota-message">¡Explora las carreras disponibles!</span>
         </div>
-      ) : filteredCarreras.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">
-            <Search size={64} />
-          </div>
-          <h3 className="empty-title">No se encontraron resultados</h3>
-          <p className="empty-message">No hay carreras que coincidan con tu búsqueda.</p>
-        </div>
-      ) : (
-        <div className="grid">
-          {filteredCarreras.map(carrera => (
-            <div key={carrera.id} className="card">
-              <div className="card-header">
-                <h3 className="card-title">{carrera.nombre_carrera}</h3>
-                <button 
-                  className="options-btn"
-                  onClick={() => handleAbrirOpciones(carrera)}
-                  title="Opciones"
-                >
-                  <MoreVertical size={20} />
-                </button>
-              </div>
-              
-              <p className="card-code">{carrera.codigo_carrera}</p>
-              
-              {carrera.pagina_carrera && (
-                <a 
-                  href={carrera.pagina_carrera} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="card-link"
-                >
-                  <ExternalLink size={16} />
-                  Ver página web
-                </a>
-              )}
-              
-              <div className="card-footer">
-                <span>ID: {carrera.id}</span>
-                <span>Facultad ID: {carrera.facultad_id}</span>
-              </div>
+        <button className="btn-agregar-facultad" onClick={handleAgregarCarrera}>
+          <Plus size={20} />
+          <span>Añadir Carrera</span>
+        </button>
+      </div>
+
+      {/* Lista de carreras */}
+      <section className="facultades-list" style={{ padding: '0 20px' }}>
+        {filteredCarreras.length === 0 && carreras.length === 0 ? (
+          <div className="no-results">
+            <div className="empty-icon">
+              <svg width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
             </div>
-          ))}
-        </div>
-      )}
+            <h3>No hay carreras registradas</h3>
+            <p>Esta facultad no tiene carreras registradas aún.</p>
+            <button 
+              onClick={handleAgregarCarrera}
+              className="btn-agregar-facultad"
+              style={{ marginTop: '20px' }}
+            >
+              <Plus size={20} />
+              <span>Agregar Primera Carrera</span>
+            </button>
+          </div>
+        ) : filteredCarreras.length === 0 ? (
+          <div className="no-results">
+            <Search size={48} className="no-results-icon" />
+            <p>No se encontraron carreras que coincidan con su búsqueda.</p>
+          </div>
+        ) : (
+          filteredCarreras.map((carrera, index) => (
+            <div 
+              key={carrera.id} 
+              className={`faculty-card-horizontal ${opcionesVisibles === carrera.id ? 'menu-active' : ''}`}
+              style={{ background: cardColors[index % cardColors.length] }}
+            >
+              <div className="faculty-logo">
+                <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+              </div>
+              
+              <div className="faculty-info">
+                <h3>{carrera.nombre_carrera}</h3>
+                <ul>
+                  <li><strong>Código:</strong> {carrera.codigo_carrera}</li>
+                  {carrera.pagina_carrera && (
+                    <li>
+                      <strong>Web:</strong> 
+                      <a 
+                        href={carrera.pagina_carrera} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="web-link"
+                      >
+                        Ver sitio
+                      </a>
+                    </li>
+                  )}
+                </ul>
+              </div>
 
-      <ModalOpciones
-        isOpen={modalAbierto}
-        onClose={handleCerrarModal}
-        carrera={carreraSeleccionada}
-        onVerInformacion={handleVerInformacion}
-        onGestionarModalidades={handleGestionarModalidades}
-        onEditar={handleEditar}
-        onEliminar={handleEliminar}
+              {/* Modal de opciones */}
+              <ModalOpciones
+                isVisible={opcionesVisibles === carrera.id}
+                onToggle={() => handleToggleOpciones(carrera.id)}
+                onVerInformacion={handleVerInformacion}
+                onGestionarModalidades={handleGestionarModalidades}
+                onEditarCarrera={handleEditarCarrera}
+                onEliminarCarrera={handleEliminarCarrera}
+                carreraId={carrera.id}
+                carreraNombre={carrera.nombre_carrera}
+                tipo="carrera"
+              />
+            </div>
+          ))
+        )}
+      </section>
+
+      {/* Modal de confirmación */}
+      <ModalConfirmacion
+        isOpen={modalOpen}
+        onClose={cancelarEliminacion}
+        onConfirm={confirmarEliminacion}
+        facultadNombre={carreraAEliminar?.nombre || ""}
+        loading={eliminando}
+        tipo="carrera"
       />
+      <div style={{ height: '25px' }}></div>
     </div>
   );
 }

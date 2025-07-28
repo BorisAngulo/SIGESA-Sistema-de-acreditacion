@@ -120,6 +120,63 @@ export const deleteFacultad = async (id) => {
     throw error;
   }
 };
+// Editar facultad
+export const updateFacultad = async (id, facultadData) => {
+  try {
+    const response = await fetch(`${API_URL}/facultades/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(facultadData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('Facultad no encontrada');
+      }
+      if (response.status === 422) {
+        const errors = data.errors || {};
+        const errorMessages = Object.values(errors).flat();
+        throw new Error(errorMessages.join(', '));
+      }
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return data.data || data;
+  } catch (error) {
+    console.error(`Error al actualizar facultad ${id}:`, error);
+    throw error;
+  }
+};
+
+// Obtener una facultad por id
+export const getFacultadById = async (id) => {
+  try {
+    const res = await fetch(`${API_URL}/facultades/${id}`);
+    const response = await res.json();
+    
+    if (!res.ok) {
+      if (res.status === 404) {
+        throw new Error('Facultad no encontrada');
+      }
+      throw new Error(response.error || `HTTP error! status: ${res.status}`);
+    }
+    if (response.exito && response.datos) {
+      return response.datos;
+    } else {
+      console.error('Error en la respuesta:', response.error || 'Error desconocido');
+      throw new Error(response.error || 'Error al obtener la facultad');
+    }
+  } catch (error) {
+    console.error('Error al obtener facultad por ID:', error);
+    throw error;
+  }
+};
+
 
 // Carreras
 export const getCarreras = async () => {
@@ -136,6 +193,31 @@ export const getCarreras = async () => {
   } catch (error) {
     console.error('Error al obtener carreras:', error);
     return [];
+  }
+};
+
+export const getCarreraById = async (id) => {
+  try {
+    const response = await fetch(`${API_URL}/carreras/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    if (result.exito && result.datos) {
+      return result.datos;
+    } else {
+      throw new Error(result.error || 'Error al obtener la carrera');
+    }
+  } catch (error) {
+    console.error('Error en getCarreraById:', error);
+    throw error;
   }
 };
 
@@ -157,6 +239,87 @@ export const createCarrera = async (data) => {
   } catch (error) {
     console.error('Error al crear carrera:', error);
     throw error;
+  }
+};
+
+export const updateCarrera = async (id, data) => {
+  try {
+    const dataToSend = {
+      facultad_id: data.id_facultad,
+      codigo_carrera: data.codigo_carrera,
+      nombre_carrera: data.nombre_carrera,
+      pagina_carrera: data.pagina_carrera,
+    };
+
+    Object.keys(dataToSend).forEach(key => {
+      if (dataToSend[key] === undefined || dataToSend[key] === null) {
+        delete dataToSend[key];
+      }
+    });
+
+    const response = await fetch(`${API_URL}/carreras/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(dataToSend),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 422 && result.errors) {
+        const validationErrors = Object.values(result.errors).flat();
+        throw new Error(validationErrors.join(', '));
+      }
+      throw new Error(result.error || `Error ${response.status}: ${response.statusText}`);
+    }
+
+    if (result.exito && result.datos) {
+      return result.datos;
+    } else {
+      throw new Error(result.error || 'Error al actualizar la carrera');
+    }
+  } catch (error) {
+    console.error('Error en updateCarrera:', error);
+    throw error;
+  }
+};
+
+
+// Función para eliminar una carrera
+export const deleteCarrera = async (carreraId) => {
+  try {
+    const response = await fetch(`${API_URL}/carreras/${carreraId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        // Agregar aquí headers de autenticación cuando entienda
+      },
+    });
+    if (!response.ok) {
+      let errorMessage = 'Error al eliminar la carrera';
+      
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || errorMessage;
+      } catch (e) {
+        errorMessage = `Error ${response.status}: ${response.statusText}`;
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    // Intentar parsear la respuesta JSON
+    const data = await response.json();
+    if (data.exito !== true) {
+      throw new Error(data.error || 'Error al eliminar la carrera');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error en deleteCarrera:', error);
+    throw error; 
   }
 };
 
@@ -201,6 +364,30 @@ export const getModalidades = async () => {
   } catch (error) {
     console.error('Error al obtener modalidades:', error);
     return [];
+  }
+};
+
+export const getModalidadById = async (id) => {
+  try {
+    const res = await fetch(`${API_URL}/modalidades/${id}`);
+    const response = await res.json();
+    
+    if (!res.ok) {
+      if (res.status === 404) {
+        throw new Error('Modalidad no encontrada');
+      }
+      throw new Error(response.error || `HTTP error! status: ${res.status}`);
+    }
+    
+    if (response.exito && response.datos) {
+      return response.datos;
+    } else {
+      console.error('Error en la respuesta:', response.error || 'Error desconocido');
+      throw new Error(response.error || 'Error al obtener la modalidad');
+    }
+  } catch (error) {
+    console.error('Error al obtener modalidad por ID:', error);
+    throw error;
   }
 };
 
