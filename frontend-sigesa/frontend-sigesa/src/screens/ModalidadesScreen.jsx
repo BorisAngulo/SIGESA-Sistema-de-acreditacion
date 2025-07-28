@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getFacultades, getCarreras, getModalidades } from '../services/api';
 import ModalInfoModalidad from '../components/ModalInfoModalidad';
 import '../styles/ModalidadesScreen.css';
 
 const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
+  const navigate = useNavigate();
   const [facultades, setFacultades] = useState([]);
   const [carreras, setCarreras] = useState([]);
   const [selectedFacultad, setSelectedFacultad] = useState('');
@@ -113,7 +115,7 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
 
   const handleCarreraChange = (e) => {
     const value = e.target.value;
-    console.log('🎯 Carrera seleccionada:', value);
+    console.log('Carrera seleccionada:', value);
     setSelectedCarrera(value);
     
     const carrera = filteredCarreras.find(c => (c.id || c.carrera_id).toString() === value);
@@ -127,8 +129,18 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
   };
 
   const handleVerDocumentos = () => {
-    // ver documentos redirige a 
-    console.log('Ver documentos para:', selectedCarreraNombre);
+    navigate('/fases', {
+      state: {
+        modalidad: modalidad,
+        facultadId: selectedFacultad,
+        carreraId: selectedCarrera,
+        facultadNombre: selectedFacultadNombre,
+        carreraNombre: selectedCarreraNombre,
+        modalidadData: currentModalidad
+      }
+    });
+    
+    console.log('Navegando a fases para:', selectedCarreraNombre);
   };
 
   if (loading) {
