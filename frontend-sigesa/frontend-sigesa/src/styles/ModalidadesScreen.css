@@ -113,7 +113,7 @@
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   background-color: white;
-  color: #2d3748;
+  color: #000000; 
   cursor: pointer;
   transition: all 0.3s ease;
   appearance: none;
@@ -136,10 +136,9 @@
 }
 
 .selector:disabled {
-  background-color: #f7fafc;
-  color: #a0aec0;
+  color: #666666; 
+  background-color: #f5f5f5;
   cursor: not-allowed;
-  border-color: #e2e8f0;
 }
 
 .selector:disabled:hover {
@@ -147,11 +146,10 @@
 }
 
 .selector option {
-  padding: 12px;
-  font-size: 16px;
+  color: #000000; 
+  background-color: #ffffff;
 }
 
-/* Responsive Design */
 @media (max-width: 968px) {
   .modalidades-content {
     flex-direction: column;
@@ -191,11 +189,14 @@
   }
   
   .selector {
-    padding: 14px 16px;
+    color: #000000; 
+    background-color: #ffffff; 
+    border: 2px solid #e2e8f0;
+    padding: 14px 18px;
     font-size: 14px;
+    border-radius: 8px;
+    width: 100%;
     padding-right: 45px;
-    background-size: 18px;
-    background-position: right 14px center;
   }
   
   .documents-btn {

@@ -10,34 +10,54 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
   const [filteredCarreras, setFilteredCarreras] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentModalidad, setCurrentModalidad] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
+        setError(null);
+        
+        console.log('Iniciando carga de datos...');
+        
         const [facultadesData, carrerasData, modalidadesData] = await Promise.all([
           getFacultades(),
           getCarreras(),
           getModalidades()
         ]);
         
-        setFacultades(facultadesData);
-        setCarreras(carrerasData);
-      
-        const modalidadActual = modalidadesData.find(m => 
-          m.codigo_modalidad?.toLowerCase() === modalidad.replace('-', '_')
-        );
-        setCurrentModalidad(modalidadActual);
+        console.log('Datos recibidos:');
+        console.log('Facultades:', facultadesData);
+        console.log('Carreras:', carrerasData);
+        console.log('Modalidades:', modalidadesData);
         
-        console.log('Datos cargados:', {
-          facultades: facultadesData,
-          carreras: carrerasData,
-          modalidadesData,
-          modalidadActual
-        });
+        if (!Array.isArray(facultadesData)) {
+          console.error('Facultades no es un array:', facultadesData);
+          setFacultades([]);
+        } else {
+          setFacultades(facultadesData);
+        }
+        
+        if (!Array.isArray(carrerasData)) {
+          console.error('Carreras no es un array:', carrerasData);
+          setCarreras([]);
+        } else {
+          setCarreras(carrerasData);
+        }
+        
+        if (Array.isArray(modalidadesData)) {
+          const modalidadActual = modalidadesData.find(m => 
+            m.codigo_modalidad?.toLowerCase() === modalidad.replace('-', '_')
+          );
+          setCurrentModalidad(modalidadActual);
+          console.log('Modalidad encontrada:', modalidadActual);
+        }
         
       } catch (error) {
         console.error('Error al cargar datos:', error);
+        setError(error.message);
+        setFacultades([]);
+        setCarreras([]);
       } finally {
         setLoading(false);
       }
@@ -47,14 +67,23 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
   }, [modalidad]);
 
   useEffect(() => {
+    console.log('Actualizando carreras filtradas...');
+    console.log('Facultad seleccionada:', selectedFacultad);
+    console.log('Total carreras:', carreras.length);
+    
     if (selectedFacultad && carreras.length > 0) {
-      let filtered = carreras.filter(carrera => 
-        carrera.facultad_id === parseInt(selectedFacultad)
-      );
+      let filtered = carreras.filter(carrera => {
+        const facultadId = parseInt(selectedFacultad);
+        const carreraFacultadId = parseInt(carrera.facultad_id || carrera.id_facultad);
+        
+        console.log(`Comparando: ${carreraFacultadId} === ${facultadId}`, carreraFacultadId === facultadId);
+        
+        return carreraFacultadId === facultadId;
+      });
       
-      //  relación modalidad-carrera
+      console.log('Carreras filtradas:', filtered);
       if (currentModalidad) {
-        // co,mo filtered = filtered.filter(carrera => carrera.modalidad_id === currentModalidad.id);
+        // filtered = filtered.filter(carrera => carrera.modalidad_id === currentModalidad.id);
       }
       
       setFilteredCarreras(filtered);
@@ -66,17 +95,31 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
   }, [selectedFacultad, carreras, currentModalidad]);
 
   const handleFacultadChange = (e) => {
-    setSelectedFacultad(e.target.value);
+    const value = e.target.value;
+    console.log('🎯 Facultad seleccionada:', value);
+    setSelectedFacultad(value);
   };
 
   const handleCarreraChange = (e) => {
-    setSelectedCarrera(e.target.value);
+    const value = e.target.value;
+    console.log('🎯 Carrera seleccionada:', value);
+    setSelectedCarrera(value);
   };
 
   if (loading) {
     return (
       <div className="modalidades-container">
-        <div className="loading">Cargando...</div>
+        <div className="loading">Cargando datos...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="modalidades-container">
+        <div className="loading" style={{ color: 'red' }}>
+          Error al cargar datos: {error}
+        </div>
       </div>
     );
   }
@@ -139,12 +182,22 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
               value={selectedFacultad}
               onChange={handleFacultadChange}
             >
-              <option value="">Seleccionar Facultad</option>
-              {facultades.map((facultad) => (
-                <option key={facultad.id} value={facultad.id}>
-                  {facultad.nombre}
-                </option>
-              ))}
+              <option value="">Seleccionar Facultad ({facultades.length})</option>
+              {facultades.map((facultad) => {
+                const id = facultad.id || facultad.facultad_id;
+                const nombre = facultad.nombre || facultad.nombre_facultad || facultad.name;
+                
+                if (!id || !nombre) {
+                  console.warn('Facultad con estructura incorrecta:', facultad);
+                  return null;
+                }
+                
+                return (
+                  <option key={id} value={id}>
+                    {nombre}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -160,14 +213,24 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
                   ? 'Seleccionar Carrera' 
                   : filteredCarreras.length === 0 
                     ? 'No hay carreras disponibles'
-                    : 'Seleccionar Carrera'
+                    : `Seleccionar Carrera (${filteredCarreras.length})`
                 }
               </option>
-              {filteredCarreras.map((carrera) => (
-                <option key={carrera.id} value={carrera.id}>
-                  {carrera.nombre}
-                </option>
-              ))}
+              {filteredCarreras.map((carrera) => {
+                const id = carrera.id || carrera.carrera_id;
+                const nombre = carrera.nombre || carrera.nombre_carrera || carrera.name;
+                
+                if (!id || !nombre) {
+                  console.warn('Carrera con estructura incorrecta:', carrera);
+                  return null;
+                }
+                
+                return (
+                  <option key={id} value={id}>
+                    {nombre}
+                  </option>
+                );
+              })}
             </select>
           </div>
         </div>
