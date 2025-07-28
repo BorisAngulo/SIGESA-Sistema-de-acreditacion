@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getFacultades, getCarreras, getModalidades } from '../services/api';
+import ModalInfoModalidad from '../components/ModalInfoModalidad';
 import '../styles/ModalidadesScreen.css';
 
 const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
@@ -11,6 +12,9 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
   const [loading, setLoading] = useState(true);
   const [currentModalidad, setCurrentModalidad] = useState(null);
   const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedFacultadNombre, setSelectedFacultadNombre] = useState('');
+  const [selectedCarreraNombre, setSelectedCarreraNombre] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -88,22 +92,43 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
       
       setFilteredCarreras(filtered);
       setSelectedCarrera(''); 
+      setSelectedCarreraNombre('');
     } else {
       setFilteredCarreras([]);
       setSelectedCarrera('');
+      setSelectedCarreraNombre('');
     }
   }, [selectedFacultad, carreras, currentModalidad]);
 
   const handleFacultadChange = (e) => {
     const value = e.target.value;
-    console.log('🎯 Facultad seleccionada:', value);
+    console.log('Facultad seleccionada:', value);
     setSelectedFacultad(value);
+    
+    const facultad = facultades.find(f => (f.id || f.facultad_id).toString() === value);
+    if (facultad) {
+      setSelectedFacultadNombre(facultad.nombre || facultad.nombre_facultad || facultad.name);
+    }
   };
 
   const handleCarreraChange = (e) => {
     const value = e.target.value;
     console.log('🎯 Carrera seleccionada:', value);
     setSelectedCarrera(value);
+    
+    const carrera = filteredCarreras.find(c => (c.id || c.carrera_id).toString() === value);
+    if (carrera) {
+      setSelectedCarreraNombre(carrera.nombre || carrera.nombre_carrera || carrera.name);
+    }
+  };
+
+  const handleMasInformacion = () => {
+    setShowModal(true);
+  };
+
+  const handleVerDocumentos = () => {
+    // ver documentos redirige a 
+    console.log('Ver documentos para:', selectedCarreraNombre);
   };
 
   if (loading) {
@@ -233,8 +258,40 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
               })}
             </select>
           </div>
+
+          {selectedCarrera && (
+            <div className="action-buttons">
+              <button 
+                className="action-btn primary-btn"
+                onClick={handleMasInformacion}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M13 16H12V12H11M12 8H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Más información
+              </button>
+              
+              <button 
+                className="action-btn secondary-btn"
+                onClick={handleVerDocumentos}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L19.7071 9.70711C19.8946 9.89464 20 10.149 20 10.4142V19C20 20.1046 19.1046 21 18 21H17ZM17 21V10L12 5H7V19H17Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Ver fases
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      <ModalInfoModalidad
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        modalidad={modalidad}
+        facultadNombre={selectedFacultadNombre}
+        carreraNombre={selectedCarreraNombre}
+      />
     </div>
   );
 };
