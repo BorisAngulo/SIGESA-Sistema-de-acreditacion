@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { getFacultades, getCarreras, getModalidades } from '../services/api';
 import '../styles/ModalidadesScreen.css';
-import { getFacultades, getCarreras } from '../services/api';
 
 const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
   const [facultades, setFacultades] = useState([]);
@@ -9,18 +9,33 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
   const [selectedCarrera, setSelectedCarrera] = useState('');
   const [filteredCarreras, setFilteredCarreras] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentModalidad, setCurrentModalidad] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const [facultadesData, carrerasData] = await Promise.all([
+        const [facultadesData, carrerasData, modalidadesData] = await Promise.all([
           getFacultades(),
-          getCarreras()
+          getCarreras(),
+          getModalidades()
         ]);
         
         setFacultades(facultadesData);
         setCarreras(carrerasData);
+      
+        const modalidadActual = modalidadesData.find(m => 
+          m.codigo_modalidad?.toLowerCase() === modalidad.replace('-', '_')
+        );
+        setCurrentModalidad(modalidadActual);
+        
+        console.log('Datos cargados:', {
+          facultades: facultadesData,
+          carreras: carrerasData,
+          modalidadesData,
+          modalidadActual
+        });
+        
       } catch (error) {
         console.error('Error al cargar datos:', error);
       } finally {
@@ -29,20 +44,26 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
     };
 
     loadData();
-  }, []);
+  }, [modalidad]);
 
   useEffect(() => {
     if (selectedFacultad && carreras.length > 0) {
-      const filtered = carreras.filter(carrera => 
+      let filtered = carreras.filter(carrera => 
         carrera.facultad_id === parseInt(selectedFacultad)
       );
+      
+      //  relación modalidad-carrera
+      if (currentModalidad) {
+        // co,mo filtered = filtered.filter(carrera => carrera.modalidad_id === currentModalidad.id);
+      }
+      
       setFilteredCarreras(filtered);
-      setSelectedCarrera('');
+      setSelectedCarrera(''); 
     } else {
       setFilteredCarreras([]);
       setSelectedCarrera('');
     }
-  }, [selectedFacultad, carreras]);
+  }, [selectedFacultad, carreras, currentModalidad]);
 
   const handleFacultadChange = (e) => {
     setSelectedFacultad(e.target.value);

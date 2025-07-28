@@ -367,6 +367,30 @@ export const getModalidades = async () => {
   }
 };
 
+export const getModalidadById = async (id) => {
+  try {
+    const res = await fetch(`${API_URL}/modalidades/${id}`);
+    const response = await res.json();
+    
+    if (!res.ok) {
+      if (res.status === 404) {
+        throw new Error('Modalidad no encontrada');
+      }
+      throw new Error(response.error || `HTTP error! status: ${res.status}`);
+    }
+    
+    if (response.exito && response.datos) {
+      return response.datos;
+    } else {
+      console.error('Error en la respuesta:', response.error || 'Error desconocido');
+      throw new Error(response.error || 'Error al obtener la modalidad');
+    }
+  } catch (error) {
+    console.error('Error al obtener modalidad por ID:', error);
+    throw error;
+  }
+};
+
 export const createModalidad = async (data) => {
   try {
     const res = await fetch(`${API_URL}/modalidades`, {

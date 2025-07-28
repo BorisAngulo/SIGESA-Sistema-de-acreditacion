@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate  } from 'react-router-dom';
 
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -116,8 +116,19 @@ function App() {
                 </ProtectedRoute>
               } />
               
-              <Route path="/modalidades/arco-sur" element={<ModalidadesScreen modalidad="arco-sur" />} />
-              <Route path="/modalidades/ceub" element={<ModalidadesScreen modalidad="ceub" />} />
+             <Route path="/modalidades/arco-sur" element={
+                <ProtectedRoute allowedRoles={['Admin']}>
+                  <ModalidadesScreen modalidad="arco-sur" />
+                </ProtectedRoute>
+              } />
+              <Route path="/modalidades/ceub" element={
+                <ProtectedRoute allowedRoles={['Admin']}>
+                  <ModalidadesScreen modalidad="ceub" />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/modalidades" element={<Navigate to="/modalidades/arco-sur" replace />} />
+
               <Route path="/fases" element={
                 <ProtectedRoute>
                   <FasesScreen />
