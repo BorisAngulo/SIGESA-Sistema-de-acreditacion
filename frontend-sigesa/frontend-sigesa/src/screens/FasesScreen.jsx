@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
+import ModalAgregarFase from '../components/ModalAgregarFase'; 
 import '../styles/FasesScreen.css';
 
 const FasesScreen = () => {
   const location = useLocation();
   const params = useParams();
   const [fasesData, setFasesData] = useState(null);
+  const [showModal, setShowModal] = useState(false); 
 
   const [fases, setFases] = useState([
     {
@@ -132,7 +134,24 @@ const FasesScreen = () => {
   };
 
   const handleAgregarFase = () => {
-    console.log('Agregar nueva fase');
+    setShowModal(true); 
+  };
+
+  const handleSaveFase = (nuevaFase) => {
+    const nuevoId = Math.max(...fases.map(f => f.id)) + 1;
+    
+    const faseCompleta = {
+      ...nuevaFase,
+      id: nuevoId
+    };
+    
+    setFases(prev => [...prev, faseCompleta]);
+    
+    console.log('Nueva fase agregada:', faseCompleta);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false); 
   };
 
   const handleFinalizarAcreditacion = () => {
@@ -328,6 +347,12 @@ const FasesScreen = () => {
           </div>
         ))}
       </div>
+
+      <ModalAgregarFase
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        onSave={handleSaveFase}
+      />
     </div>
   );
 };
