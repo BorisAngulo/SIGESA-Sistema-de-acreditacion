@@ -21,6 +21,7 @@ import FasesScreen from './screens/FasesScreen';
 import EditarFacultadScreen from './screens/EditarFacultadScreen';
 import EditarCarreraScreen from './screens/EditarCarreraScreen';
 import ModalidadesScreen from './screens/ModalidadesScreen';
+import ReportesScreen from './screens/ReportesScreen';
 
 
 function App() {
@@ -128,6 +129,7 @@ function App() {
               } />
 
               <Route path="/modalidades" element={<Navigate to="/modalidades/arco-sur" replace />} />
+              <Route path="/reportes" element={<ReportesScreen />} />
 
               <Route path="/fases" element={
                 <ProtectedRoute>
