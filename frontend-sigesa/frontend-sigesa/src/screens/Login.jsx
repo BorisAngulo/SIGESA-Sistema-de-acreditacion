@@ -174,7 +174,7 @@ const Login = () => {
 
             {/*  <button className="forgot-password">
                 ¿Olvidaste tu contraseña? Recuperar
-              </button> */}
+              </button> */} //
             </div>
           </div>
         </div>

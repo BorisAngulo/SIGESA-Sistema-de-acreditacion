@@ -70,7 +70,7 @@ const Header = () => {
                     className="dropdown-item"
                     onClick={() => handleModalidadSelect('arco-sur')}
                   >
-                    ARCO SUR
+                    ARCU SUR
                   </button>
                   <button 
                     className="dropdown-item"
