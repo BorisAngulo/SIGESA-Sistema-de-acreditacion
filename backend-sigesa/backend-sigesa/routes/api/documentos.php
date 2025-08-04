@@ -13,18 +13,21 @@ use App\Http\Controllers\Api\DocumentoController;
 |
 */
 
-// === DOCUMENTOS ===
-Route::apiResource('documentos', DocumentoController::class);
+// Todas las rutas de documentos requieren autenticación
+Route::middleware(['auth:sanctum'])->group(function () {
+    // === DOCUMENTOS ===
+    Route::apiResource('documentos', DocumentoController::class);
 
-// === RUTAS ESPECÍFICAS ===
-// Descargar un documento
-Route::get('documentos/{documento}/descargar', [DocumentoController::class, 'descargar'])
-    ->name('documentos.descargar');
+    // === RUTAS ESPECÍFICAS ===
+    // Descargar un documento
+    Route::get('documentos/{documento}/descargar', [DocumentoController::class, 'descargar'])
+        ->name('documentos.descargar');
 
-// Obtener documentos de una fase específica
-Route::get('fases/{fase}/documentos', [DocumentoController::class, 'getDocumentosByFase'])
-    ->name('fases.documentos');
+    // Obtener documentos de una fase específica
+    Route::get('fases/{fase}/documentos', [DocumentoController::class, 'getDocumentosByFase'])
+        ->name('fases.documentos');
 
-// Obtener documentos de una subfase específica
-Route::get('subfases/{subfase}/documentos', [DocumentoController::class, 'getDocumentosBySubfase'])
-    ->name('subfases.documentos');
+    // Obtener documentos de una subfase específica
+    Route::get('subfases/{subfase}/documentos', [DocumentoController::class, 'getDocumentosBySubfase'])
+        ->name('subfases.documentos');
+});

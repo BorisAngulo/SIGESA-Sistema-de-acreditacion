@@ -50,3 +50,4 @@ require __DIR__.'/api/modalidades.php';
 require __DIR__.'/api/procesos.php';
 require __DIR__.'/api/documentos.php';
 require __DIR__.'/api/utilidades.php';
+require __DIR__.'/api/activity-logs.php';

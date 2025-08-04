@@ -12,7 +12,8 @@ use App\Http\Controllers\Api\UsuarioController;
 |
 */
 
-Route::prefix('usuarios')->group(function () {
+// Todas las rutas de usuarios requieren autenticación
+Route::middleware(['auth:sanctum'])->prefix('usuarios')->group(function () {
     // Obtener roles disponibles
     Route::get('/roles', [UsuarioController::class, 'getRoles']);
     

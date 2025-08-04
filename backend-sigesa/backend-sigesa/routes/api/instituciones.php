@@ -13,17 +13,63 @@ use App\Http\Controllers\Api\CarreraController;
 |
 */
 
-// === FACULTADES ===
-Route::apiResource('facultades', FacultadController::class);
+// === RUTAS PÚBLICAS (SOLO LECTURA) ===
+// Consultas que no requieren autenticación para mostrar datos básicos
 
-// === CARRERAS ===
-Route::apiResource('carreras', CarreraController::class);
+// Obtener todas las facultades (público)
+Route::get('facultades', [FacultadController::class, 'index'])
+    ->name('facultades.index');
 
-// === RUTAS ESPECÍFICAS ===
-// Obtener carreras de una facultad específica
+// Obtener una facultad específica (público)
+Route::get('facultades/{facultad}', [FacultadController::class, 'show'])
+    ->name('facultades.show');
+
+// Obtener todas las carreras (público)
+Route::get('carreras', [CarreraController::class, 'index'])
+    ->name('carreras.index');
+
+// Obtener una carrera específica (público)
+Route::get('carreras/{carrera}', [CarreraController::class, 'show'])
+    ->name('carreras.show');
+
+// Obtener carreras de una facultad específica (público)
 Route::get('facultades/{facultad}/carreras', [CarreraController::class, 'getByFacultad'])
     ->name('facultades.carreras');
 
-// Buscar carreras por nombre
+// Buscar carreras por nombre (público)
 Route::get('carreras/buscar/{termino}', [CarreraController::class, 'buscar'])
     ->name('carreras.buscar');
+
+// === RUTAS PROTEGIDAS (REQUIEREN AUTENTICACIÓN) ===
+// Operaciones de escritura que requieren usuario autenticado
+Route::middleware(['auth:sanctum'])->group(function () {
+    // === FACULTADES ===
+    // Crear facultad
+    Route::post('facultades', [FacultadController::class, 'store'])
+        ->name('facultades.store');
+    
+    // Actualizar facultad
+    Route::put('facultades/{facultad}', [FacultadController::class, 'update'])
+        ->name('facultades.update');
+    Route::patch('facultades/{facultad}', [FacultadController::class, 'update'])
+        ->name('facultades.patch');
+    
+    // Eliminar facultad
+    Route::delete('facultades/{facultad}', [FacultadController::class, 'destroy'])
+        ->name('facultades.destroy');
+
+    // === CARRERAS ===
+    // Crear carrera
+    Route::post('carreras', [CarreraController::class, 'store'])
+        ->name('carreras.store');
+    
+    // Actualizar carrera
+    Route::put('carreras/{carrera}', [CarreraController::class, 'update'])
+        ->name('carreras.update');
+    Route::patch('carreras/{carrera}', [CarreraController::class, 'update'])
+        ->name('carreras.patch');
+    
+    // Eliminar carrera
+    Route::delete('carreras/{carrera}', [CarreraController::class, 'destroy'])
+        ->name('carreras.destroy');
+});

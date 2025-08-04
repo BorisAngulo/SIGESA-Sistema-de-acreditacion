@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\ActivityLog;
 use App\Exceptions\ApiException;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -140,6 +141,16 @@ class UsuarioController extends BaseApiController
             // Asignar rol al usuario
             $usuario->assignRole($validated['role']);
 
+            // Registrar actividad de creación
+            ActivityLog::createLog(
+                'created',
+                "Usuario '{$usuario->name} {$usuario->lastName}' creado con rol '{$validated['role']}'",
+                User::class,
+                $usuario->id,
+                null,
+                $usuario->only(['name', 'lastName', 'email', 'id_usuario_updated_fase'])
+            );
+
             DB::commit();
 
             // Eliminar la contraseña de la respuesta y cargar roles
@@ -260,6 +271,10 @@ class UsuarioController extends BaseApiController
                 throw ApiException::notFound('usuario', $id);
             }
 
+            // Capturar valores originales para el log
+            $valoresOriginales = $usuario->only(['name', 'lastName', 'email', 'id_usuario_updated_fase']);
+            $rolesOriginales = $usuario->roles->pluck('name')->toArray();
+
             // Validación de datos
             $validated = $request->validate([
                 'name' => 'sometimes|required|string|max:255',
@@ -308,6 +323,25 @@ class UsuarioController extends BaseApiController
             if (!$updated) {
                 throw ApiException::updateFailed('usuario');
             }
+
+            // Registrar actividad de actualización
+            $valoresNuevos = $usuario->only(['name', 'lastName', 'email', 'id_usuario_updated_fase']);
+            $rolesNuevos = $usuario->roles->pluck('name')->toArray();
+            
+            // Agregar roles a los valores para el log si cambiaron
+            if ($rolesOriginales !== $rolesNuevos) {
+                $valoresOriginales['roles'] = $rolesOriginales;
+                $valoresNuevos['roles'] = $rolesNuevos;
+            }
+
+            ActivityLog::createLog(
+                'updated',
+                "Usuario '{$usuario->name} {$usuario->lastName}' actualizado",
+                User::class,
+                $usuario->id,
+                $valoresOriginales,
+                $valoresNuevos
+            );
 
             DB::commit();
 
@@ -362,11 +396,26 @@ class UsuarioController extends BaseApiController
                 throw ApiException::notFound('usuario', $id);
             }
 
+            // Capturar datos del usuario antes de eliminar para el log
+            $datosUsuario = $usuario->only(['name', 'lastName', 'email', 'id_usuario_updated_fase']);
+            $rolesUsuario = $usuario->roles->pluck('name')->toArray();
+            $datosUsuario['roles'] = $rolesUsuario;
+
             $deleted = $usuario->delete();
 
             if (!$deleted) {
                 throw ApiException::deletionFailed('usuario');
             }
+
+            // Registrar actividad de eliminación
+            ActivityLog::createLog(
+                'deleted',
+                "Usuario '{$datosUsuario['name']} {$datosUsuario['lastName']}' eliminado",
+                User::class,
+                $id, // Usar el ID ya que el modelo fue eliminado
+                $datosUsuario,
+                null
+            );
 
             DB::commit();
 
