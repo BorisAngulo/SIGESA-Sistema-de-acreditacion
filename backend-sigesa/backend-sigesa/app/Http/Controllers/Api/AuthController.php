@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\ActivityLog;
 use App\Exceptions\ApiException;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -89,6 +90,17 @@ class AuthController extends BaseApiController
             $deviceName = $validated['device_name'] ?? 'SIGESA Device';
             $token = $user->createToken($deviceName)->plainTextToken;
 
+            // Autenticar el usuario temporalmente para el log
+            Auth::setUser($user);
+            
+            // Registrar el login en los logs de actividad
+            ActivityLog::createLog(
+                'login',
+                "Usuario '{$user->name} {$user->lastName}' inició sesión",
+                User::class,
+                $user->id
+            );
+
             // Preparar respuesta
             $user->makeHidden(['password']);
 
@@ -142,8 +154,18 @@ class AuthController extends BaseApiController
     public function logout(Request $request)
     {
         try {
+            $user = $request->user();
+            
+            // Registrar el logout en los logs de actividad antes de revocar el token
+            ActivityLog::createLog(
+                'logout',
+                "Usuario '{$user->name} {$user->lastName}' cerró sesión",
+                User::class,
+                $user->id
+            );
+            
             // Revocar el token actual del usuario autenticado
-            $request->user()->currentAccessToken()->delete();
+            $user->currentAccessToken()->delete();
 
             return $this->successResponse(null, 'Sesión cerrada exitosamente');
 

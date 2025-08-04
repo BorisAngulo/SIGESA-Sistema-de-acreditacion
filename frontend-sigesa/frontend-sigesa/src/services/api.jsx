@@ -100,6 +100,7 @@ export const deleteFacultad = async (id) => {
   try {
     const res = await fetch(`${API_URL}/facultades/${id}`, {
       method: "DELETE",
+      headers: getAuthHeaders(),
     });
     if (res.status === 200 || res.status === 204) {
       return true;
@@ -292,10 +293,7 @@ export const deleteCarrera = async (carreraId) => {
   try {
     const response = await fetch(`${API_URL}/carreras/${carreraId}`, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        // Agregar aquí headers de autenticación cuando entienda
-      },
+      headers: getAuthHeaders(),
     });
     if (!response.ok) {
       let errorMessage = 'Error al eliminar la carrera';
