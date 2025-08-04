@@ -12,6 +12,7 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
   const [selectedCarrera, setSelectedCarrera] = useState('');
   const [filteredCarreras, setFilteredCarreras] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [currentModalidad, setCurrentModalidad] = useState(null);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -168,41 +169,63 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
         <span className="separator">&gt;&gt;</span>
         <span>Modalidades</span>
         <span className="separator">&gt;&gt;</span>
-        <span className="current">{modalidad === 'arco-sur' ? 'ARCO SUR' : 'CEUB'}</span>
+        <span className="current">{modalidad === 'arco-sur' ? 'ARCU SUR' : 'CEUB'}</span>
       </div>
 
       <div className="modalidades-content">
         <div className="content-section">
           <h1 className="main-title">
-            {modalidad === 'arco-sur' ? 'SISTEMA ARCO SUR' : 'SISTEMA CEUB'}
+            {modalidad === 'arco-sur' ? 'SISTEMA ARCU SUR' : 'SISTEMA CEUB'}
           </h1>
           
           <div className="description">
-            {modalidad === 'arco-sur' ? (
-              <p>
-                El Sistema de Acreditación Regional de Carreras Universitarias para el MERCOSUR, 
-                ARCU-SUR es la continuación de un proceso de similares características, denominado 
-                Mecanismo Experimental de Acreditación (MEXA), que se aplicó en un número 
-                limitado de carreras de Agronomía, Ingeniería y Medicina. Estas tres titulaciones 
-                fueron determinadas por la Reunión de Ministros de Educación, para dar inicio el 
-                proceso experimental. Los países participantes fueron Argentina, Brasil, Paraguay, 
-                Uruguay, Bolivia y Chile1 , con un total de 62 carreras acreditadas: 19 de Agronomía, 
-                29 de Ingeniería y 14 de Medicina. La evaluación del MEXA demostró que fue 
-                adecuada la prospección realizada por el Sector Educativo del MERCOSUR, SEM, y 
-                que por ello resultaba conveniente la instalación de un sistema de acreditación 
-                permanente de la calidad de la formación de nivel universitario en la región.
-              </p>
-            ) : (
-              <p>
-                El Comité Ejecutivo de la Universidad Boliviana (CEUB) es el organismo rector 
-                del Sistema de la Universidad Boliviana, encargado de la coordinación, planificación 
-                y ejecución de políticas, planes y programas del sistema universitario estatal. 
-                El CEUB tiene la responsabilidad de velar por la calidad académica, la investigación 
-                científica y la extensión universitaria en todas las universidades públicas del país, 
-                promoviendo la excelencia educativa y el desarrollo integral de la educación superior 
-                en Bolivia.
-              </p>
-            )}
+              {modalidad === 'arco-sur' ? (
+                  <div>
+                      <p>
+                          El Sistema de Acreditación Regional de Carreras Universitarias para el MERCOSUR (ARCU-SUR) 
+                          es un mecanismo permanente de evaluación y garantía de calidad para carreras de grado en la región. 
+                          Surge como evolución del Mecanismo Experimental de Acreditación (MEXA) que evaluó carreras de 
+                          Agronomía, Ingeniería y Medicina entre 1998 y 2004.
+                      </p>
+                      <p>
+                          <strong>Duración de la acreditación:</strong> La acreditación ARCU-SUR tiene una validez de 
+                          6 años para las carreras que logran la certificación.
+                      </p>
+                      <p>
+                          <strong>Proceso de reacreditación:</strong> Las carreras deben iniciar el proceso de 
+                          reacreditación durante el último año de vigencia de su acreditación actual. El proceso 
+                          de reevaluación sigue los mismos estándares de calidad que la acreditación inicial.
+                      </p>
+                      <p>
+                          Actualmente participan Argentina, Brasil, Paraguay, Uruguay, Bolivia y Chile, evaluando 
+                          carreras en áreas prioritarias para el desarrollo regional. El sistema promueve la movilidad 
+                          académica y el reconocimiento mutuo de titulaciones en los países miembros.
+                      </p>
+                  </div>
+              ) : (
+                  <div>
+                      <p>
+                          El Comité Ejecutivo de la Universidad Boliviana (CEUB) es el organismo rector del Sistema 
+                          de la Universidad Boliviana, responsable de garantizar la calidad académica en las universidades 
+                          públicas del país. Su sistema de acreditación evalúa el cumplimiento de estándares nacionales 
+                          de calidad en formación profesional, investigación y vinculación con la sociedad.
+                      </p>
+                      <p>
+                          <strong>Duración de la acreditación:</strong> Las carreras acreditadas por el CEUB mantienen 
+                          su certificación por un período de 5 años.
+                      </p>
+                      <p>
+                          <strong>Proceso de reacreditación:</strong> Debe iniciarse 12 meses antes del vencimiento 
+                          de la acreditación vigente. Incluye una autoevaluación actualizada y una evaluación externa 
+                          por pares académicos.
+                      </p>
+                      <p>
+                          El CEUB promueve la mejora continua mediante procesos periódicos de evaluación, asegurando 
+                          que las carreras mantengan altos estándares de enseñanza, infraestructura adecuada y pertinencia 
+                          social de sus programas académicos.
+                      </p>
+                  </div>
+              )}
           </div>
 
           <div className="documents-section">
