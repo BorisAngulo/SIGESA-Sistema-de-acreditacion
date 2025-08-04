@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import ModalAgregarFase from '../components/ModalAgregarFase'; 
 import '../styles/FasesScreen.css';
+
 
 const FasesScreen = () => {
   const location = useLocation();
@@ -9,6 +10,9 @@ const FasesScreen = () => {
   const [fasesData, setFasesData] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editingFase, setEditingFase] = useState(null);
+
+  const navigate = useNavigate();
+
   const [fases, setFases] = useState([
     {
       id: 1,
@@ -274,8 +278,18 @@ const FasesScreen = () => {
     }
   };
 
-  const handleAgregarActividad = (faseId) => {
-    console.log('Agregar actividad a fase:', faseId);
+const handleAgregarActividad = (faseId) => {
+    const fase = fases.find(f => f.id === faseId);
+    
+    navigate('/subfase', {
+      state: {
+        faseId: faseId,
+        faseNombre: fase.nombre,
+        subfaseNombre: 'Nueva Subfase', 
+        descripcion: 'La subfase cuenta con ciertos requisitos y se trata de hacer acciones para...',
+        ...fasesData 
+      }
+    });
   };
 
   const getStatusIcon = (completada, progreso) => {
