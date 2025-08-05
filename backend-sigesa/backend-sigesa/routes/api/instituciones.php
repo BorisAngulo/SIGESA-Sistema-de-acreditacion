@@ -20,6 +20,10 @@ use App\Http\Controllers\Api\CarreraController;
 Route::get('facultades', [FacultadController::class, 'index'])
     ->name('facultades.index');
 
+// Obtener todas las facultades con conteo de carreras (optimizado)
+Route::get('facultades-con-carreras', [FacultadController::class, 'indexConConteoCarreras'])
+    ->name('facultades.con-carreras');
+
 // Obtener una facultad específica (público)
 Route::get('facultades/{facultad}', [FacultadController::class, 'show'])
     ->name('facultades.show');

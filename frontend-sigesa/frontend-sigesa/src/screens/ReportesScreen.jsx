@@ -149,9 +149,13 @@ const ReportesScreen = () => {
   if (loading) {
     return (
       <div className="reportes-container">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          <p>Cargando reportes...</p>
+        <div className="loading-content">
+          <div className="loading-spinner">
+            <div className="spinner-ring"></div>
+            <div className="spinner-inner"></div>
+          </div>
+          <h2 className="loading-title">Cargando Reportes</h2>
+          <p className="loading-subtitle">Por favor espera un momento...</p>
         </div>
       </div>
     );

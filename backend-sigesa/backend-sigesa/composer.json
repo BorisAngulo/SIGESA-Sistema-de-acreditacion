@@ -16,6 +16,8 @@
         "laravel/framework": "^8.0",
         "laravel/sanctum": "^2.15",
         "laravel/tinker": "^2.0",
+        "masbug/flysystem-google-drive-ext": "*",
+        "spatie/laravel-backup": "^7.8",
         "spatie/laravel-permission": "^6.20"
     },
     "require-dev": {

@@ -96,6 +96,9 @@ const Header = () => {
             <NavLink to="/reportes" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
               Reportes
             </NavLink>
+            <NavLink to="/backups" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
+              Backups
+            </NavLink>
           </>
         );
       
@@ -161,7 +164,7 @@ const Header = () => {
                 className="user-menu-toggle"
                 onClick={() => setShowUserMenu(!showUserMenu)}
               >
-                <span className="user-name">{user?.name}</span>
+                <span className="user-name-navbar">{user?.name}</span>
                 <span className="user-role">({getUserRole()})</span>
               </button>
               

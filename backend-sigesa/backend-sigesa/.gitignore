@@ -10,3 +10,21 @@ Homestead.json
 Homestead.yaml
 npm-debug.log
 yarn-error.log
+
+# Google Drive credentials (security)
+get_refresh_token.php
+client_secret_*.json
+
+# Large files that can cause push issues
+package-lock.json
+composer.lock
+
+# Temporary backup files
+/storage/app/Laravel/
+/storage/app/backups/
+*.sql
+*.zip
+
+# Log files
+/storage/logs/
+*.log

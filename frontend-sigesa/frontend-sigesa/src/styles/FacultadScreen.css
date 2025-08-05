@@ -8,7 +8,7 @@
 }
 
 .busqueda-section {
-  margin-bottom: 30px;
+  margin-bottom: 20px; /* Reducido de 30px a 20px */
 }
 
 .search-title {
@@ -50,15 +50,27 @@
   color: #7B94AA;
 }
 
+/* Indicador de carga para carreras */
+.loading-carreras {
+  color: #7B94AA;
+  font-style: italic;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 .header-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 30px auto; 
-  padding: 25px 30px;
+  margin: 15px auto; /* Reducido de 30px a 15px */
+  padding: 12px 20px; /* Reducido de 25px 30px a 12px 20px */
   background: #041B2C;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(4, 27, 44, 0.15);
+  border-radius: 8px; /* Reducido de 12px a 8px */
+  box-shadow: 0 2px 8px rgba(4, 27, 44, 0.15); /* Reducida la sombra */
   max-width: 900px; 
   width: 100%; 
 }
@@ -66,21 +78,21 @@
 .mascota-container {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 10px; /* Reducido de 15px a 10px */
 }
 
 .mascota-img {
-  width: 60px;
-  height: 60px;
+  width: 45px; /* Reducido de 60px a 45px */
+  height: 45px; /* Reducido de 60px a 45px */
   border-radius: 50%;
   border: 2px solid #A21426;
   background-color: white;
-  padding: 5px;
+  padding: 3px; /* Reducido de 5px a 3px */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .mascota-message {
-  font-size: 18px;
+  font-size: 16px; /* Reducido de 18px a 16px */
   color: white;
   font-weight: 500;
 }
@@ -89,8 +101,8 @@
   background: #A21426;
   color: white;
   border: none;
-  padding: 15px 25px;
-  border-radius: 8px;
+  padding: 10px 18px; /* Reducido de 15px 25px a 10px 18px */
+  border-radius: 6px; /* Reducido de 8px a 6px */
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;

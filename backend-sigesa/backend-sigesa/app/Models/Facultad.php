@@ -19,4 +19,12 @@ class Facultad extends Model
         'pagina_facultad',
         'id_usuario_updated_facultad'
     ];
+
+    /**
+     * Relación con carreras
+     */
+    public function carreras()
+    {
+        return $this->hasMany(Carrera::class, 'facultad_id');
+    }
 }

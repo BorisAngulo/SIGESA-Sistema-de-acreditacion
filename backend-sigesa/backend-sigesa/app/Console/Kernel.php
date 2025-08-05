@@ -24,7 +24,20 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Backup semanal automático los domingos a las 2:00 AM
+        $schedule->command('backup:run')
+            ->weekly()
+            ->sundays()
+            ->at('02:00')
+            ->emailOutputOnFailure(config('mail.from.address'))
+            ->appendOutputTo(storage_path('logs/backup.log'));
+
+        // Limpiar backups antiguos los lunes a las 3:00 AM (mantener últimas 8 semanas)
+        $schedule->command('backup:clean')
+            ->weekly()
+            ->mondays()
+            ->at('03:00')
+            ->appendOutputTo(storage_path('logs/backup-clean.log'));
     }
 
     /**

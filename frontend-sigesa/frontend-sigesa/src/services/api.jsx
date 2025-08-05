@@ -74,11 +74,32 @@ export const getFacultades = async () => {
   }
 };
 
+// Facultades con conteo de carreras optimizado
+export const getFacultadesConCarreras = async () => {
+  try {
+    const res = await fetch(`${API_URL}/facultades-con-carreras`);
+    const response = await res.json();
+    
+    console.log('Respuesta completa del endpoint:', response);
+    
+    // Verificar si la respuesta es exitosa y extraer los datos
+    if (response.exito && response.datos) {
+      return response.datos;
+    } else {
+      console.error('Error en la respuesta:', response.error || 'Error desconocido');
+      return [];
+    }
+  } catch (error) {
+    console.error('Error al obtener facultades con carreras:', error);
+    return [];
+  }
+};
+
 export const createFacultad = async (data) => {
   try {
     const res = await fetch(`${API_URL}/facultades`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
     const response = await res.json();
@@ -126,10 +147,7 @@ export const updateFacultad = async (id, facultadData) => {
   try {
     const response = await fetch(`${API_URL}/facultades/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(facultadData),
     });
 
@@ -226,7 +244,7 @@ export const createCarrera = async (data) => {
   try {
     const res = await fetch(`${API_URL}/carreras`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
     const response = await res.json();
@@ -260,9 +278,7 @@ export const updateCarrera = async (id, data) => {
 
     const response = await fetch(`${API_URL}/carreras/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(dataToSend),
     });
 
@@ -393,7 +409,7 @@ export const createModalidad = async (data) => {
   try {
     const res = await fetch(`${API_URL}/modalidades`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
     const response = await res.json();
@@ -432,7 +448,7 @@ export const createCarreraModalidad = async (data) => {
   try {
     const res = await fetch(`${API_URL}/acreditacion-carreras`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
     const response = await res.json();
@@ -471,7 +487,7 @@ export const createFase = async (data) => {
   try {
     const res = await fetch(`${API_URL}/fases`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
     const response = await res.json();
@@ -510,7 +526,7 @@ export const createSubfase = async (data) => {
   try {
     const res = await fetch(`${API_URL}/subfases`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
     const response = await res.json();

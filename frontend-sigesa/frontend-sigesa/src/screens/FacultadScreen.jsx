@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getFacultades, deleteFacultad, getCarrerasByFacultad } from "../services/api";
+import { getFacultadesConCarreras, deleteFacultad } from "../services/api";
 import { Search, Plus } from "lucide-react";
 import mascota from "../assets/mascota.png";
 import { useNavigate } from "react-router-dom";
@@ -37,7 +37,6 @@ const truncateUrl = (url, maxLength = 50) => {
 };
 
 export default function FacultadScreen() {
-  const [facultades, setFacultades] = useState([]);
   const [facultadesConCarreras, setFacultadesConCarreras] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [opcionesVisibles, setOpcionesVisibles] = useState(null);
@@ -52,30 +51,11 @@ export default function FacultadScreen() {
       try {
         setLoading(true);
         
-        const facultadesData = await getFacultades();
-        setFacultades(facultadesData);
+        // Usar el endpoint optimizado que incluye el conteo de carreras
+        const facultadesData = await getFacultadesConCarreras();
+        console.log('Datos del endpoint optimizado:', facultadesData);
+        setFacultadesConCarreras(facultadesData);
         
-        const facultadesConConteo = await Promise.all(
-          facultadesData.map(async (facultad) => {
-            try {
-              const carreras = await getCarrerasByFacultad(facultad.id);
-              return {
-                ...facultad,
-                numeroCarreras: carreras.length,
-                carreras: carreras
-              };
-            } catch (error) {
-              console.error(`Error al obtener carreras para facultad ${facultad.id}:`, error);
-              return {
-                ...facultad,
-                numeroCarreras: 0,
-                carreras: []
-              };
-            }
-          })
-        );
-        
-        setFacultadesConCarreras(facultadesConConteo);
       } catch (error) {
         console.error('Error al cargar datos:', error);
         setFacultadesConCarreras([]);
@@ -121,7 +101,7 @@ export default function FacultadScreen() {
     try {
       await deleteFacultad(facultadAEliminar.id);
       
-      setFacultades(facultades.filter(f => f.id !== facultadAEliminar.id));
+      // Solo actualizar una lista ya que ahora tenemos una sola
       setFacultadesConCarreras(facultadesConCarreras.filter(f => f.id !== facultadAEliminar.id));
       
       setModalOpen(false);
@@ -221,7 +201,9 @@ export default function FacultadScreen() {
               <div className="faculty-info">
                 <h3>{f.nombre_facultad}</h3>
                 <ul>
-                  <li><strong>Carreras:</strong> {f.numeroCarreras}</li>
+                  <li>
+                    <strong>Carreras:</strong> {f.numero_carreras}
+                  </li>
                   <li><strong>Código:</strong> {f.codigo_facultad}</li>
                 </ul>
                 <div className={`faculty-web-section ${!f.pagina_facultad ? 'no-link' : ''}`}>
@@ -253,7 +235,7 @@ export default function FacultadScreen() {
                 onAgregarCarrera={handleAgregarCarrera}
                 onEditarFacultad={handleEditarFacultad}
                 onEliminarFacultad={handleEliminarFacultad}
-                numeroCarreras={f.numeroCarreras}
+                numeroCarreras={f.numero_carreras}
                 facultadId={f.id}
                 facultadNombre={f.nombre_facultad}
               />

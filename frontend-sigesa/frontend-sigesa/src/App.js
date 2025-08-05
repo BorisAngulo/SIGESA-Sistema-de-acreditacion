@@ -24,6 +24,7 @@ import EditarFacultadScreen from './screens/EditarFacultadScreen';
 import EditarCarreraScreen from './screens/EditarCarreraScreen';
 import ModalidadesScreen from './screens/ModalidadesScreen';
 import ReportesScreen from './screens/ReportesScreen';
+import BackupScreen from './screens/BackupScreen';
 import SubFaseScreen from './screens/SubFaseScreen';
 
 function App() {
@@ -144,6 +145,11 @@ function App() {
 
               <Route path="/modalidades" element={<Navigate to="/modalidades/arco-sur" replace />} />
               <Route path="/reportes" element={<ReportesScreen />} />
+              <Route path="/backups" element={
+                <ProtectedRoute allowedRoles={['Admin']}>
+                  <BackupScreen />
+                </ProtectedRoute>
+              } />
               <Route path="/subfase" element={<SubFaseScreen />} />
 
               <Route path="/fases" element={
