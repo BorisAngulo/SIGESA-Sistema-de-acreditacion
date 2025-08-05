@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Facultad;
 use App\Exceptions\ApiException;
+use Illuminate\Support\Facades\DB;
 
 /**
 * @OA\Info(
@@ -87,6 +88,73 @@ class FacultadController extends BaseApiController
             return $this->successResponse($facultades, 'Facultades obtenidas exitosamente');
         } catch (\Exception $e) {
             return $this->errorResponse('Error al obtener las facultades', 500, $e->getMessage());
+        }
+    }
+
+    /**
+     * Listado optimizado de facultades con conteo de carreras
+     * @OA\Get (
+     *     path="/api/facultades-con-carreras",
+     *     tags={"Facultad"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="OK",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=true),
+     *             @OA\Property(property="estado", type="integer", example=200),
+     *             @OA\Property(property="mensaje", type="string", example="Facultades con conteo de carreras obtenidas exitosamente"),
+     *             @OA\Property(
+     *                 property="datos",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="nombre_facultad", type="string", example="Facultad de Ciencias y Tecnología"),
+     *                     @OA\Property(property="codigo_facultad", type="string", example="FCyT"),
+     *                     @OA\Property(property="pagina_facultad", type="string", example="https://fcyt.umss.edu.bo"),
+     *                     @OA\Property(property="numero_carreras", type="integer", example=5)
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error interno del servidor"
+     *     )
+     * )
+     */
+    public function indexConConteoCarreras()
+    {
+        try {
+            // Método alternativo: consulta manual
+            $facultades = Facultad::select('id', 'nombre_facultad', 'codigo_facultad', 'pagina_facultad', 'created_at', 'updated_at')
+                ->get();
+            
+            $facultadesConConteo = $facultades->map(function ($facultad) {
+                // Consultar el conteo de carreras manualmente
+                $conteoCarreras = DB::table('carreras')
+                    ->where('facultad_id', $facultad->id)
+                    ->count();
+                
+                return [
+                    'id' => $facultad->id,
+                    'nombre_facultad' => $facultad->nombre_facultad,
+                    'codigo_facultad' => $facultad->codigo_facultad,
+                    'pagina_facultad' => $facultad->pagina_facultad,
+                    'numero_carreras' => $conteoCarreras,
+                    'created_at' => $facultad->created_at,
+                    'updated_at' => $facultad->updated_at
+                ];
+            });
+            
+            if ($facultadesConConteo->isEmpty()) {
+                return $this->successResponse([], 'No hay facultades registradas', 200);
+            }
+            
+            return $this->successResponse($facultadesConConteo, 'Facultades con conteo de carreras obtenidas exitosamente');
+        } catch (\Exception $e) {
+            \Log::error('Error en indexConConteoCarreras: ' . $e->getMessage());
+            return $this->errorResponse('Error al obtener las facultades con conteo de carreras', 500, $e->getMessage());
         }
     }
 

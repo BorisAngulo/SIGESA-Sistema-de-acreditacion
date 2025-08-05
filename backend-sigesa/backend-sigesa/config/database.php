@@ -49,6 +49,11 @@ return [
             'prefix_indexes' => true,
             'schema' => 'public',
             'sslmode' => 'prefer',
+            'dump' => [
+                'dump_binary_path' => env('DB_DUMP_PATH', 'C:\\Program Files\\PostgreSQL\\15\\bin'), // Solo el directorio
+                'use_single_transaction' => false,
+                'timeout' => 60 * 5, // 5 minutos
+            ],
         ],
 
         'sqlsrv' => [
