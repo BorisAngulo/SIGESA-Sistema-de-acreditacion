@@ -72,8 +72,11 @@ export const getBackups = async (filters = {}) => {
 };
 
 // Crear nuevo backup manual
-export const createBackup = async () => {
-  return await apiRequest('/backups', 'POST');
+export const createBackup = async (storageDisk = 'local') => {
+  const data = {
+    storage_disk: storageDisk
+  };
+  return await apiRequest('/backups', 'POST', data);
 };
 
 // Obtener información específica de un backup

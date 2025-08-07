@@ -26,6 +26,7 @@ const BackupScreen = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [storageDisk, setStorageDisk] = useState('local'); // Estado para el tipo de almacenamiento
   const [filters, setFilters] = useState({
     status: '',
     type: '',
@@ -57,8 +58,9 @@ const BackupScreen = () => {
   const handleCreateBackup = async () => {
     try {
       setCreating(true);
-      await createBackup();
-      showNotification('Backup manual iniciado correctamente', 'success');
+      await createBackup(storageDisk); // Pasar el tipo de almacenamiento seleccionado
+      const storageText = storageDisk === 'google' ? 'Google Drive' : 'Local';
+      showNotification(`Backup manual iniciado correctamente en ${storageText}`, 'success');
       loadData(); // Recargar datos
     } catch (error) {
       console.error('Error creando backup:', error);
@@ -123,6 +125,26 @@ const BackupScreen = () => {
     return <span className={`status-badge ${config.class}`}>{config.text}</span>;
   };
 
+  const getStorageIcon = (storageDisk) => {
+    switch (storageDisk) {
+      case 'google':
+        return '☁️'; // Icono de nube para Google Drive
+      case 'local':
+      default:
+        return '💾'; // Icono de disco para almacenamiento local
+    }
+  };
+
+  const getStorageText = (storageDisk) => {
+    switch (storageDisk) {
+      case 'google':
+        return 'Google Drive';
+      case 'local':
+      default:
+        return 'Local';
+    }
+  };
+
   const formatFileSize = (bytes) => {
     if (!bytes) return 'N/A';
     const units = ['B', 'KB', 'MB', 'GB'];
@@ -167,12 +189,25 @@ const BackupScreen = () => {
       <div className="backup-header">
         <h1>Gestión de Backups</h1>
         <div className="backup-actions">
+          <div className="backup-storage-selector">
+            <label htmlFor="storage-selector">💾 Guardar en:</label>
+            <select 
+              id="storage-selector"
+              value={storageDisk} 
+              onChange={(e) => setStorageDisk(e.target.value)}
+              disabled={creating}
+              className="storage-selector"
+            >
+              <option value="local">💾 Almacenamiento Local</option>
+              <option value="google">☁️ Google Drive</option>
+            </select>
+          </div>
           <button 
             onClick={handleCreateBackup}
             disabled={creating}
             className="btn btn-primary"
           >
-            {creating ? 'Creando...' : '📦 Crear Backup Manual'}
+            {creating ? '⏳ Creando...' : `📦 Crear Backup en ${getStorageText(storageDisk)}`}
           </button>
           <button 
             onClick={handleCleanup}
@@ -268,6 +303,7 @@ const BackupScreen = () => {
             <div className="table-header">
               <div>Archivo</div>
               <div>Tipo</div>
+              <div>Almacenamiento</div>
               <div>Estado</div>
               <div>Tamaño</div>
               <div>Fecha</div>
@@ -283,6 +319,11 @@ const BackupScreen = () => {
                 <div>
                   <span className={`type-badge type-${backup.backup_type}`}>
                     {backup.backup_type === 'manual' ? '👤 Manual' : '⏰ Programado'}
+                  </span>
+                </div>
+                <div>
+                  <span className={`storage-badge storage-${backup.storage_disk || 'local'}`}>
+                    {getStorageIcon(backup.storage_disk || 'local')} {getStorageText(backup.storage_disk || 'local')}
                   </span>
                 </div>
                 <div>

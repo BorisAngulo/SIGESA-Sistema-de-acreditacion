@@ -31,15 +31,20 @@ class TestGoogleDriveCommand extends Command
         $this->info('Probando configuración de Google Drive...');
 
         try {
-            // Verificar configuración
-            $clientId = config('filesystems.disks.google.clientId');
-            $clientSecret = config('filesystems.disks.google.clientSecret');
-            $refreshToken = config('filesystems.disks.google.refreshToken');
-            $folderId = config('filesystems.disks.google.folderId');
+            // Cargar variables desde .env si no están en config
+            $clientId = config('filesystems.disks.google.clientId') ?: env('GOOGLE_DRIVE_CLIENT_ID');
+            $clientSecret = config('filesystems.disks.google.clientSecret') ?: env('GOOGLE_DRIVE_CLIENT_SECRET');
+            $refreshToken = config('filesystems.disks.google.refreshToken') ?: env('GOOGLE_DRIVE_REFRESH_TOKEN');
+            $folderId = config('filesystems.disks.google.folderId') ?: env('GOOGLE_DRIVE_FOLDER_ID');
+
+            $this->info('Verificando configuración...');
+            $this->line("Client ID encontrado: " . ($clientId ? 'Sí' : 'No'));
+            $this->line("Client Secret encontrado: " . ($clientSecret ? 'Sí' : 'No'));
+            $this->line("Refresh Token encontrado: " . ($refreshToken ? 'Sí' : 'No'));
 
             if (!$clientId || !$clientSecret || !$refreshToken) {
                 $this->error('❌ Configuración incompleta de Google Drive');
-                $this->line('Verifica que tienes configurado:');
+                $this->line('Verifica que tienes configurado en tu archivo .env:');
                 $this->line('- GOOGLE_DRIVE_CLIENT_ID');
                 $this->line('- GOOGLE_DRIVE_CLIENT_SECRET');
                 $this->line('- GOOGLE_DRIVE_REFRESH_TOKEN');
