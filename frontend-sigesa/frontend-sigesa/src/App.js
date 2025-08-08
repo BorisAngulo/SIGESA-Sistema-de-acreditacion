@@ -6,7 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import Footer from './components/Footer';
 
-import Home from './screens/Home';
+import Home from './screens//home';
 import Login from './screens/Login';
 import UsuariosScreen from './screens/UsuariosScreen';
 import ActividadScreen from './screens/ActividadScreen';
@@ -152,7 +152,7 @@ function App() {
               } />
               <Route path="/subfase" element={<SubFaseScreen />} />
 
-              <Route path="/fases" element={
+              <Route path="/fases/:carreraId/:modalidadId"  element={
                 <ProtectedRoute>
                   <FasesScreen />
                 </ProtectedRoute>

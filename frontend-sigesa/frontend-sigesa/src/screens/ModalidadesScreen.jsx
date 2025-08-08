@@ -52,12 +52,20 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
           setCarreras(carrerasData);
         }
         
-        if (Array.isArray(modalidadesData)) {
-          const modalidadActual = modalidadesData.find(m => 
-            m.codigo_modalidad?.toLowerCase() === modalidad.replace('-', '_')
-          );
+        if (Array.isArray(modalidadesData) && modalidadesData.length > 0) {
+          console.log('🔍 Buscando modalidad para:', modalidad);
+          console.log('📋 Modalidades disponibles:', modalidadesData);
+          
+          let modalidadActual;
+          
+          if (modalidad === 'arco-sur') {
+            modalidadActual = modalidadesData.find(m => m.id === 1) || modalidadesData[0];
+          } else {
+            modalidadActual = modalidadesData.find(m => m.id === 2) || modalidadesData[1] || modalidadesData[0];
+          }
+          
+          console.log('✅ Modalidad asignada:', modalidadActual);
           setCurrentModalidad(modalidadActual);
-          console.log('Modalidad encontrada:', modalidadActual);
         }
         
       } catch (error) {
@@ -89,9 +97,6 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
       });
       
       console.log('Carreras filtradas:', filtered);
-      if (currentModalidad) {
-        // filtered = filtered.filter(carrera => carrera.modalidad_id === currentModalidad.id);
-      }
       
       setFilteredCarreras(filtered);
       setSelectedCarrera(''); 
@@ -130,9 +135,19 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
   };
 
   const handleVerDocumentos = () => {
-    navigate('/fases', {
+    if (!selectedCarrera || !currentModalidad?.id) {
+      console.error('❌ Datos incompletos para navegar:', {
+        selectedCarrera,
+        currentModalidad: currentModalidad?.id
+      });
+      alert('Error: Selecciona una carrera y modalidad válidas');
+      return;
+    }
+    
+    navigate(`/fases/${selectedCarrera}/${currentModalidad?.id}`, {
       state: {
         modalidad: modalidad,
+        modalidadId: currentModalidad?.id,
         facultadId: selectedFacultad,
         carreraId: selectedCarrera,
         facultadNombre: selectedFacultadNombre,
@@ -141,26 +156,13 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
       }
     });
     
-    console.log('Navegando a fases para:', selectedCarreraNombre);
+    console.log('✅ Navegando a fases con datos:', {
+      modalidadId: currentModalidad?.id,
+      carreraId: selectedCarrera,
+      facultadNombre: selectedFacultadNombre,
+      carreraNombre: selectedCarreraNombre
+    });
   };
-
-  if (loading) {
-    return (
-      <div className="modalidades-container">
-        <div className="loading">Cargando datos...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="modalidades-container">
-        <div className="loading" style={{ color: 'red' }}>
-          Error al cargar datos: {error}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="modalidades-container">
