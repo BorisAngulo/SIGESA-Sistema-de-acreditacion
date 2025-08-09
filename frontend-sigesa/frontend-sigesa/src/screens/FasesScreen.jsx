@@ -10,7 +10,8 @@ import {
   createCarreraModalidad,
   getModalidades
 } from '../services/api';
-import ModalAgregarFase from '../components/ModalAgregarFase'; 
+import ModalAgregarFase from '../components/ModalAgregarFase';
+import ModalConfirmacionFase from '../components/ModalConfirmacionFase'; 
 import '../styles/FasesScreen.css';
 
 const FasesScreen = () => {
@@ -24,6 +25,9 @@ const FasesScreen = () => {
   const [fases, setFases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [faseToDelete, setFaseToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const getModalidadId = async (modalidadNombre) => {
     try {
@@ -228,7 +232,6 @@ const FasesScreen = () => {
           console.log('  - modalidad_id encontrado:', existeCarreraModalidad.modalidad_id);
           console.log('  - carrera_modalidad_id final:', carreraModalidadIdFinal);
           
-          // Verificar que los IDs coinciden exactamente
           const carreraCoincide = parseInt(existeCarreraModalidad.carrera_id) === parseInt(fasesData.carreraId);
           const modalidadCoincide = parseInt(existeCarreraModalidad.modalidad_id) === parseInt(fasesData.modalidadId);
           
@@ -241,7 +244,6 @@ const FasesScreen = () => {
           
           console.log('✅ Validación de IDs exitosa');
           
-          // Actualizar fasesData con el ID correcto
           setFasesData(prev => ({
             ...prev,
             carreraModalidadId: carreraModalidadIdFinal
@@ -370,17 +372,32 @@ const FasesScreen = () => {
     setShowModal(true);
   };
 
-  const handleEliminarFase = async (faseId) => {
-    if (window.confirm('¿Está seguro de que desea eliminar esta fase?')) {
-      try {
-        await deleteFase(faseId);
-        setFases(prev => prev.filter(fase => fase.id !== faseId));
-        console.log('Fase eliminada correctamente:', faseId);
-      } catch (error) {
-        console.error('Error al eliminar fase:', error);
-        alert('Error al eliminar la fase: ' + error.message);
-      }
+  const handleEliminarFase = (fase) => {
+    setFaseToDelete(fase);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmarEliminacion = async () => {
+    if (!faseToDelete) return;
+    
+    try {
+      setDeleteLoading(true);
+      await deleteFase(faseToDelete.id);
+      setFases(prev => prev.filter(fase => fase.id !== faseToDelete.id));
+      console.log('Fase eliminada correctamente:', faseToDelete.id);
+      setShowDeleteModal(false);
+      setFaseToDelete(null);
+    } catch (error) {
+      console.error('Error al eliminar fase:', error);
+      alert('Error al eliminar la fase: ' + error.message);
+    } finally {
+      setDeleteLoading(false);
     }
+  };
+
+  const handleCancelarEliminacion = () => {
+    setShowDeleteModal(false);
+    setFaseToDelete(null);
   };
 
   const handleSaveFase = async (nuevaFase) => {
@@ -736,7 +753,7 @@ const FasesScreen = () => {
                       className="action-icon delete"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleEliminarFase(fase.id);
+                        handleEliminarFase(fase);
                       }}
                       title="Eliminar fase"
                     >
@@ -829,6 +846,14 @@ const FasesScreen = () => {
         onClose={handleCloseModal}
         onSave={handleSaveFase}
         fase={editingFase}
+      />
+
+      <ModalConfirmacionFase
+        isOpen={showDeleteModal}
+        onClose={handleCancelarEliminacion}
+        onConfirm={handleConfirmarEliminacion}
+        faseNombre={faseToDelete ? faseToDelete.nombre : ''}
+        loading={deleteLoading}
       />
     </div>
   );
