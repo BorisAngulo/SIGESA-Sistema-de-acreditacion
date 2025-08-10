@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-//import './ModalAgregarFase.css';
+import { FileText, Edit, Calendar, Save } from 'lucide-react';
+import './ModalAgregarFase.css';
 
 const ModalAgregarFase = ({ isOpen, onClose, onSave, fase = null }) => {
   const [formData, setFormData] = useState({
@@ -10,11 +11,11 @@ const ModalAgregarFase = ({ isOpen, onClose, onSave, fase = null }) => {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [diasCalculados, setDiasCalculados] = useState(0);
 
   useEffect(() => {
     if (isOpen) {
       if (fase) {
-        // Modo edición
         setFormData({
           nombre: fase.nombre || '',
           descripcion: fase.descripcion || '',
@@ -22,7 +23,6 @@ const ModalAgregarFase = ({ isOpen, onClose, onSave, fase = null }) => {
           fechaFin: fase.fechaFin || ''
         });
       } else {
-        // Modo creación
         setFormData({
           nombre: '',
           descripcion: '',
@@ -31,8 +31,26 @@ const ModalAgregarFase = ({ isOpen, onClose, onSave, fase = null }) => {
         });
       }
       setErrors({});
+      setDiasCalculados(0);
     }
   }, [isOpen, fase]);
+
+  useEffect(() => {
+    if (formData.fechaInicio && formData.fechaFin) {
+      const fechaInicio = new Date(formData.fechaInicio);
+      const fechaFin = new Date(formData.fechaFin);
+      
+      if (fechaFin > fechaInicio) {
+        const diferenciaTiempo = fechaFin.getTime() - fechaInicio.getTime();
+        const diferenciaDias = Math.ceil(diferenciaTiempo / (1000 * 3600 * 24));
+        setDiasCalculados(diferenciaDias);
+      } else {
+        setDiasCalculados(0);
+      }
+    } else {
+      setDiasCalculados(0);
+    }
+  }, [formData.fechaInicio, formData.fechaFin]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -53,27 +71,31 @@ const ModalAgregarFase = ({ isOpen, onClose, onSave, fase = null }) => {
     const newErrors = {};
 
     if (!formData.nombre.trim()) {
-      newErrors.nombre = 'El nombre de la fase es requerido';
-    }
-
-    if (!formData.descripcion.trim()) {
-      newErrors.descripcion = 'La descripción es requerida';
+      newErrors.nombre = 'Ingresa un nombre para la fase';
+    } else if (formData.nombre.trim().length < 3) {
+      newErrors.nombre = 'El nombre debe tener al menos 3 caracteres';
     }
 
     if (!formData.fechaInicio) {
-      newErrors.fechaInicio = 'La fecha de inicio es requerida';
+      newErrors.fechaInicio = 'Selecciona la fecha de inicio';
     }
 
     if (!formData.fechaFin) {
-      newErrors.fechaFin = 'La fecha de fin es requerida';
+      newErrors.fechaFin = 'Selecciona la fecha de finalización';
     }
 
     if (formData.fechaInicio && formData.fechaFin) {
       const fechaInicio = new Date(formData.fechaInicio);
       const fechaFin = new Date(formData.fechaFin);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      
+      if (fechaInicio < hoy) {
+        newErrors.fechaInicio = 'La fecha de inicio no puede ser anterior a hoy';
+      }
       
       if (fechaFin <= fechaInicio) {
-        newErrors.fechaFin = 'La fecha de fin debe ser posterior a la fecha de inicio';
+        newErrors.fechaFin = 'La fecha de fin debe ser posterior al inicio';
       }
     }
 
@@ -88,16 +110,18 @@ const ModalAgregarFase = ({ isOpen, onClose, onSave, fase = null }) => {
       return;
     }
 
-   setIsLoading(true);
+    setIsLoading(true);
     
     try {
       await onSave({
         nombre: formData.nombre.trim(),
         descripcion: formData.descripcion.trim(),
         fechaInicio: formData.fechaInicio,
-        fechaFin: formData.fechaFin
+        fechaFin: formData.fechaFin,
+        duracionDias: diasCalculados
       });
       
+      onClose();
     } catch (error) {
       console.error('Error al guardar fase:', error);
     } finally {
@@ -106,287 +130,173 @@ const ModalAgregarFase = ({ isOpen, onClose, onSave, fase = null }) => {
   };
 
   const handleCancel = () => {
-    setFormData({
-      nombre: '',
-      descripcion: '',
-      fechaInicio: '',
-      fechaFin: ''
-    });
-    setErrors({});
-    onClose();
+    if (!isLoading) {
+      setFormData({
+        nombre: '',
+        descripcion: '',
+        fechaInicio: '',
+        fechaFin: ''
+      });
+      setErrors({});
+      setDiasCalculados(0);
+      onClose();
+    }
+  };
+
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget && !isLoading) {
+      handleCancel();
+    }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={handleCancel}>
+    <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{fase ? 'Editar Fase' : 'Agregar Nueva Fase'}</h2>
-          <button 
-            className="modal-close" 
-            onClick={handleCancel}
-            disabled={isLoading}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
+          <div className="modal-header-icon">
+            <FileText size={24} />
+          </div>
+          <div className="modal-header-text">
+            <h2>{fase ? 'Editar Fase' : 'Agregar Nueva Fase'}</h2>
+            <p>Completa la información de la fase del proyecto</p>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="modal-form">
-          <div className="form-group">
-            <label htmlFor="nombre">Nombre de la Fase *</label>
-            <input
-              type="text"
-              id="nombre"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleInputChange}
-              placeholder="Ej: Fase 1: Planificación Inicial"
-              disabled={isLoading}
-              className={errors.nombre ? 'error' : ''}
-            />
-            {errors.nombre && <span className="error-message">{errors.nombre}</span>}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="descripcion">Descripción *</label>
-            <textarea
-              id="descripcion"
-              name="descripcion"
-              value={formData.descripcion}
-              onChange={handleInputChange}
-              placeholder="Describe los objetivos y actividades principales de esta fase..."
-              rows="4"
-              disabled={isLoading}
-              className={errors.descripcion ? 'error' : ''}
-            />
-            {errors.descripcion && <span className="error-message">{errors.descripcion}</span>}
-          </div>
-
-          <div className="form-row">
+        <div className="modal-form">
+          <div>
             <div className="form-group">
-              <label htmlFor="fechaInicio">Fecha de Inicio *</label>
+              <label htmlFor="nombre" className="form-label">
+                <Edit className="label-icon" size={20} />
+                Nombre de la Fase <span className="required">*</span>
+              </label>
               <input
-                type="date"
-                id="fechaInicio"
-                name="fechaInicio"
-                value={formData.fechaInicio}
+                type="text"
+                id="nombre"
+                name="nombre"
+                value={formData.nombre}
                 onChange={handleInputChange}
+                placeholder="Ej: Fase 1: Planificación Inicial"
                 disabled={isLoading}
-                className={errors.fechaInicio ? 'error' : ''}
+                className={`form-input ${errors.nombre ? 'form-input-error' : ''}`}
+                maxLength={100}
               />
-              {errors.fechaInicio && <span className="error-message">{errors.fechaInicio}</span>}
+              {errors.nombre && (
+                <p className="error-message">{errors.nombre}</p>
+              )}
             </div>
 
             <div className="form-group">
-              <label htmlFor="fechaFin">Fecha de Fin *</label>
-              <input
-                type="date"
-                id="fechaFin"
-                name="fechaFin"
-                value={formData.fechaFin}
+              <label htmlFor="descripcion" className="form-label">
+                <FileText className="label-icon" size={20} />
+                Descripción
+              </label>
+              <textarea
+                id="descripcion"
+                name="descripcion"
+                value={formData.descripcion}
                 onChange={handleInputChange}
+                placeholder="Describe los objetivos y actividades principales de esta fase..."
+                rows="4"
                 disabled={isLoading}
-                className={errors.fechaFin ? 'error' : ''}
+                className="form-input form-textarea"
+                maxLength={500}
               />
-              {errors.fechaFin && <span className="error-message">{errors.fechaFin}</span>}
+              <div className="character-count">
+                {formData.descripcion.length}/500 caracteres
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="fechaInicio" className="form-label">
+                  <Calendar className="label-icon" size={20} />
+                  Fecha de Inicio <span className="required">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="fechaInicio"
+                  name="fechaInicio"
+                  value={formData.fechaInicio}
+                  onChange={handleInputChange}
+                  disabled={isLoading}
+                  className={`form-input ${errors.fechaInicio ? 'form-input-error' : ''}`}
+                  min={new Date().toISOString().split('T')[0]}
+                />
+                {errors.fechaInicio && (
+                  <p className="error-message">{errors.fechaInicio}</p>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="fechaFin" className="form-label">
+                  <Calendar className="label-icon" size={20} />
+                  Fecha de Fin <span className="required">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="fechaFin"
+                  name="fechaFin"
+                  value={formData.fechaFin}
+                  onChange={handleInputChange}
+                  disabled={isLoading}
+                  className={`form-input ${errors.fechaFin ? 'form-input-error' : ''}`}
+                  min={formData.fechaInicio || new Date().toISOString().split('T')[0]}
+                />
+                {errors.fechaFin && (
+                  <p className="error-message">{errors.fechaFin}</p>
+                )}
+              </div>
+            </div>
+
+            {diasCalculados > 0 && (
+              <div className="duration-info">
+                <div className="duration-badge">
+                  <Calendar size={16} />
+                  <span>
+                    Duración: {diasCalculados} {diasCalculados === 1 ? 'día' : 'días'}
+                    {diasCalculados > 30 && (
+                      <span className="duration-extra">
+                        ({Math.ceil(diasCalculados / 30)} {Math.ceil(diasCalculados / 30) === 1 ? 'mes' : 'meses'} aprox.)
+                      </span>
+                    )}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="modal-actions">
+              <button 
+                type="button" 
+                className="btn-cancel" 
+                onClick={handleCancel}
+                disabled={isLoading}
+              >
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                className={`btn-save ${isLoading ? 'btn-loading' : ''}`}
+                disabled={isLoading}
+                onClick={handleSubmit}
+              >
+                {isLoading ? (
+                  <>
+                    <div className="loading-spinner"></div>
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save size={16} />
+                    {fase ? 'Actualizar Fase' : 'Crear Fase'}
+                  </>
+                )}
+              </button>
             </div>
           </div>
-
-          <div className="modal-actions">
-            <button 
-              type="button" 
-              className="btn-cancel" 
-              onClick={handleCancel}
-              disabled={isLoading}
-            >
-              Cancelar
-            </button>
-            <button 
-              type="submit" 
-              className="btn-save"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Guardando...' : fase ? 'Actualizar Fase' : 'Crear Fase'}
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
-
-      <style >{`
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 1000;
-        }
-
-        .modal-content {
-          background: white;
-          border-radius: 8px;
-          width: 90%;
-          max-width: 600px;
-          max-height: 90vh;
-          overflow-y: auto;
-          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        }
-
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 20px;
-          border-bottom: 1px solid #e5e5e5;
-        }
-
-        .modal-header h2 {
-          margin: 0;
-          font-size: 1.5rem;
-          color: #333;
-        }
-
-        .modal-close {
-          background: none;
-          border: none;
-          cursor: pointer;
-          padding: 4px;
-          border-radius: 4px;
-          color: #666;
-          transition: all 0.2s;
-        }
-
-        .modal-close:hover:not(:disabled) {
-          background: #f0f0f0;
-          color: #333;
-        }
-
-        .modal-close:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .modal-form {
-          padding: 20px;
-        }
-
-        .form-group {
-          margin-bottom: 20px;
-        }
-
-        .form-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 15px;
-        }
-
-        .form-group label {
-          display: block;
-          margin-bottom: 5px;
-          font-weight: 500;
-          color: #333;
-        }
-
-        .form-group input,
-        .form-group textarea {
-          width: 100%;
-          padding: 10px 12px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          font-size: 14px;
-          transition: border-color 0.2s;
-          box-sizing: border-box;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-          outline: none;
-          border-color: #007bff;
-          box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-        }
-
-        .form-group input.error,
-        .form-group textarea.error {
-          border-color: #dc3545;
-        }
-
-        .form-group input:disabled,
-        .form-group textarea:disabled {
-          background-color: #f8f9fa;
-          cursor: not-allowed;
-        }
-
-        .error-message {
-          color: #dc3545;
-          font-size: 12px;
-          margin-top: 4px;
-          display: block;
-        }
-
-        .modal-actions {
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-          margin-top: 30px;
-          padding-top: 20px;
-          border-top: 1px solid #e5e5e5;
-        }
-
-        .btn-cancel,
-        .btn-save {
-          padding: 10px 20px;
-          border: none;
-          border-radius: 4px;
-          font-size: 14px;
-          cursor: pointer;
-          transition: all 0.2s;
-          font-weight: 500;
-        }
-
-        .btn-cancel {
-          background: #f8f9fa;
-          color: #6c757d;
-          border: 1px solid #dee2e6;
-        }
-
-        .btn-cancel:hover:not(:disabled) {
-          background: #e2e6ea;
-          border-color: #adb5bd;
-        }
-
-        .btn-save {
-          background: #007bff;
-          color: white;
-        }
-
-        .btn-save:hover:not(:disabled) {
-          background: #0056b3;
-        }
-
-        .btn-cancel:disabled,
-        .btn-save:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        @media (max-width: 768px) {
-          .modal-content {
-            width: 95%;
-            margin: 20px;
-          }
-          
-          .form-row {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
     </div>
   );
 };
