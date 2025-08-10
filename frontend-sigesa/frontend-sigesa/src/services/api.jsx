@@ -599,11 +599,12 @@ export const createFase = async (faseData) => {
 };
 
 
-
 // Subfases
 export const getSubfases = async () => {
   try {
-    const res = await fetch(`${API_URL}/subfases`);
+    const res = await fetch(`${API_URL}/subfases`, {
+      headers: getAuthHeaders()
+    });
     const response = await res.json();
     
     if (response.exito && response.datos) {
@@ -618,24 +619,285 @@ export const getSubfases = async () => {
   }
 };
 
-export const createSubfase = async (data) => {
+export const getSubfasesByFase = async (faseId) => {
   try {
-    const res = await fetch(`${API_URL}/subfases`, {
-      method: "POST",
-      headers: getAuthHeaders(),
-      body: JSON.stringify(data),
-    });
-    const response = await res.json();
+    console.log('Obteniendo subfases para fase_id:', faseId);
     
-    if (response.exito && response.datos) {
-      return response.datos;
+    if (!faseId) {
+      console.error('faseId es requerido');
+      return [];
+    }
+    
+    console.log('Método 1: Usando endpoint específico /fases/{fase}/subfases...');
+    try {
+      const urlEspecifico = `${API_URL}/fases/${faseId}/subfases`;
+      console.log('URL:', urlEspecifico);
+      
+      const res = await fetch(urlEspecifico, {
+        headers: getAuthHeaders()
+      });
+      console.log('Status:', res.status, res.statusText);
+      
+      if (res.ok) {
+        const response = await res.json();
+        console.log('Respuesta del servidor:', response);
+        
+        let subfases = [];
+        if (response.exito && response.datos) {
+          subfases = response.datos;
+        } else if (Array.isArray(response)) {
+          subfases = response;
+        } else {
+          console.log('Método 1 - Estructura de respuesta inesperada');
+        }
+        
+        if (subfases.length > 0) {
+          const subfasesValidas = subfases.filter(subfase => {
+            const subfaseFaseId = parseInt(subfase.fase_id);
+            const targetId = parseInt(faseId);
+            
+            const esValida = subfaseFaseId === targetId;
+            
+            if (!esValida) {
+              console.warn(`FILTRO BACKEND FALLIDoO: Subfase ${subfase.id} tiene fase_id ${subfaseFaseId}, se esperaba ${targetId}`);
+            }
+            
+            return esValida;
+          });
+          
+          if (subfasesValidas.length !== subfases.length) {
+            console.error('EL BACKEND NO ESTÁ FILTRANDO CORRECTAMENTE. Se filtró en frontend.');
+            console.log(`Subfases recibidas: ${subfases.length}, Subfases válidas: ${subfasesValidas.length}`);
+          }
+          
+          console.log('Método 1 exitoso - Subfases validadas:', subfasesValidas.length);
+          return subfasesValidas;
+        }
+        
+        console.log('Método 1 exitoso - Sin subfases:', subfases.length);
+        return subfases;
+      } else {
+        console.log('Método 1 falló - Status:', res.status);
+      }
+    } catch (error) {
+      console.log('Método 1 error:', error);
+    }
+    
+    console.log('Método 2: Usando query parameter /subfases?fase_id=...');
+    try {
+      const urlConFiltro = `${API_URL}/subfases?fase_id=${faseId}`;
+      console.log('URL:', urlConFiltro);
+      
+      const res = await fetch(urlConFiltro, {
+        headers: getAuthHeaders()
+      });
+      console.log('Status método 2:', res.status, res.statusText);
+      
+      if (res.ok) {
+        const response = await res.json();
+        console.log('Respuesta método 2:', response);
+        
+        let subfases = [];
+        if (response.exito && response.datos) {
+          subfases = response.datos;
+        } else if (Array.isArray(response)) {
+          subfases = response;
+        } else {
+          console.log('método 2 - Estructura de respuesta inesperada');
+        }
+        
+        if (subfases.length > 0) {
+          const subfasesValidas = subfases.filter(subfase => {
+            const subfaseFaseId = parseInt(subfase.fase_id);
+            const targetId = parseInt(faseId);
+            return subfaseFaseId === targetId;
+          });
+          
+          console.log('Método 2 exitoso - Subfases validadas:', subfasesValidas.length);
+          return subfasesValidas;
+        }
+        
+        console.log('Método 2 exitoso - Sin subfases:', subfases.length);
+        return subfases;
+      } else {
+        console.log('Método 2 falló - Status:', res.status);
+      }
+    } catch (error) {
+      console.log('Método 2 error:', error);
+    }
+    
+    console.log('Método 3: Filtrando en frontend con validación...');
+    try {
+      const res = await fetch(`${API_URL}/subfases`, {
+        headers: getAuthHeaders()
+      });
+      console.log('Status método 3:', res.status, res.statusText);
+      
+      if (res.ok) {
+        const response = await res.json();
+        
+        let todasLasSubfases = [];
+        if (response.exito && response.datos) {
+          todasLasSubfases = response.datos;
+        } else if (Array.isArray(response)) {
+          todasLasSubfases = response;
+        } else {
+          console.error('Estructura de respuesta no reconocida:', response);
+          return [];
+        }
+        
+        console.log('Total de subfases obtenidas:', todasLasSubfases.length);
+        
+  
+        const subfasesFiltradas = todasLasSubfases.filter(subfase => {
+          const subfaseFaseId = parseInt(subfase.fase_id);
+          const targetId = parseInt(faseId);
+          const esValida = subfaseFaseId === targetId;
+          
+          if (esValida) {
+            console.log(`Subfase válida: ${subfase.id} (${subfase.nombre_subfase}) - fase_id: ${subfaseFaseId}`);
+          }
+          
+          return esValida;
+        });
+        
+        console.log(`Subfases filtradas para fase ${faseId}:`, subfasesFiltradas.length);
+        
+        if (subfasesFiltradas.length > 0) {
+          console.log('Subfases encontradas:', subfasesFiltradas.map(s => ({
+            id: s.id,
+            nombre: s.nombre_subfase,
+            fase_id: s.fase_id
+          })));
+        } else {
+          console.log(`No se encontraron subfases para la fase ${faseId}`);
+        }
+        
+        return subfasesFiltradas;
+      } else {
+        console.error('Error en método 3:', res.status, res.statusText);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error en método 3:', error);
+      return [];
+    }
+    
+  } catch (error) {
+    console.error('Error general al obtener subfases:', error);
+    return [];
+  }
+};
+
+// Función auxiliar para obtener todas las subfases para debuggear
+export const getAllSubfases = async () => {
+  try {
+    console.log('Obteniendo todas las subfases...');
+    
+    const res = await fetch(`${API_URL}/subfases`, {
+      headers: getAuthHeaders()
+    });
+    console.log('Status:', res.status, res.statusText);
+    
+    if (res.ok) {
+      const response = await res.json();
+      console.log('Respuesta completa:', response);
+      
+      let subfases = [];
+      if (response.exito && response.datos) {
+        subfases = response.datos;
+      } else if (Array.isArray(response)) {
+        subfases = response;
+      }
+      
+      console.log('Total subfases:', subfases.length);
+      return subfases;
     } else {
-      console.error('Error al crear subfase:', response.error || 'Error desconocido');
-      throw new Error(response.error || 'Error al crear subfase');
+      console.error('Error al obtener subfases:', res.status);
+      return [];
     }
   } catch (error) {
-    console.error('Error al crear subfase:', error);
-    throw error;
+    console.error('error general:', error);
+    return [];
+  }
+};
+
+export const createSubfase = async (subfaseData) => {
+  try {
+    console.log('🔍 Creando nueva subfase:', subfaseData);
+    
+    const res = await fetch(`${API_URL}/subfases`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(subfaseData)
+    });
+    
+    console.log('Status:', res.status, res.statusText);
+    
+    const response = await res.json();
+    
+    if (res.ok) {
+      console.log('Subfase creada exitosamente:', response);
+      return { success: true, data: response.datos || response };
+    } else {
+      console.error('Error al crear subfase:', response);
+      return { success: false, error: response.error || 'Error al crear subfase' };
+    }
+  } catch (error) {
+    console.error('Error general al crear subfase:', error);
+    return { success: false, error: 'Error de conexión' };
+  }
+};
+
+export const updateSubfase = async (subfaseId, subfaseData) => {
+  try {
+    console.log('Actualizando subfase:', subfaseId, subfaseData);
+    
+    const res = await fetch(`${API_URL}/subfases/${subfaseId}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(subfaseData)
+    });
+    
+    console.log('Status:', res.status, res.statusText);
+    
+    const response = await res.json();
+    
+    if (res.ok) {
+      console.log('Subfase actualizada exitosamente:', response);
+      return { success: true, data: response.datos || response };
+    } else {
+      console.error('Error al actualizar subfase:', response);
+      return { success: false, error: response.error || 'Error al actualizar subfase' };
+    }
+  } catch (error) {
+    console.error('Error general al actualizar subfase:', error);
+    return { success: false, error: 'Error de conexión' };
+  }
+};
+
+export const deleteSubfase = async (subfaseId) => {
+  try {
+    console.log('Eliminando subfase:', subfaseId);
+    
+    const res = await fetch(`${API_URL}/subfases/${subfaseId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    
+    console.log('Status:', res.status, res.statusText);
+    
+    if (res.ok) {
+      console.log('Subfase eliminada exitosamente');
+      return { success: true };
+    } else {
+      const response = await res.json();
+      console.error('Error al eliminar subfase:', response);
+      return { success: false, error: response.error || 'Error al eliminar subfase' };
+    }
+  } catch (error) {
+    console.error('Error general al eliminar subfase:', error);
+    return { success: false, error: 'Error de conexión' };
   }
 };
 
@@ -679,7 +941,7 @@ export const getFasesByCarreraModalidad = async (carreraModalidadId) => {
     console.log('🔍 Obteniendo fases para carrera_modalidad_id:', carreraModalidadId);
     
     if (!carreraModalidadId) {
-      console.error('❌ carreraModalidadId es requerido');
+      console.error('carreraModalidadId es requerido');
       return [];
     }
     

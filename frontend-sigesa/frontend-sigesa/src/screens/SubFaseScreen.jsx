@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Upload, FileText, Link, Trash2, Eye, Plus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Upload, FileText, Link, Trash2, Eye, Plus, Save } from 'lucide-react';
+import { createSubfase, updateSubfase } from '../services/api';
 import '../styles/SubFaseScreen.css';
 
 const SubFaseScreen = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [titulo, setTitulo] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [fechaInicio, setFechaInicio] = useState('');
@@ -13,7 +16,51 @@ const SubFaseScreen = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [activeTab, setActiveTab] = useState('archivos');
+  const [isEditing, setIsEditing] = useState(false);
+  const [subfaseId, setSubfaseId] = useState(null);
+  const [faseData, setFaseData] = useState(null);
 
+
+  useEffect(() => {
+    if (location.state) {
+      const { 
+        subfase, 
+        faseId, 
+        faseNombre,
+        carreraId,
+        modalidadId,
+        facultadId,
+        carreraNombre,
+        facultadNombre,
+        modalidad
+      } = location.state;
+
+      setFaseData({
+        faseId,
+        faseNombre,
+        carreraId,
+        modalidadId,
+        facultadId,
+        carreraNombre,
+        facultadNombre,
+        modalidad
+      });
+
+      if (subfase) {
+        setIsEditing(true);
+        setSubfaseId(subfase.id);
+        setTitulo(subfase.nombre_subfase || '');
+        setDescripcion(subfase.descripcion_subfase || '');
+        setFechaInicio(subfase.fecha_inicio_subfase || '');
+        setFechaFin(subfase.fecha_fin_subfase || '');
+        setUrlDrive(subfase.url_drive || '');
+        
+        console.log('📝 Modo edición activado para subfase:', subfase);
+      } else {
+        console.log('➕ Modo creación activado');
+      }
+    }
+  }, [location.state]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -37,6 +84,10 @@ const SubFaseScreen = () => {
     if (fechaInicio && fechaFin && new Date(fechaInicio) > new Date(fechaFin)) {
       newErrors.fechaFin = 'La fecha de fin debe ser posterior a la fecha de inicio';
     }
+
+    if (!faseData?.faseId) {
+      newErrors.general = 'No se pudo identificar la fase asociada';
+    }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -52,28 +103,41 @@ const SubFaseScreen = () => {
     setIsSubmitting(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      console.log('Formulario enviado:', {
-        titulo,
-        descripcion,
-        fechaInicio,
-        fechaFin,
-        documentos,
-        urlDrive
-      });
-      
-      alert('Subfase creada exitosamente');
+      const subfaseData = {
+        nombre_subfase: titulo,
+        descripcion_subfase: descripcion,
+        fecha_inicio_subfase: fechaInicio,
+        fecha_fin_subfase: fechaFin,
+        url_drive: urlDrive || null,
+        fase_id: faseData.faseId
+      };
+
+      console.log('📤 Enviando datos de subfase:', subfaseData);
+
+      let result;
+      if (isEditing && subfaseId) {
+        result = await updateSubfase(subfaseId, subfaseData);
+        console.log('✅ Subfase actualizada:', result);
+      } else {
+        result = await createSubfase(subfaseData);
+        console.log('✅ Subfase creada:', result);
+      }
+
+      if (result.success) {
+        alert(isEditing ? 'Subfase actualizada exitosamente' : 'Subfase creada exitosamente');
+        
+       navigate(-1);
+      } else {
+        throw new Error(result.error || 'Error al procesar la subfase');
+      }
       
     } catch (error) {
-      console.error('Error al enviar:', error);
-      alert('Error al crear la subfase');
+      console.error('❌ Error al procesar subfase:', error);
+      alert(`Error al ${isEditing ? 'actualizar' : 'crear'} la subfase: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
   };
-  
-  const navigate = useNavigate();
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -109,7 +173,13 @@ const SubFaseScreen = () => {
   };
 
   const handleClose = () => {
-    navigate(-1); 
+    if (faseData) {
+      navigate('/fases', {
+        state: faseData
+      });
+    } else {
+      navigate(-1);
+    }
   };
 
   return (
@@ -123,13 +193,26 @@ const SubFaseScreen = () => {
               </div>
               <div>
                 <h1 className="subfase-title">
-                  Agregar Nueva Subfase
+                  {isEditing ? 'Editar Subfase' : 'Agregar Nueva Subfase'}
                 </h1>
-                <p className="subfase-subtitle">Completa la información de la subfase del proyecto</p>
+                <p className="subfase-subtitle">
+                  {faseData?.faseNombre && (
+                    <span className="subfase-fase-info">
+                      Fase: {faseData.faseNombre} | 
+                    </span>
+                  )}
+                  {isEditing ? 'Modifica la información de la subfase' : 'Completa la información de la subfase del proyecto'}
+                </p>
               </div>
             </div>
           </div>
         </div>
+
+        {errors.general && (
+          <div className="subfase-error-banner">
+            <p>{errors.general}</p>
+          </div>
+        )}
 
         <div className="subfase-form-sections">
           <div className="subfase-form-section">
@@ -374,12 +457,21 @@ const SubFaseScreen = () => {
               {isSubmitting ? (
                 <>
                   <div className="subfase-spinner"></div>
-                  <span>Creando...</span>
+                  <span>{isEditing ? 'Actualizando...' : 'Creando...'}</span>
                 </>
               ) : (
                 <>
-                  <Plus className="subfase-btn-icon" />
-                  <span>Crear Subfase</span>
+                  {isEditing ? (
+                    <>
+                      <Save className="subfase-btn-icon" />
+                      <span>Actualizar Subfase</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="subfase-btn-icon" />
+                      <span>Crear Subfase</span>
+                    </>
+                  )}
                 </>
               )}
             </button>

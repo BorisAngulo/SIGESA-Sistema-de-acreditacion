@@ -10,6 +10,10 @@ import {
   createCarreraModalidad,
   getModalidades
 } from '../services/api';
+import { 
+  getSubfasesByFase,
+  deleteSubfase
+} from '../services/api'; 
 import ModalAgregarFase from '../components/ModalAgregarFase';
 import ModalConfirmacionFase from '../components/ModalConfirmacionFase'; 
 import '../styles/FasesScreen.css';
@@ -28,6 +32,9 @@ const FasesScreen = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [faseToDelete, setFaseToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  
+  const [subfases, setSubfases] = useState({});
+  const [loadingSubfases, setLoadingSubfases] = useState({});
 
   const getModalidadId = async (modalidadNombre) => {
     try {
@@ -113,6 +120,47 @@ const FasesScreen = () => {
       
     } catch (error) {
       console.error('💥 Error en debug modalidades:', error);
+    }
+  };
+
+  const loadSubfasesForFase = async (faseId) => {
+    try {
+      setLoadingSubfases(prev => ({ ...prev, [faseId]: true }));
+      
+      console.log('🔍 Cargando subfases para fase:', faseId);
+      const subfasesData = await getSubfasesByFase(faseId);
+      
+      console.log('📊 Subfases obtenidas para fase', faseId, ':', subfasesData);
+      
+      const subfasesTransformadas = subfasesData.map(subfase => ({
+        id: subfase.id,
+        nombre: subfase.nombre_subfase,
+        descripcion: subfase.descripcion_subfase,
+        fechaInicio: subfase.fecha_inicio_subfase,
+        fechaFin: subfase.fecha_fin_subfase,
+        urlDrive: subfase.url_drive,
+        faseId: subfase.fase_id,
+        createdAt: subfase.created_at,
+        updatedAt: subfase.updated_at,
+        progreso: 0, 
+        completada: false 
+      }));
+      
+      setSubfases(prev => ({
+        ...prev,
+        [faseId]: subfasesTransformadas
+      }));
+      
+      console.log('✅ Subfases transformadas para fase', faseId, ':', subfasesTransformadas);
+      
+    } catch (error) {
+      console.error('❌ Error al cargar subfases para fase', faseId, ':', error);
+      setSubfases(prev => ({
+        ...prev,
+        [faseId]: []
+      }));
+    } finally {
+      setLoadingSubfases(prev => ({ ...prev, [faseId]: false }));
     }
   };
 
@@ -277,7 +325,6 @@ const FasesScreen = () => {
                 
                 console.warn(`⚠️ Se filtraron ${fasesInvalidas.length} fases inválidas. Quedaron ${fasesValidas.length} fases válidas.`);
                 
-                // Usar solo las fases válidas
                 const fasesTransformadas = fasesValidas.map(fase => ({
                   id: fase.id,
                   nombre: fase.nombre_fase,
@@ -287,7 +334,6 @@ const FasesScreen = () => {
                   progreso: 0,
                   completada: false,
                   expandida: false,
-                  actividades: [],
                   carreraModalidadId: fase.carrera_modalidad_id,
                   usuarioUpdated: fase.id_usuario_updated_fase,
                   createdAt: fase.created_at,
@@ -296,6 +342,10 @@ const FasesScreen = () => {
                 
                 setFases(fasesTransformadas);
                 console.log('✅ Fases válidas transformadas y cargadas:', fasesTransformadas);
+                
+                fasesTransformadas.forEach(fase => {
+                  loadSubfasesForFase(fase.id);
+                });
                 
               } else {
                 console.log('✅ Todas las fases son válidas para esta carrera-modalidad');
@@ -309,7 +359,6 @@ const FasesScreen = () => {
                   progreso: 0,
                   completada: false,
                   expandida: false,
-                  actividades: [],
                   carreraModalidadId: fase.carrera_modalidad_id,
                   usuarioUpdated: fase.id_usuario_updated_fase,
                   createdAt: fase.created_at,
@@ -318,6 +367,10 @@ const FasesScreen = () => {
                 
                 setFases(fasesTransformadas);
                 console.log('✅ Fases transformadas y cargadas:', fasesTransformadas);
+                
+                fasesTransformadas.forEach(fase => {
+                  loadSubfasesForFase(fase.id);
+                });
               }
             } else {
               console.log('ℹ️ No se encontraron fases para esta carrera-modalidad');
@@ -352,7 +405,7 @@ const FasesScreen = () => {
     };
 
     loadFases();
-  }, [fasesData?.carreraId, fasesData?.modalidadId]);
+  }, [fasesData?.carreraId, fasesData?.modalidadId, location.state?.subfaseActualizada]);
 
   const toggleFase = (faseId) => {
     setFases(fases.map(fase => 
@@ -360,6 +413,11 @@ const FasesScreen = () => {
         ? { ...fase, expandida: !fase.expandida }
         : fase
     ));
+
+    const fase = fases.find(f => f.id === faseId);
+    if (fase && !fase.expandida && !subfases[faseId] && !loadingSubfases[faseId]) {
+      loadSubfasesForFase(faseId);
+    }
   };
 
   const handleAgregarFase = () => {
@@ -384,6 +442,12 @@ const FasesScreen = () => {
       setDeleteLoading(true);
       await deleteFase(faseToDelete.id);
       setFases(prev => prev.filter(fase => fase.id !== faseToDelete.id));
+      setSubfases(prev => {
+        const newSubfases = { ...prev };
+        delete newSubfases[faseToDelete.id];
+        return newSubfases;
+      });
+      
       console.log('Fase eliminada correctamente:', faseToDelete.id);
       setShowDeleteModal(false);
       setFaseToDelete(null);
@@ -527,7 +591,6 @@ const FasesScreen = () => {
           progreso: 0,
           completada: false,
           expandida: false,
-          actividades: [],
           carreraModalidadId: nuevaFaseCreada.carrera_modalidad_id,
           usuarioUpdated: nuevaFaseCreada.id_usuario_updated_fase,
           createdAt: nuevaFaseCreada.created_at,
@@ -535,6 +598,12 @@ const FasesScreen = () => {
         };
         
         setFases(prev => [...prev, nuevaFaseTransformada]);
+        
+        setSubfases(prev => ({
+          ...prev,
+          [nuevaFaseCreada.id]: []
+        }));
+        
         console.log('✅ Fase creada correctamente:', nuevaFaseCreada);
       }
       
@@ -572,36 +641,69 @@ const FasesScreen = () => {
     console.log('Finalizar acreditación para:', fasesData);
   };
 
-  const handleEditarActividad = (actividadId, faseId) => {
-    console.log('Editar actividad:', actividadId, 'en fase:', faseId);
-  };
-
-  const handleEliminarActividad = (actividadId, faseId) => {
-    if (window.confirm('¿Está seguro de que desea eliminar esta actividad?')) {
-      setFases(prev => prev.map(fase => 
-        fase.id === faseId 
-          ? {
-              ...fase,
-              actividades: fase.actividades.filter(act => act.id !== actividadId)
-            }
-          : fase
-      ));
-      console.log('Actividad eliminada:', actividadId);
-    }
-  };
-
-  const handleAgregarActividad = (faseId) => {
+  const handleAgregarSubfase = (faseId) => {
     const fase = fases.find(f => f.id === faseId);
     
     navigate('/subfase', {
       state: {
         faseId: faseId,
         faseNombre: fase.nombre,
-        subfaseNombre: 'Nueva Subfase', 
-        descripcion: 'La subfase cuenta con ciertos requisitos y se trata de hacer acciones para...',
-        ...fasesData 
+        carreraId: fasesData.carreraId,
+        modalidadId: fasesData.modalidadId,
+        facultadId: fasesData.facultadId,
+        carreraNombre: fasesData.carreraNombre,
+        facultadNombre: fasesData.facultadNombre,
+        modalidad: fasesData.modalidad
       }
     });
+  };
+
+  const handleEditarSubfase = (subfase, faseId) => {
+    const fase = fases.find(f => f.id === faseId);
+    
+    navigate('/subfase', {
+      state: {
+        subfase: subfase, 
+        faseId: faseId,
+        faseNombre: fase.nombre,
+        carreraId: fasesData.carreraId,
+        modalidadId: fasesData.modalidadId,
+        facultadId: fasesData.facultadId,
+        carreraNombre: fasesData.carreraNombre,
+        facultadNombre: fasesData.facultadNombre,
+        modalidad: fasesData.modalidad
+      }
+    });
+  };
+
+  const handleEliminarSubfase = async (subfase, faseId) => {
+    if (window.confirm(`¿Está seguro de que desea eliminar la subfase "${subfase.nombre}"?`)) {
+      try {
+        console.log('🗑️ Eliminando subfase:', subfase.id);
+        
+        const result = await deleteSubfase(subfase.id);
+        
+        if (result.success) {
+          setSubfases(prev => ({
+            ...prev,
+            [faseId]: prev[faseId].filter(s => s.id !== subfase.id)
+          }));
+          
+          console.log('✅ Subfase eliminada correctamente');
+          alert('Subfase eliminada exitosamente');
+        } else {
+          throw new Error(result.error || 'Error al eliminar la subfase');
+        }
+        
+      } catch (error) {
+        console.error('❌ Error al eliminar subfase:', error);
+        alert('Error al eliminar la subfase: ' + error.message);
+      }
+    }
+  };
+
+  const reloadSubfasesForFase = (faseId) => {
+    loadSubfasesForFase(faseId);
   };
 
   const getStatusIcon = (completada, progreso) => {
@@ -627,10 +729,10 @@ const FasesScreen = () => {
     }
   };
 
-  const getActivityStatusIcon = (completada) => {
+  const getSubfaseStatusIcon = (completada) => {
     if (completada) {
       return (
-        <div className="activity-status completed">
+        <div className="subfase-status completed">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -638,7 +740,7 @@ const FasesScreen = () => {
       );
     } else {
       return (
-        <div className="activity-status pending">
+        <div className="subfase-status pending">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path d="M12 8V12L16 14M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -729,9 +831,9 @@ const FasesScreen = () => {
                       className="action-icon add" 
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleAgregarActividad(fase.id);
+                        handleAgregarSubfase(fase.id);
                       }}
-                      title="Agregar actividad"
+                      title="Agregar subfase"
                     >
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                         <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -776,64 +878,80 @@ const FasesScreen = () => {
                 </div>
               </div>
 
-              {fase.expandida && fase.actividades.length > 0 && (
-                <div className="actividades-list">
-                  {fase.actividades.map((actividad, index) => (
-                    <div key={actividad.id} className="actividad-item">
-                      <div className="actividad-numero">{index + 1}.</div>
-                      <div className="actividad-content">
-                        <div className="actividad-info">
-                          <span className="actividad-nombre">{actividad.nombre}</span>
-                          <span className="actividad-fechas">
-                            {actividad.fechaInicio} a {actividad.fechaFin}
-                          </span>
-                        </div>
-                        
-                        <div className="actividad-controls">
-                          <button 
-                            className="action-icon edit"
-                            onClick={() => handleEditarActividad(actividad.id, fase.id)}
-                            title="Editar actividad"
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                              <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13M18.5 2.50023C18.8978 2.1024 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.1024 21.5 2.50023C21.8978 2.89805 22.1215 3.43762 22.1215 4.00023C22.1215 4.56284 21.8978 5.1024 21.5 5.50023L12 15.0002L8 16.0002L9 12.0002L18.5 2.50023Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          </button>
-                          <button 
-                            className="action-icon delete"
-                            onClick={() => handleEliminarActividad(actividad.id, fase.id)}
-                            title="Eliminar actividad"
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                              <path d="M3 6H5H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          </button>
-                          
-                          {actividad.fechaEntrega && (
-                            <div className="fecha-entrega">
-                              {actividad.fechaEntrega}
-                            </div>
-                          )}
-                          
-                          {getActivityStatusIcon(actividad.completada)}
-                        </div>
-                      </div>
+              {fase.expandida && (
+                <div className="subfases-container">
+                  {loadingSubfases[fase.id] ? (
+                    <div className="loading-subfases">
+                      <div className="spinner"></div>
+                      <span>Cargando subfases...</span>
                     </div>
-                  ))}
-                </div>
-              )}
-
-              {fase.expandida && fase.actividades.length === 0 && (
-                <div className="actividades-list">
-                  <div className="no-actividades">
-                    No hay actividades en esta fase. 
-                    <button 
-                      className="link-button"
-                      onClick={() => handleAgregarActividad(fase.id)}
-                    >
-                      Agregar primera actividad
-                    </button>
-                  </div>
+                  ) : subfases[fase.id] && subfases[fase.id].length > 0 ? (
+                    <div className="subfases-list">
+                      <div className="subfases-header">
+                        <h4>Subfases</h4>
+                      </div>
+                      {subfases[fase.id].map((subfase, index) => (
+                        <div key={subfase.id} className="subfase-item">
+                          <div className="subfase-numero">{index + 1}.</div>
+                          <div className="subfase-content">
+                            <div className="subfase-info">
+                              <span className="subfase-nombre">{subfase.nombre}</span>
+                              <span className="subfase-descripcion">{subfase.descripcion}</span>
+                              <span className="subfase-fechas">
+                                {subfase.fechaInicio} - {subfase.fechaFin}
+                              </span>
+                              {subfase.urlDrive && (
+                                <div className="subfase-drive">
+                                  <a 
+                                    href={subfase.urlDrive} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="drive-link"
+                                    title="Ver en Google Drive"
+                                  >
+                                    🔗 Drive
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="subfase-controls">
+                              <button 
+                                className="action-icon edit"
+                                onClick={() => handleEditarSubfase(subfase, fase.id)}
+                                title="Editar subfase"
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                  <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13M18.5 2.50023C18.8978 2.1024 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.1024 21.5 2.50023C21.8978 2.89805 22.1215 3.43762 22.1215 4.00023C22.1215 4.56284 21.8978 5.1024 21.5 5.50023L12 15.0002L8 16.0002L9 12.0002L18.5 2.50023Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                              </button>
+                              <button 
+                                className="action-icon delete"
+                                onClick={() => handleEliminarSubfase(subfase, fase.id)}
+                                title="Eliminar subfase"
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                  <path d="M3 6H5H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                              </button>
+                              
+                              {getSubfaseStatusIcon(subfase.completada)}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="no-subfases">
+                      <p>No hay subfases en esta fase.</p>
+                      <button 
+                        className="link-button"
+                        onClick={() => handleAgregarSubfase(fase.id)}
+                      >
+                        Agregar primera subfase
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
