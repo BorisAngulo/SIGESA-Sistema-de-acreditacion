@@ -1,409 +1,624 @@
-.subfase-container {
-  padding: 20px;
-  max-width: 900px;
-  margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  min-height: 100vh;
-  background: #f8fafc;
+* {
+  box-sizing: border-box;
 }
 
-.breadcrumb {
+.subfase-main-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eff6ff 0%, #f3e8ff 50%, #fdf2f8 100%);
+  padding: 1.5rem;
+}
+
+.subfase-content-wrapper {
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+.subfase-header-card {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(229, 231, 235, 1);
+}
+
+.subfase-header-content {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 24px;
-  font-size: 14px;
-  color: #666;
-  padding: 0 4px;
-}
-
-.breadcrumb .separator {
-  color: #999;
-}
-
-.breadcrumb .current {
-  color: #1a365d;
-  font-weight: 500;
-}
-
-.subfase-content {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-}
-
-.subfase-header {
-  display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  padding: 32px 32px 24px;
-  border-bottom: 1px solid #e2e8f0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin-bottom: 1.5rem;
+}
+
+.subfase-header-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.subfase-icon-container {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.subfase-icon {
+  width: 1.5rem;
+  height: 1.5rem;
   color: white;
-  position: relative;
-}
-
-.subfase-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-  z-index: 0;
-}
-
-.header-content {
-  position: relative;
-  z-index: 1;
 }
 
 .subfase-title {
-  margin: 0 0 8px 0;
-  font-size: 28px;
+  font-size: 1.875rem;
   font-weight: 700;
-  line-height: 1.2;
+  background: linear-gradient(135deg, #1f2937, #4b5563);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
 }
 
 .subfase-subtitle {
-  margin: 0;
-  font-size: 16px;
-  opacity: 0.9;
-  font-weight: 400;
+  color: #6b7280;
+  margin: 0.25rem 0 0 0;
+  font-size: 1rem;
 }
 
-.close-button {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.subfase-close-btn {
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: 50%;
-  transition: all 0.2s ease;
-  position: relative;
-  z-index: 1;
-}
-
-.close-button:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
-}
-
-.subfase-form {
-  padding: 32px;
-}
-
-.form-section {
-  margin-bottom: 32px;
-}
-
-.form-section:last-child {
-  margin-bottom: 0;
-}
-
-.form-label {
+  background-color: #f3f4f6;
+  border: none;
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #1a365d;
-  font-size: 16px;
-}
-
-.label-text {
-  font-size: 16px;
-}
-
-.required {
-  color: #e53e3e;
-  font-weight: 700;
-}
-
-.form-input,
-.form-textarea {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-  font-family: inherit;
-  resize: vertical;
-}
-
-.form-input:focus,
-.form-textarea:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.form-input.error,
-.form-textarea.error {
-  border-color: #e53e3e;
-  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
-}
-
-.form-input::placeholder,
-.form-textarea::placeholder {
-  color: #a0aec0;
-}
-
-.error-message {
-  display: block;
-  color: #e53e3e;
-  font-size: 14px;
-  margin-top: 4px;
-  font-weight: 500;
-}
-
-.helper-text {
-  color: #718096;
-  font-size: 14px;
-  margin-top: 4px;
-  margin-bottom: 12px;
-  line-height: 1.4;
-}
-
-.matriz-section,
-.formatos-section {
-  background: #f7fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 20px;
-}
-
-.btn-plame {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #667eea;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
+  transition: background-color 0.2s;
 }
 
-.btn-plame:hover {
-  background: #5a67d8;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+.subfase-close-btn:hover {
+  background-color: #e5e7eb;
 }
 
-.formatos-grid {
+.subfase-close-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #4b5563;
+}
+
+.subfase-form-section {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  border: 1px solid rgba(229, 231, 235, 1);
+  margin-bottom: 1.5rem;
+}
+
+.subfase-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.subfase-section-icon-wrapper {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+}
+
+.subfase-section-icon-blue {
+  background-color: #dbeafe;
+}
+
+.subfase-section-icon-purple {
+  background-color: #e9d5ff;
+}
+
+.subfase-section-icon-green {
+  background-color: #dcfce7;
+}
+
+.subfase-section-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.subfase-icon-blue {
+  color: #2563eb;
+}
+
+.subfase-icon-purple {
+  color: #7c3aed;
+}
+
+.subfase-icon-green {
+  color: #16a34a;
+}
+
+.subfase-grid-cols-1 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
-  margin-top: 12px;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
 }
 
-.formato-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #4299e1;
-  color: white;
-  border: none;
-  padding: 12px 16px;
-  border-radius: 8px;
-  font-size: 14px;
+.subfase-grid-cols-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .subfase-grid-lg-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .subfase-col-span-2 {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 768px) {
+  .subfase-grid-md-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.subfase-form-label {
+  display: block;
+  font-size: 0.875rem;
   font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.subfase-required {
+  color: #ef4444;
+}
+
+.subfase-form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #d1d5db;
+  transition: all 0.2s;
+  font-size: 1rem;
+}
+
+.subfase-form-input:hover {
+  border-color: #9ca3af;
+}
+
+.subfase-form-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #3b82f6;
+  border-color: transparent;
+}
+
+.subfase-form-input.error {
+  border-color: #fca5a5;
+  background-color: #fef2f2;
+}
+
+.subfase-form-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #d1d5db;
+  transition: all 0.2s;
+  font-size: 1rem;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.subfase-form-textarea:hover {
+  border-color: #9ca3af;
+}
+
+.subfase-form-textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #3b82f6;
+  border-color: transparent;
+}
+
+.subfase-form-textarea.error {
+  border-color: #fca5a5;
+  background-color: #fef2f2;
+}
+
+.subfase-error-message {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.subfase-char-counter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.subfase-char-count {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-left: auto;
+}
+
+.subfase-tabs-container {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+  background-color: #f3f4f6;
+  padding: 0.25rem;
+  border-radius: 0.75rem;
+}
+
+.subfase-tab-button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: left;
+  display: flex;
+  align-items: center;
   justify-content: center;
 }
 
-.formato-btn:hover {
-  background: #3182ce;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(66, 153, 225, 0.3);
+.subfase-tab-active {
+  background-color: white;
+  color: #1f2937;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.observaciones-info {
-  background: #f7fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  overflow: hidden;
+.subfase-tab-inactive {
+  color: #4b5563;
+  background: transparent;
 }
 
-.observaciones-header {
-  background: #edf2f7;
-  padding: 12px 16px;
-  border-bottom: 1px solid #e2e8f0;
+.subfase-tab-inactive:hover {
+  color: #1f2937;
 }
 
-.fecha-observacion {
-  font-size: 13px;
-  color: #4a5568;
-  font-weight: 600;
+.subfase-tab-icon {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
 }
 
-.observaciones-content {
-  padding: 16px;
-}
-
-.observacion-existente {
-  margin: 0;
-  color: #2d3748;
-  line-height: 1.5;
-  font-style: italic;
-}
-
-.form-actions {
+.subfase-file-upload-area {
   display: flex;
-  gap: 16px;
-  justify-content: flex-end;
-  padding-top: 32px;
-  border-top: 1px solid #e2e8f0;
-  margin-top: 32px;
-}
-
-.btn-primary,
-.btn-secondary {
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-  display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  min-height: 48px;
+  justify-content: center;
+  width: 100%;
+  height: 8rem;
+  border: 2px dashed #9ca3af;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 1rem;
 }
 
-.btn-primary {
-  background: #48bb78;
+.subfase-file-upload-area:hover {
+  background-color: #f9fafb;
+}
+
+.subfase-file-upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem 1.5rem;
+}
+
+.subfase-upload-icon {
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: 0.75rem;
+  color: #9ca3af;
+}
+
+.subfase-upload-text {
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.subfase-upload-text-bold {
+  font-weight: 600;
+}
+
+.subfase-upload-formats {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.subfase-file-input-hidden {
+  display: none;
+}
+
+.subfase-documents-list {
+  margin-top: 0.75rem;
+}
+
+.subfase-documents-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.75rem;
+}
+
+.subfase-document-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.subfase-document-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.subfase-document-icon {
+  font-size: 2rem;
+}
+
+.subfase-document-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1f2937;
+  margin: 0;
+}
+
+.subfase-document-size {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.subfase-document-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.subfase-document-action-btn {
+  padding: 0.25rem;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.subfase-document-view-btn {
+  color: #2563eb;
+}
+
+.subfase-document-view-btn:hover {
+  background-color: #dbeafe;
+}
+
+.subfase-document-delete-btn {
+  color: #dc2626;
+}
+
+.subfase-document-delete-btn:hover {
+  background-color: #fee2e2;
+}
+
+.subfase-action-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.subfase-matrix-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  border: 2px dashed;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  background: white;
+}
+
+.subfase-matrix-button-blue {
+  border-color: #93c5fd;
+}
+
+.subfase-matrix-button-blue:hover {
+  border-color: #60a5fa;
+  background-color: #eff6ff;
+}
+
+.subfase-matrix-button-green {
+  border-color: #86efac;
+}
+
+.subfase-matrix-button-green:hover {
+  border-color: #4ade80;
+  background-color: #f0fdf4;
+}
+
+.subfase-matrix-content {
+  text-align: center;
+}
+
+.subfase-matrix-icon-container {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.75rem auto;
+  transition: background-color 0.2s;
+}
+
+.subfase-matrix-icon-blue {
+  background-color: #dbeafe;
+}
+
+.subfase-matrix-button-blue:hover .subfase-matrix-icon-blue {
+  background-color: #bfdbfe;
+}
+
+.subfase-matrix-icon-green {
+  background-color: #dcfce7;
+}
+
+.subfase-matrix-button-green:hover .subfase-matrix-icon-green {
+  background-color: #bbf7d0;
+}
+
+.subfase-matrix-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.subfase-matrix-title {
+  font-weight: 500;
+  color: #1f2937;
+  margin: 0 0 0.25rem 0;
+}
+
+.subfase-matrix-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.subfase-helper-text {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.subfase-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.subfase-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  font-size: 1rem;
+}
+
+.subfase-btn-secondary {
+  color: #374151;
+  background-color: white;
+  border: 1px solid #d1d5db;
+}
+
+.subfase-btn-secondary:hover {
+  background-color: #f9fafb;
+}
+
+.subfase-btn-primary {
+  padding: 0.75rem 2rem;
+  background: linear-gradient(135deg, #2563eb, #8b5cf6);
   color: white;
+  transform: scale(1);
 }
 
-.btn-primary:hover:not(:disabled) {
-  background: #38a169;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(72, 187, 120, 0.3);
+.subfase-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+  transform: scale(1.05);
 }
 
-.btn-primary:disabled {
-  background: #a0aec0;
+.subfase-btn:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
 }
 
-.btn-secondary {
-  background: #edf2f7;
-  color: #4a5568;
-  border: 1px solid #e2e8f0;
+.subfase-btn:disabled.subfase-btn-primary {
+  transform: scale(1);
 }
 
-.btn-secondary:hover:not(:disabled) {
-  background: #e2e8f0;
-  transform: translateY(-1px);
+.subfase-btn-icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
-.btn-secondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.spinner {
+.subfase-spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid white;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 @media (max-width: 768px) {
-  .subfase-container {
-    padding: 16px;
-    background: white;
+  .subfase-main-container {
+    padding: 1rem;
   }
   
-  .subfase-header {
-    padding: 24px 20px 20px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
+  .subfase-header-card {
+    padding: 1.5rem;
   }
   
-  .close-button {
-    align-self: flex-end;
-    position: absolute;
-    top: 16px;
-    right: 16px;
+  .subfase-form-section {
+    padding: 1.5rem;
   }
   
   .subfase-title {
-    font-size: 24px;
+    font-size: 1.5rem;
   }
   
-  .subfase-form {
-    padding: 24px 20px;
+  .subfase-header-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
   
-  .formatos-grid {
+  .subfase-grid-cols-2 {
     grid-template-columns: 1fr;
   }
   
-  .form-actions {
+  .subfase-actions {
     flex-direction: column-reverse;
   }
   
-  .btn-primary,
-  .btn-secondary {
+  .subfase-btn {
     width: 100%;
     justify-content: center;
-  }
-  
-  .breadcrumb {
-    font-size: 12px;
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 480px) {
-  .subfase-container {
-    padding: 12px;
-  }
-  
-  .subfase-content {
-    border-radius: 8px;
-  }
-  
-  .subfase-header {
-    padding: 20px 16px 16px;
-  }
-  
-  .subfase-form {
-    padding: 20px 16px;
-  }
-  
-  .form-section {
-    margin-bottom: 24px;
   }
 }
