@@ -39,7 +39,7 @@ class Documento extends Model
      */
     public function subfases()
     {
-        return $this->belongsToMany(Subfase::class, 'subfase_documentos', 'documento_id', 'subfase_id')
+        return $this->belongsToMany(SubFase::class, 'subfase_documentos', 'documento_id', 'subfase_id')
                     ->withTimestamps();
     }
 

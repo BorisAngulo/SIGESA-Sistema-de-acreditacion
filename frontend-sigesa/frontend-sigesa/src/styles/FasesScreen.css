@@ -168,6 +168,16 @@
   transform: scale(1.05);
 }
 
+.action-icon.document {
+  background-color: #3182ce;
+  color: white;
+}
+
+.action-icon.document:hover {
+  background-color: #2c5aa0;
+  transform: scale(1.05);
+}
+
 .action-icon.edit {
   background-color: #ed8936;
   color: white;
