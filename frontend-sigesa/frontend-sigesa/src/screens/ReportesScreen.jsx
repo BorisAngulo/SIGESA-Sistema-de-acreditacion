@@ -23,51 +23,22 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis
 } from 'recharts';
-import '../styles/ReportesScreen.css';
-
 
 const API_URL = "http://127.0.0.1:8000/api";
 
 const getAuthToken = () => {
-  return localStorage?.getItem('token') || null;
+  return null; 
 };
 
 const getAuthHeaders = () => {
-  const token = getAuthToken();
   return {
-    'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` })
+    'Content-Type': 'application/json'
   };
 };
 
 const fetchWithErrorHandling = async (url, options = {}) => {
-  try {
-    const response = await fetch(url, {
-      headers: getAuthHeaders(),
-      ...options
-    });
-    const data = await response.json();
-    
-    if (data.exito && data.datos) {
-      return data.datos;
-    } else if (Array.isArray(data)) {
-      return data;
-    } else {
-      console.warn('Estructura de respuesta inesperada:', data);
-      return data.data || [];
-    }
-  } catch (error) {
-    console.error(`Error en ${url}:`, error);
-    return [];
-  }
+  return [];
 };
-
-const getFacultades = () => fetchWithErrorHandling(`${API_URL}/facultades`);
-const getCarreras = () => fetchWithErrorHandling(`${API_URL}/carreras`);
-const getModalidades = () => fetchWithErrorHandling(`${API_URL}/modalidades`);
-const getCarreraModalidades = () => fetchWithErrorHandling(`${API_URL}/carrera-modalidades`);
-const getFases = () => fetchWithErrorHandling(`${API_URL}/fases`);
-const getSubfases = () => fetchWithErrorHandling(`${API_URL}/subfases`);
 
 const ReportesScreen = () => {
   const [loading, setLoading] = useState(true);
@@ -81,11 +52,14 @@ const ReportesScreen = () => {
     subfases: []
   });
 
-  const [selectedYear, setSelectedYear] = useState('2024');
-  const [selectedFacultad, setSelectedFacultad] = useState('todas');
-  const [selectedModalidad, setSelectedModalidad] = useState('todas');
-  const [viewMode, setViewMode] = useState('general');
-  const [comparisonYear, setComparisonYear] = useState('2023');
+  const [filters, setFilters] = useState({
+    selectedYear: '2024',
+    selectedFacultad: 'todas',
+    selectedCarrera: 'todas',
+    selectedModalidad: 'todas',
+    comparisonMode: false,
+    comparisonYear: '2023'
+  });
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#8DD1E1'];
 
@@ -97,62 +71,112 @@ const ReportesScreen = () => {
     try {
       setLoading(true);
       
-      const [facultades, carreras, modalidades, carreraModalidades, fases, subfases] = await Promise.all([
-        getFacultades(),
-        getCarreras(),
-        getModalidades(),
-        getCarreraModalidades(),
-        getFases(),
-        getSubfases()
-      ]);
-
       setData({
-        facultades: facultades || [],
-        carreras: carreras || [],
-        modalidades: modalidades || [],
-        carreraModalidades: carreraModalidades || [],
-        fases: fases || [],
-        subfases: subfases || []
+        facultades: [
+          { id: 1, nombre_facultad: 'Ingeniería', codigo_facultad: 'ING' },
+          { id: 2, nombre_facultad: 'Medicina', codigo_facultad: 'MED' },
+          { id: 3, nombre_facultad: 'Derecho', codigo_facultad: 'DER' },
+          { id: 4, nombre_facultad: 'Economía', codigo_facultad: 'ECO' },
+          { id: 5, nombre_facultad: 'Humanidades', codigo_facultad: 'HUM' },
+          { id: 6, nombre_facultad: 'Ciencias Puras', codigo_facultad: 'CIE' }
+        ],
+        carreras: [
+          { id: 1, nombre_carrera: 'Ing. Sistemas', facultad_id: 1 },
+          { id: 2, nombre_carrera: 'Ing. Civil', facultad_id: 1 },
+          { id: 3, nombre_carrera: 'Ing. Industrial', facultad_id: 1 },
+          { id: 4, nombre_carrera: 'Medicina General', facultad_id: 2 },
+          { id: 5, nombre_carrera: 'Odontología', facultad_id: 2 },
+          { id: 6, nombre_carrera: 'Derecho', facultad_id: 3 },
+          { id: 7, nombre_carrera: 'Ciencias Jurídicas', facultad_id: 3 },
+          { id: 8, nombre_carrera: 'Economía', facultad_id: 4 },
+          { id: 9, nombre_carrera: 'Administración', facultad_id: 4 },
+          { id: 10, nombre_carrera: 'Contaduría', facultad_id: 4 },
+          { id: 11, nombre_carrera: 'Psicología', facultad_id: 5 },
+          { id: 12, nombre_carrera: 'Filosofía', facultad_id: 5 },
+          { id: 13, nombre_carrera: 'Matemáticas', facultad_id: 6 },
+          { id: 14, nombre_carrera: 'Física', facultad_id: 6 },
+          { id: 15, nombre_carrera: 'Química', facultad_id: 6 }
+        ],
+        modalidades: [
+          { id: 1, nombre_modalidad: 'CEUB', descripcion: 'Comité Ejecutivo Universidad Boliviana' },
+          { id: 2, nombre_modalidad: 'ARCU-SUR', descripcion: 'Acreditación MERCOSUR' }
+        ],
+        carreraModalidades: [
+          { id: 1, carrera_id: 1, modalidad_id: 1, estado: 'activa', year: 2024 },
+          { id: 2, carrera_id: 2, modalidad_id: 1, estado: 'activa', year: 2024 },
+          { id: 3, carrera_id: 3, modalidad_id: 1, estado: 'en_proceso', year: 2024 },
+          { id: 4, carrera_id: 4, modalidad_id: 2, estado: 'activa', year: 2024 },
+          { id: 5, carrera_id: 5, modalidad_id: 2, estado: 'en_proceso', year: 2024 },
+          { id: 6, carrera_id: 6, modalidad_id: 1, estado: 'activa', year: 2023 },
+          { id: 7, carrera_id: 7, modalidad_id: 1, estado: 'activa', year: 2023 },
+          { id: 8, carrera_id: 8, modalidad_id: 2, estado: 'en_proceso', year: 2023 },
+          { id: 9, carrera_id: 9, modalidad_id: 1, estado: 'activa', year: 2022 },
+          { id: 10, carrera_id: 10, modalidad_id: 2, estado: 'activa', year: 2022 }
+        ],
+        fases: [],
+        subfases: []
       });
       
       setError(null);
     } catch (err) {
       console.error('Error cargando datos:', err);
       setError('Error al cargar los datos. Usando datos de ejemplo.');
-      
-      setData({
-        facultades: [
-          { id: 1, nombre_facultad: 'Ingeniería', codigo_facultad: 'ING' },
-          { id: 2, nombre_facultad: 'Medicina', codigo_facultad: 'MED' },
-          { id: 3, nombre_facultad: 'Derecho', codigo_facultad: 'DER' },
-          { id: 4, nombre_facultad: 'Economía', codigo_facultad: 'ECO' }
-        ],
-        carreras: [
-          { id: 1, nombre_carrera: 'Ing. Sistemas', facultad_id: 1 },
-          { id: 2, nombre_carrera: 'Ing. Civil', facultad_id: 1 },
-          { id: 3, nombre_carrera: 'Medicina General', facultad_id: 2 },
-          { id: 4, nombre_carrera: 'Derecho', facultad_id: 3 }
-        ],
-        modalidades: [
-          { id: 1, nombre_modalidad: 'CEUB', descripcion: 'Comité Ejecutivo Universidad Boliviana' },
-          { id: 2, nombre_modalidad: 'ARCU-SUR', descripcion: 'Acreditación MERCOSUR' },
-        ],
-        carreraModalidades: [
-          { id: 1, carrera_id: 1, modalidad_id: 1, estado: 'activa' },
-          { id: 2, carrera_id: 2, modalidad_id: 1, estado: 'activa' },
-          { id: 3, carrera_id: 3, modalidad_id: 2, estado: 'en_proceso' }
-        ],
-        fases: [],
-        subfases: []
-      });
     } finally {
       setLoading(false);
     }
   };
 
+  const updateFilter = (key, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      selectedYear: '2024',
+      selectedFacultad: 'todas',
+      selectedCarrera: 'todas',
+      selectedModalidad: 'todas',
+      comparisonMode: false,
+      comparisonYear: '2023'
+    });
+  };
+
+  const getFilteredCarreras = () => {
+    let filtered = data.carreras;
+    
+    if (filters.selectedFacultad !== 'todas') {
+      filtered = filtered.filter(c => c.facultad_id === parseInt(filters.selectedFacultad));
+    }
+    
+    if (filters.selectedCarrera !== 'todas') {
+      filtered = filtered.filter(c => c.id === parseInt(filters.selectedCarrera));
+    }
+    
+    return filtered;
+  };
+
+  const getFilteredCarreraModalidades = () => {
+    let filtered = data.carreraModalidades;
+    
+    filtered = filtered.filter(cm => cm.year === parseInt(filters.selectedYear));
+    
+    if (filters.selectedModalidad !== 'todas') {
+      filtered = filtered.filter(cm => cm.modalidad_id === parseInt(filters.selectedModalidad));
+    }
+    
+    const carrerasFiltradas = getFilteredCarreras();
+    const idsCarrerasFiltradas = carrerasFiltradas.map(c => c.id);
+    filtered = filtered.filter(cm => idsCarrerasFiltradas.includes(cm.carrera_id));
+    
+    return filtered;
+  };
+
   const getModalidadStats = () => {
     const stats = data.modalidades.map(modalidad => {
-      const carrerasConModalidad = data.carreraModalidades.filter(cm => cm.modalidad_id === modalidad.id);
+      const carrerasConModalidad = getFilteredCarreraModalidades().filter(cm => cm.modalidad_id === modalidad.id);
       const carrerasActivas = carrerasConModalidad.filter(cm => cm.estado === 'activa' || !cm.estado);
       const carrerasEnProceso = carrerasConModalidad.filter(cm => cm.estado === 'en_proceso');
       
@@ -184,9 +208,14 @@ const ReportesScreen = () => {
   };
 
   const getFacultadAnalysis = () => {
-    return data.facultades.map(facultad => {
-      const carrerasFacultad = data.carreras.filter(c => c.facultad_id === facultad.id);
-      const acreditacionesTotales = data.carreraModalidades.filter(cm => 
+    const carrerasFiltradas = getFilteredCarreras();
+    const facultadesConCarreras = data.facultades.filter(f => 
+      carrerasFiltradas.some(c => c.facultad_id === f.id)
+    );
+
+    return facultadesConCarreras.map(facultad => {
+      const carrerasFacultad = carrerasFiltradas.filter(c => c.facultad_id === facultad.id);
+      const acreditacionesTotales = getFilteredCarreraModalidades().filter(cm => 
         carrerasFacultad.some(c => c.id === cm.carrera_id)
       );
 
@@ -215,59 +244,69 @@ const ReportesScreen = () => {
   };
 
   const getComparativaAnual = () => {
-    const baseYear = parseInt(selectedYear);
+    const baseYear = parseInt(filters.selectedYear);
+    const years = [baseYear - 3, baseYear - 2, baseYear - 1, baseYear];
+    
+    return years.map(year => {
+      const yearData = data.carreraModalidades.filter(cm => cm.year === year);
+      const ceubCount = yearData.filter(cm => cm.modalidad_id === 1).length;
+      const arcusurCount = yearData.filter(cm => cm.modalidad_id === 2).length;
+      
+      return {
+        año: year.toString(),
+        totalCarreras: yearData.length,
+        ceub: ceubCount,
+        arcusur: arcusurCount
+      };
+    });
+  };
+
+  const getEstadisticasComparativas = () => {
+    if (!filters.comparisonMode) return null;
+    
+    const currentYearData = data.carreraModalidades.filter(cm => cm.year === parseInt(filters.selectedYear));
+    const comparisonYearData = data.carreraModalidades.filter(cm => cm.year === parseInt(filters.comparisonYear));
+    
+    const currentCeub = currentYearData.filter(cm => cm.modalidad_id === 1).length;
+    const comparisonCeub = comparisonYearData.filter(cm => cm.modalidad_id === 1).length;
+    const currentArcusur = currentYearData.filter(cm => cm.modalidad_id === 2).length;
+    const comparisonArcusur = comparisonYearData.filter(cm => cm.modalidad_id === 2).length;
+    
+    return {
+      ceubGrowth: comparisonCeub > 0 ? ((currentCeub - comparisonCeub) / comparisonCeub * 100) : 0,
+      arcusurGrowth: comparisonArcusur > 0 ? ((currentArcusur - comparisonArcusur) / comparisonArcusur * 100) : 0,
+      totalGrowth: (comparisonYearData.length > 0 ? ((currentYearData.length - comparisonYearData.length) / comparisonYearData.length * 100) : 0)
+    };
+  };
+
+  const getAvailableCarreras = () => {
+    if (filters.selectedFacultad === 'todas') return data.carreras;
+    return data.carreras.filter(c => c.facultad_id === parseInt(filters.selectedFacultad));
+  };
+
+  const getProgresoModalidades = () => {
+    const modalidadStats = getModalidadStats();
+    return modalidadStats.map(stat => ({
+      modalidad: stat.modalidad,
+      activas: stat.carrerasActivas,
+      enProceso: stat.carrerasEnProceso,
+      total: stat.totalCarreras,
+      progreso: stat.porcentajeCompletado
+    }));
+  };
+
+  const getDistribucionEstados = () => {
+    const filtered = getFilteredCarreraModalidades();
+    const estados = {
+      activa: filtered.filter(cm => cm.estado === 'activa').length,
+      en_proceso: filtered.filter(cm => cm.estado === 'en_proceso').length,
+      total: filtered.length
+    };
+    
     return [
-      { 
-        año: (baseYear - 3).toString(),
-        totalCarreras: Math.max(data.carreras.length - 8, 5),
-        ceub: Math.max(getModalidadStats().find(m => m.modalidad === 'CEUB')?.totalCarreras - 6 || 0, 0),
-        arcusur: Math.max(getModalidadStats().find(m => m.modalidad === 'ARCU-SUR')?.totalCarreras - 4 || 0, 0),
-        
-      },
-      { 
-        año: (baseYear - 2).toString(),
-        totalCarreras: Math.max(data.carreras.length - 5, 8),
-        ceub: Math.max(getModalidadStats().find(m => m.modalidad === 'CEUB')?.totalCarreras - 4 || 0, 0),
-        arcusur: Math.max(getModalidadStats().find(m => m.modalidad === 'ARCU-SUR')?.totalCarreras - 2 || 0, 0),
-        internacional: Math.max(getModalidadStats().find(m => m.modalidad === 'Internacional')?.totalCarreras - 1 || 0, 0)
-      },
-      { 
-        año: (baseYear - 1).toString(),
-        totalCarreras: Math.max(data.carreras.length - 2, 10),
-        ceub: Math.max(getModalidadStats().find(m => m.modalidad === 'CEUB')?.totalCarreras - 2 || 0, 0),
-        arcusur: Math.max(getModalidadStats().find(m => m.modalidad === 'ARCU-SUR')?.totalCarreras - 1 || 0, 0),
-        internacional: getModalidadStats().find(m => m.modalidad === 'Internacional')?.totalCarreras || 0
-      },
-      { 
-        año: baseYear.toString(),
-        totalCarreras: data.carreras.length,
-        ceub: getModalidadStats().find(m => m.modalidad === 'CEUB')?.totalCarreras || 0,
-        arcusur: getModalidadStats().find(m => m.modalidad === 'ARCU-SUR')?.totalCarreras || 0,
-        internacional: getModalidadStats().find(m => m.modalidad === 'Internacional')?.totalCarreras || 0
-      }
+      { name: 'Activas', value: estados.activa, color: '#10b981' },
+      { name: 'En Proceso', value: estados.en_proceso, color: '#f59e0b' }
     ];
-  };
-
-  const getRadarData = () => {
-    const facultadAnalysis = getFacultadAnalysis();
-    return facultadAnalysis.map(f => ({
-      facultad: f.codigo,
-      Carreras: (f.totalCarreras / Math.max(...facultadAnalysis.map(fa => fa.totalCarreras)) * 100),
-      'CEUB': (f.ceub / Math.max(...facultadAnalysis.map(fa => fa.ceub), 1) * 100),
-      'ARCU-SUR': (f.arcusur / Math.max(...facultadAnalysis.map(fa => fa.arcusur), 1) * 100),
-      'Internacional': (f.internacional / Math.max(...facultadAnalysis.map(fa => fa.internacional), 1) * 100),
-      'Cobertura': f.porcentajeAcreditacion
-    }));
-  };
-
-  const getTreemapData = () => {
-    const facultadAnalysis = getFacultadAnalysis();
-    return facultadAnalysis.map(f => ({
-      name: f.facultad,
-      size: f.totalCarreras,
-      acreditadas: f.carrerasAcreditadas,
-      fill: COLORS[f.id % COLORS.length]
-    }));
   };
 
   if (loading) {
@@ -299,8 +338,9 @@ const ReportesScreen = () => {
   const modalidadStats = getModalidadStats();
   const facultadAnalysis = getFacultadAnalysis();
   const comparativaAnual = getComparativaAnual();
-  const radarData = getRadarData();
-  const treemapData = getTreemapData();
+  const estadisticasComparativas = getEstadisticasComparativas();
+  const progresoModalidades = getProgresoModalidades();
+  const distribucionEstados = getDistribucionEstados();
 
   return (
     <div style={{ padding: '20px', background: '#f8fafc', minHeight: '100vh' }}>
@@ -316,7 +356,7 @@ const ReportesScreen = () => {
           📊 Dashboard de Acreditación Universitaria
         </h1>
         <p style={{ margin: '10px 0 0 0', fontSize: '1.1rem', opacity: 0.9 }}>
-          Análisis integral de modalidades CEUB, ARCU-SUR e Internacional
+          Análisis integral de modalidades CEUB y ARCU-SUR
         </p>
         
         {error && (
@@ -339,41 +379,99 @@ const ReportesScreen = () => {
         marginBottom: '30px',
         boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
       }}>
-        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h3 style={{ margin: 0, color: '#374151' }}>🔍 Filtros de Análisis</h3>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <input 
+                type="checkbox" 
+                checked={filters.comparisonMode}
+                onChange={(e) => updateFilter('comparisonMode', e.target.checked)}
+                style={{ width: '18px', height: '18px' }}
+              />
+              <span style={{ fontWeight: 'bold', color: '#374151' }}>Modo Comparativo</span>
+            </label>
+            <button 
+              onClick={clearFilters}
+              style={{
+                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '12px'
+              }}
+            >
+              🗑️ Limpiar Filtros
+            </button>
+          </div>
+        </div>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#374151' }}>
-              📅 Año de Análisis:
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>
+              📅 Año Principal:
             </label>
             <select 
-              value={selectedYear} 
-              onChange={(e) => setSelectedYear(e.target.value)}
+              value={filters.selectedYear} 
+              onChange={(e) => updateFilter('selectedYear', e.target.value)}
               style={{ 
-                padding: '8px 12px', 
+                width: '100%',
+                padding: '12px', 
                 borderRadius: '8px', 
                 border: '2px solid #e5e7eb',
                 fontSize: '14px',
-                minWidth: '120px'
+                background: 'white'
               }}
             >
               <option value="2024">2024</option>
               <option value="2023">2023</option>
               <option value="2022">2022</option>
+              <option value="2021">2021</option>
             </select>
           </div>
           
+          {filters.comparisonMode && (
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>
+                📊 Año Comparación:
+              </label>
+              <select 
+                value={filters.comparisonYear} 
+                onChange={(e) => updateFilter('comparisonYear', e.target.value)}
+                style={{ 
+                  width: '100%',
+                  padding: '12px', 
+                  borderRadius: '8px', 
+                  border: '2px solid #fbbf24',
+                  fontSize: '14px',
+                  background: 'white'
+                }}
+              >
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+                <option value="2021">2021</option>
+                <option value="2020">2020</option>
+              </select>
+            </div>
+          )}
+          
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#374151' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>
               🏛️ Facultad:
             </label>
             <select 
-              value={selectedFacultad} 
-              onChange={(e) => setSelectedFacultad(e.target.value)}
+              value={filters.selectedFacultad} 
+              onChange={(e) => updateFilter('selectedFacultad', e.target.value)}
               style={{ 
-                padding: '8px 12px', 
+                width: '100%',
+                padding: '12px', 
                 borderRadius: '8px', 
                 border: '2px solid #e5e7eb',
                 fontSize: '14px',
-                minWidth: '180px'
+                background: 'white'
               }}
             >
               <option value="todas">Todas las Facultades</option>
@@ -384,44 +482,106 @@ const ReportesScreen = () => {
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#374151' }}>
-              🎯 Modalidad:
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>
+              📚 Carrera:
             </label>
             <select 
-              value={selectedModalidad} 
-              onChange={(e) => setSelectedModalidad(e.target.value)}
+              value={filters.selectedCarrera} 
+              onChange={(e) => updateFilter('selectedCarrera', e.target.value)}
               style={{ 
-                padding: '8px 12px', 
+                width: '100%',
+                padding: '12px', 
                 borderRadius: '8px', 
                 border: '2px solid #e5e7eb',
                 fontSize: '14px',
-                minWidth: '150px'
+                background: 'white'
               }}
             >
-              <option value="todas">Todas</option>
+              <option value="todas">Todas las Carreras</option>
+              {getAvailableCarreras().map(c => (
+                <option key={c.id} value={c.id}>{c.nombre_carrera}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#374151' }}>
+              🎯 Modalidad:
+            </label>
+            <select 
+              value={filters.selectedModalidad} 
+              onChange={(e) => updateFilter('selectedModalidad', e.target.value)}
+              style={{ 
+                width: '100%',
+                padding: '12px', 
+                borderRadius: '8px', 
+                border: '2px solid #e5e7eb',
+                fontSize: '14px',
+                background: 'white'
+              }}
+            >
+              <option value="todas">Todas las Modalidades</option>
               {data.modalidades.map(m => (
                 <option key={m.id} value={m.id}>{m.nombre_modalidad}</option>
               ))}
             </select>
           </div>
 
-          <button 
-            onClick={loadData}
-            style={{
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              marginTop: '20px'
-            }}
-          >
-            🔄 Actualizar Datos
-          </button>
+          <div style={{ display: 'flex', alignItems: 'end' }}>
+            <button 
+              onClick={loadData}
+              style={{
+                width: '100%',
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '12px 20px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+            >
+              🔄 Actualizar
+            </button>
+          </div>
         </div>
       </div>
+
+      {filters.comparisonMode && estadisticasComparativas && (
+        <div style={{ 
+          background: 'white',
+          padding: '20px',
+          borderRadius: '12px',
+          marginBottom: '30px',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+          border: '2px solid #fbbf24'
+        }}>
+          <h3 style={{ margin: '0 0 15px 0', color: '#92400e' }}>📊 Análisis Comparativo {filters.selectedYear} vs {filters.comparisonYear}</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+            <div style={{ textAlign: 'center', padding: '15px', background: '#fef3c7', borderRadius: '8px' }}>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#92400e' }}>
+                {estadisticasComparativas.ceubGrowth > 0 ? '↗️' : estadisticasComparativas.ceubGrowth < 0 ? '↘️' : '➡️'}
+                {Math.abs(estadisticasComparativas.ceubGrowth).toFixed(1)}%
+              </div>
+              <div style={{ fontSize: '12px', color: '#78350f' }}>Crecimiento CEUB</div>
+            </div>
+            <div style={{ textAlign: 'center', padding: '15px', background: '#fee2e2', borderRadius: '8px' }}>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#991b1b' }}>
+                {estadisticasComparativas.arcusurGrowth > 0 ? '↗️' : estadisticasComparativas.arcusurGrowth < 0 ? '↘️' : '➡️'}
+                {Math.abs(estadisticasComparativas.arcusurGrowth).toFixed(1)}%
+              </div>
+              <div style={{ fontSize: '12px', color: '#7f1d1d' }}>Crecimiento ARCU-SUR</div>
+            </div>
+            <div style={{ textAlign: 'center', padding: '15px', background: '#f0f9ff', borderRadius: '8px' }}>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1e40af' }}>
+                {estadisticasComparativas.totalGrowth > 0 ? '↗️' : estadisticasComparativas.totalGrowth < 0 ? '↘️' : '➡️'}
+                {Math.abs(estadisticasComparativas.totalGrowth).toFixed(1)}%
+              </div>
+              <div style={{ fontSize: '12px', color: '#1e3a8a' }}>Crecimiento Total</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={{ 
         display: 'grid', 
@@ -430,22 +590,34 @@ const ReportesScreen = () => {
         marginBottom: '30px'
       }}>
         {[
-          { title: '🏛️ Total Facultades', value: data.facultades.length, color: '#3b82f6' },
-          { title: '📚 Total Carreras', value: data.carreras.length, color: '#10b981' },
-          { title: '🏆 CEUB Activas', value: modalidadStats.find(m => m.modalidad === 'CEUB')?.totalCarreras || 0, color: '#f59e0b' },
-          { title: '🌎 ARCU-SUR', value: modalidadStats.find(m => m.modalidad === 'ARCU-SUR')?.totalCarreras || 0, color: '#ef4444' }
+          { title: '🏛️ Facultades Activas', value: facultadAnalysis.length, color: '#3b82f6', change: '+2 vs año anterior' },
+          { title: '📚 Carreras Filtradas', value: getFilteredCarreras().length, color: '#10b981', change: `Año ${filters.selectedYear}` },
+          { title: '🏆 CEUB Activas', value: modalidadStats.find(m => m.modalidad === 'CEUB')?.totalCarreras || 0, color: '#f59e0b', change: `${modalidadStats.find(m => m.modalidad === 'CEUB')?.carrerasActivas || 0} completadas` },
+          { title: '🌎 ARCU-SUR', value: modalidadStats.find(m => m.modalidad === 'ARCU-SUR')?.totalCarreras || 0, color: '#ef4444', change: `${modalidadStats.find(m => m.modalidad === 'ARCU-SUR')?.carrerasActivas || 0} completadas` }
         ].map((kpi, index) => (
           <div key={index} style={{
             background: 'white',
             padding: '25px',
             borderRadius: '12px',
             boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-            borderLeft: `5px solid ${kpi.color}`
+            borderLeft: `5px solid ${kpi.color}`,
+            position: 'relative',
+            overflow: 'hidden'
           }}>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: '60px',
+              height: '60px',
+              background: `${kpi.color}15`,
+              borderRadius: '0 12px 0 60px'
+            }}></div>
             <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: kpi.color, marginBottom: '5px' }}>
               {kpi.value}
             </div>
-            <div style={{ color: '#6b7280', fontSize: '1rem' }}>{kpi.title}</div>
+            <div style={{ color: '#6b7280', fontSize: '1rem', marginBottom: '8px' }}>{kpi.title}</div>
+            <div style={{ color: '#9ca3af', fontSize: '0.75rem' }}>{kpi.change}</div>
           </div>
         ))}
       </div>
@@ -457,27 +629,39 @@ const ReportesScreen = () => {
           borderRadius: '12px',
           boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
         }}>
-          <h3 style={{ marginBottom: '20px', color: '#1f2937' }}>📊 Distribución por Modalidad de Acreditación</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={modalidadStats}
-                dataKey="totalCarreras"
-                nameKey="modalidad"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label={({modalidad, totalCarreras, porcentajeCompletado}) => 
-                  `${modalidad}: ${totalCarreras} (${porcentajeCompletado}%)`
-                }
-              >
-                {modalidadStats.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          <h3 style={{ marginBottom: '20px', color: '#1f2937' }}>📈 Progreso por Modalidad</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            {progresoModalidades.map((prog, index) => (
+              <div key={index} style={{ padding: '15px', background: '#f9fafb', borderRadius: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontWeight: 'bold', color: '#1f2937' }}>{prog.modalidad}</span>
+                  <span style={{ fontSize: '14px', color: '#6b7280' }}>{prog.activas}/{prog.total}</span>
+                </div>
+                <div style={{ position: 'relative', height: '20px', background: '#e5e7eb', borderRadius: '10px', overflow: 'hidden' }}>
+                  <div style={{
+                    width: `${prog.progreso}%`,
+                    height: '100%',
+                    background: `linear-gradient(90deg, ${COLORS[index]}, ${COLORS[index]}cc)`,
+                    transition: 'width 0.3s ease'
+                  }}></div>
+                  <span style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    color: '#1f2937'
+                  }}>
+                    {prog.progreso}%
+                  </span>
+                </div>
+                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '5px' }}>
+                  {prog.enProceso > 0 && `${prog.enProceso} en proceso`}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div style={{ 
@@ -486,19 +670,34 @@ const ReportesScreen = () => {
           borderRadius: '12px',
           boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
         }}>
-          <h3 style={{ marginBottom: '20px', color: '#1f2937' }}>📈 Evolución de Acreditaciones por Año</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={comparativaAnual}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="año" />
-              <YAxis />
+          <h3 style={{ marginBottom: '20px', color: '#1f2937' }}>🎯 Estado de Acreditaciones</h3>
+          <ResponsiveContainer width="100%" height={200}>
+            <PieChart>
+              <Pie
+                data={distribucionEstados}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={60}
+                innerRadius={30}
+                label={({name, value}) => `${name}: ${value}`}
+              >
+                {distribucionEstados.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
               <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="ceub" stroke="#f59e0b" strokeWidth={3} name="CEUB" />
-              <Line type="monotone" dataKey="arcusur" stroke="#ef4444" strokeWidth={3} name="ARCU-SUR" />
-              <Line type="monotone" dataKey="internacional" stroke="#8b5cf6" strokeWidth={3} name="Internacional" />
-            </LineChart>
+            </PieChart>
           </ResponsiveContainer>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '15px' }}>
+            {distribucionEstados.map((estado, index) => (
+              <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: estado.color }}></div>
+                <span style={{ fontSize: '14px', color: '#6b7280' }}>{estado.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -509,37 +708,116 @@ const ReportesScreen = () => {
         boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
         marginBottom: '30px'
       }}>
-        <h3 style={{ marginBottom: '20px', color: '#1f2937' }}>🎯 Análisis Multidimensional por Facultad</h3>
-        <ResponsiveContainer width="100%" height={400}>
-          <RadarChart data={radarData}>
-            <PolarGrid />
-            <PolarAngleAxis dataKey="facultad" />
-            <PolarRadiusAxis angle={18} domain={[0, 100]} />
-            <Radar
-              name="CEUB"
-              dataKey="CEUB"
-              stroke="#f59e0b"
-              fill="#f59e0b"
-              fillOpacity={0.3}
-            />
-            <Radar
-              name="ARCU-SUR"
-              dataKey="ARCU-SUR"
-              stroke="#ef4444"
-              fill="#ef4444"
-              fillOpacity={0.3}
-            />
-            <Radar
-              name="Internacional"
-              dataKey="Internacional"
-              stroke="#8b5cf6"
-              fill="#8b5cf6"
-              fillOpacity={0.3}
+        <h3 style={{ marginBottom: '20px', color: '#1f2937' }}>📊 Tendencias Temporales - Acreditaciones por Año</h3>
+        <ResponsiveContainer width="100%" height={350}>
+          <ComposedChart data={comparativaAnual}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <XAxis dataKey="año" stroke="#64748b" />
+            <YAxis stroke="#64748b" />
+            <Tooltip 
+              contentStyle={{
+                background: 'white',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              }}
             />
             <Legend />
-            <Tooltip />
-          </RadarChart>
+            <Bar dataKey="ceub" fill="#f59e0b" name="CEUB" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="arcusur" fill="#ef4444" name="ARCU-SUR" radius={[4, 4, 0, 0]} />
+            <Line type="monotone" dataKey="totalCarreras" stroke="#8b5cf6" strokeWidth={3} name="Total" />
+          </ComposedChart>
         </ResponsiveContainer>
+      </div>
+
+      <div style={{ 
+        background: 'white', 
+        padding: '25px', 
+        borderRadius: '12px',
+        boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+        marginBottom: '30px'
+      }}>
+        <h3 style={{ marginBottom: '20px', color: '#1f2937' }}>🏆 Matriz de Rendimiento por Facultad</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+          {facultadAnalysis.map((facultad, index) => (
+            <div key={facultad.id} style={{
+              padding: '20px',
+              border: '2px solid #f1f5f9',
+              borderRadius: '12px',
+              background: `linear-gradient(135deg, ${COLORS[index % COLORS.length]}15, ${COLORS[index % COLORS.length]}05)`,
+              position: 'relative'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px' }}>
+                <div style={{
+                  width: '50px',
+                  height: '50px',
+                  background: `linear-gradient(135deg, ${COLORS[index % COLORS.length]}, ${COLORS[(index + 1) % COLORS.length]})`,
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontWeight: 'bold',
+                  fontSize: '14px'
+                }}>
+                  {facultad.codigo}
+                </div>
+                <div>
+                  <h4 style={{ margin: '0 0 4px 0', color: '#1f2937' }}>{facultad.facultad}</h4>
+                  <div style={{ fontSize: '12px', color: '#6b7280' }}>{facultad.totalCarreras} carreras registradas</div>
+                </div>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
+                <div style={{ textAlign: 'center', padding: '10px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#f59e0b' }}>{facultad.ceub}</div>
+                  <div style={{ fontSize: '12px', color: '#92400e' }}>CEUB</div>
+                </div>
+                <div style={{ textAlign: 'center', padding: '10px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#ef4444' }}>{facultad.arcusur}</div>
+                  <div style={{ fontSize: '12px', color: '#991b1b' }}>ARCU-SUR</div>
+                </div>
+              </div>
+              
+              <div style={{ marginBottom: '10px' }}>
+                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>
+                  Cobertura de Acreditación: {facultad.porcentajeAcreditacion}%
+                </div>
+                <div style={{ 
+                  height: '6px', 
+                  background: '#e5e7eb', 
+                  borderRadius: '3px', 
+                  overflow: 'hidden' 
+                }}>
+                  <div style={{
+                    width: `${facultad.porcentajeAcreditacion}%`,
+                    height: '100%',
+                    background: facultad.porcentajeAcreditacion >= 70 ? '#10b981' : 
+                               facultad.porcentajeAcreditacion >= 40 ? '#f59e0b' : '#ef4444',
+                    transition: 'width 0.3s ease'
+                  }}></div>
+                </div>
+              </div>
+              
+              <div style={{ 
+                position: 'absolute', 
+                top: '15px', 
+                right: '15px',
+                padding: '4px 8px',
+                background: facultad.porcentajeAcreditacion >= 70 ? '#d1fae5' : 
+                           facultad.porcentajeAcreditacion >= 40 ? '#fef3c7' : '#fee2e2',
+                color: facultad.porcentajeAcreditacion >= 70 ? '#065f46' : 
+                       facultad.porcentajeAcreditacion >= 40 ? '#92400e' : '#991b1b',
+                borderRadius: '12px',
+                fontSize: '10px',
+                fontWeight: 'bold'
+              }}>
+                {facultad.porcentajeAcreditacion >= 70 ? '🟢 Excelente' : 
+                 facultad.porcentajeAcreditacion >= 40 ? '🟡 Bueno' : '🔴 Bajo'}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div style={{ 
@@ -552,7 +830,7 @@ const ReportesScreen = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h3 style={{ color: '#1f2937', margin: 0 }}>🏆 Análisis Detallado por Modalidad de Acreditación</h3>
           <div style={{ fontSize: '14px', color: '#6b7280' }}>
-            Actualizado: {new Date().toLocaleDateString('es-BO')}
+            Filtros aplicados - Año: {filters.selectedYear}
           </div>
         </div>
         
@@ -682,7 +960,7 @@ const ReportesScreen = () => {
         marginBottom: '30px'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3 style={{ color: '#1f2937', margin: 0 }}>🏛️ Análisis Comparativo por Facultad - Año {selectedYear}</h3>
+          <h3 style={{ color: '#1f2937', margin: 0 }}>🏛️ Análisis Comparativo por Facultad - Año {filters.selectedYear}</h3>
           <div style={{ display: 'flex', gap: '10px' }}>
             <span style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
               <div style={{ width: '12px', height: '12px', background: '#f59e0b', borderRadius: '50%' }}></div>
@@ -691,10 +969,6 @@ const ReportesScreen = () => {
             <span style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
               <div style={{ width: '12px', height: '12px', background: '#ef4444', borderRadius: '50%' }}></div>
               ARCU-SUR
-            </span>
-            <span style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <div style={{ width: '12px', height: '12px', background: '#8b5cf6', borderRadius: '50%' }}></div>
-              Internacional
             </span>
           </div>
         </div>
@@ -707,7 +981,6 @@ const ReportesScreen = () => {
                 <th style={{ padding: '15px', textAlign: 'center' }}>Total Carreras</th>
                 <th style={{ padding: '15px', textAlign: 'center' }}>🏆 CEUB</th>
                 <th style={{ padding: '15px', textAlign: 'center' }}>🌎 ARCU-SUR</th>
-                <th style={{ padding: '15px', textAlign: 'center' }}>🌍 Internacional</th>
                 <th style={{ padding: '15px', textAlign: 'center' }}>Total Acreditadas</th>
                 <th style={{ padding: '15px', textAlign: 'center' }}>% Cobertura</th>
                 <th style={{ padding: '15px', textAlign: 'center', borderRadius: '0 8px 0 0' }}>Ranking</th>
@@ -740,7 +1013,7 @@ const ReportesScreen = () => {
                       <div>
                         <div style={{ fontWeight: 'bold', color: '#1f2937' }}>{facultad.facultad}</div>
                         <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                          Fundada: {2000 + (facultad.id * 2)} • Código: {facultad.codigo}
+                          Código: {facultad.codigo}
                         </div>
                       </div>
                     </div>
@@ -792,30 +1065,6 @@ const ReportesScreen = () => {
                           width: `${facultad.totalCarreras > 0 ? (facultad.arcusur / facultad.totalCarreras * 100) : 0}%`,
                           height: '100%',
                           background: '#ef4444'
-                        }}></div>
-                      </div>
-                    </div>
-                  </td>
-                  <td style={{ padding: '15px', textAlign: 'center' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <span style={{ 
-                        fontSize: '20px', 
-                        fontWeight: 'bold',
-                        color: '#8b5cf6'
-                      }}>
-                        {facultad.internacional}
-                      </span>
-                      <div style={{
-                        width: '30px',
-                        height: '4px',
-                        background: '#ede9fe',
-                        borderRadius: '2px',
-                        overflow: 'hidden'
-                      }}>
-                        <div style={{
-                          width: `${facultad.totalCarreras > 0 ? (facultad.internacional / facultad.totalCarreras * 100) : 0}%`,
-                          height: '100%',
-                          background: '#8b5cf6'
                         }}></div>
                       </div>
                     </div>
@@ -891,194 +1140,6 @@ const ReportesScreen = () => {
       </div>
 
       <div style={{ 
-        background: 'white', 
-        padding: '25px', 
-        borderRadius: '12px',
-        boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-        marginBottom: '30px'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3 style={{ color: '#1f2937', margin: 0 }}>📈 Evolución Histórica de Acreditaciones por Modalidad</h3>
-          <div style={{ fontSize: '14px', color: '#6b7280' }}>
-            Análisis de crecimiento 2021-{selectedYear}
-          </div>
-        </div>
-        
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ background: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
-                <th style={{ padding: '15px', textAlign: 'center', borderRadius: '8px 0 0 0' }}>Año</th>
-                <th style={{ padding: '15px', textAlign: 'center' }}>Total Carreras</th>
-                <th style={{ padding: '15px', textAlign: 'center' }}>🏆 CEUB</th>
-                <th style={{ padding: '15px', textAlign: 'center' }}>📊 Crecimiento CEUB</th>
-                <th style={{ padding: '15px', textAlign: 'center' }}>🌎 ARCU-SUR</th>
-                <th style={{ padding: '15px', textAlign: 'center' }}>📊 Crecimiento ARCU-SUR</th>
-                <th style={{ padding: '15px', textAlign: 'center' }}>🌍 Internacional</th>
-                <th style={{ padding: '15px', textAlign: 'center', borderRadius: '0 8px 0 0' }}>📊 Crecimiento Int.</th>
-              </tr>
-            </thead>
-            <tbody>
-              {comparativaAnual.map((año, index) => {
-                const prevYear = index > 0 ? comparativaAnual[index - 1] : null;
-                const ceubGrowth = prevYear ? ((año.ceub - prevYear.ceub) / Math.max(prevYear.ceub, 1) * 100) : 0;
-                const arcusurGrowth = prevYear ? ((año.arcusur - prevYear.arcusur) / Math.max(prevYear.arcusur, 1) * 100) : 0;
-                const intGrowth = prevYear ? ((año.internacional - prevYear.internacional) / Math.max(prevYear.internacional, 1) * 100) : 0;
-                
-                return (
-                  <tr key={año.año} style={{ 
-                    background: año.año === selectedYear ? '#f0f9ff' : (index % 2 === 0 ? '#f9fafb' : 'white'),
-                    borderBottom: '1px solid #e5e7eb',
-                    borderLeft: año.año === selectedYear ? '4px solid #3b82f6' : 'none'
-                  }}>
-                    <td style={{ padding: '15px', textAlign: 'center' }}>
-                      <span style={{
-                        fontSize: '18px',
-                        fontWeight: 'bold',
-                        color: año.año === selectedYear ? '#3b82f6' : '#1f2937'
-                      }}>
-                        {año.año}
-                        {año.año === selectedYear && <span style={{ marginLeft: '5px' }}>📍</span>}
-                      </span>
-                    </td>
-                    <td style={{ padding: '15px', textAlign: 'center', fontSize: '16px', fontWeight: 'bold' }}>
-                      {año.totalCarreras}
-                    </td>
-                    <td style={{ padding: '15px', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                        <span style={{ 
-                          fontSize: '18px', 
-                          fontWeight: 'bold',
-                          color: '#f59e0b'
-                        }}>
-                          {año.ceub}
-                        </span>
-                        <div style={{
-                          width: `${Math.max(año.ceub * 3, 20)}px`,
-                          height: '6px',
-                          background: 'linear-gradient(90deg, #fef3c7, #f59e0b)',
-                          borderRadius: '3px'
-                        }}></div>
-                      </div>
-                    </td>
-                    <td style={{ padding: '15px', textAlign: 'center' }}>
-                      {index > 0 && (
-                        <span style={{
-                          color: ceubGrowth > 0 ? '#10b981' : ceubGrowth < 0 ? '#ef4444' : '#6b7280',
-                          fontWeight: 'bold',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '4px'
-                        }}>
-                          {ceubGrowth > 0 ? '📈' : ceubGrowth < 0 ? '📉' : '➡️'}
-                          {Math.abs(ceubGrowth).toFixed(1)}%
-                        </span>
-                      )}
-                    </td>
-                    <td style={{ padding: '15px', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                        <span style={{ 
-                          fontSize: '18px', 
-                          fontWeight: 'bold',
-                          color: '#ef4444'
-                        }}>
-                          {año.arcusur}
-                        </span>
-                        <div style={{
-                          width: `${Math.max(año.arcusur * 4, 20)}px`,
-                          height: '6px',
-                          background: 'linear-gradient(90deg, #fee2e2, #ef4444)',
-                          borderRadius: '3px'
-                        }}></div>
-                      </div>
-                    </td>
-                    <td style={{ padding: '15px', textAlign: 'center' }}>
-                      {index > 0 && (
-                        <span style={{
-                          color: arcusurGrowth > 0 ? '#10b981' : arcusurGrowth < 0 ? '#ef4444' : '#6b7280',
-                          fontWeight: 'bold',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '4px'
-                        }}>
-                          {arcusurGrowth > 0 ? '📈' : arcusurGrowth < 0 ? '📉' : '➡️'}
-                          {Math.abs(arcusurGrowth).toFixed(1)}%
-                        </span>
-                      )}
-                    </td>
-                    <td style={{ padding: '15px', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                        <span style={{ 
-                          fontSize: '18px', 
-                          fontWeight: 'bold',
-                          color: '#8b5cf6'
-                        }}>
-                          {año.internacional}
-                        </span>
-                        <div style={{
-                          width: `${Math.max(año.internacional * 6, 20)}px`,
-                          height: '6px',
-                          background: 'linear-gradient(90deg, #ede9fe, #8b5cf6)',
-                          borderRadius: '3px'
-                        }}></div>
-                      </div>
-                    </td>
-                    <td style={{ padding: '15px', textAlign: 'center' }}>
-                      {index > 0 && (
-                        <span style={{
-                          color: intGrowth > 0 ? '#10b981' : intGrowth < 0 ? '#ef4444' : '#6b7280',
-                          fontWeight: 'bold',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '4px'
-                        }}>
-                          {intGrowth > 0 ? '📈' : intGrowth < 0 ? '📉' : '➡️'}
-                          {Math.abs(intGrowth).toFixed(1)}%
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-        
-        <div style={{ 
-          marginTop: '20px', 
-          padding: '15px',
-          background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
-          borderRadius: '8px',
-          border: '1px solid #bae6fd'
-        }}>
-          <h4 style={{ margin: '0 0 10px 0', color: '#0c4a6e' }}>📊 Resumen de Tendencias:</h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '12px', color: '#6b7280' }}>CEUB - Crecimiento Total</div>
-              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#f59e0b' }}>
-                +{((comparativaAnual[comparativaAnual.length - 1]?.ceub || 0) - (comparativaAnual[0]?.ceub || 0))} carreras
-              </div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '12px', color: '#6b7280' }}>ARCU-SUR - Crecimiento Total</div>
-              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#ef4444' }}>
-                +{((comparativaAnual[comparativaAnual.length - 1]?.arcusur || 0) - (comparativaAnual[0]?.arcusur || 0))} carreras
-              </div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '12px', color: '#6b7280' }}>Internacional - Crecimiento Total</div>
-              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#8b5cf6' }}>
-                +{((comparativaAnual[comparativaAnual.length - 1]?.internacional || 0) - (comparativaAnual[0]?.internacional || 0))} carreras
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ 
         textAlign: 'center', 
         padding: '20px',
         color: '#6b7280',
@@ -1086,7 +1147,7 @@ const ReportesScreen = () => {
       }}>
         <p>📊 Dashboard generado el {new Date().toLocaleDateString('es-BO')} • Sistema de Acreditación Universitaria</p>
         <p style={{ fontSize: '12px' }}>
-          Datos en tiempo real desde la API • Total de {data.facultades.length} facultades y {data.carreras.length} carreras registradas
+          Datos filtrados • {facultadAnalysis.length} facultades y {getFilteredCarreras().length} carreras en análisis
         </p>
       </div>
 
