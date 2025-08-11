@@ -8,7 +8,11 @@ import {
   getCarreraModalidades,
   getCarreraModalidadEspecifica,
   createCarreraModalidad,
-  getModalidades
+  getModalidades,
+  getDocumentos,
+  createDocumento,
+  asociarDocumentoAFase,
+  asociarDocumentoASubfase
 } from '../services/api';
 import { 
   getSubfasesByFase,
@@ -16,6 +20,7 @@ import {
 } from '../services/api'; 
 import ModalAgregarFase from '../components/ModalAgregarFase';
 import ModalConfirmacionFase from '../components/ModalConfirmacionFase'; 
+import ModalEscogerDocumento from '../components/ModalEscogerDocumento';
 import '../styles/FasesScreen.css';
 
 const FasesScreen = () => {
@@ -32,6 +37,12 @@ const FasesScreen = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [faseToDelete, setFaseToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  
+  // Estados para documentos
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
+  const [documentoTarget, setDocumentoTarget] = useState({ type: null, id: null }); // 'fase' o 'subfase'
+  const [documentos, setDocumentos] = useState([]);
+  const [loadingDocumentos, setLoadingDocumentos] = useState(false);
   
   const [subfases, setSubfases] = useState({});
   const [loadingSubfases, setLoadingSubfases] = useState({});
@@ -702,6 +713,105 @@ const FasesScreen = () => {
     }
   };
 
+  // ===== FUNCIONES DE DOCUMENTOS =====
+
+  const loadDocumentos = async () => {
+    try {
+      setLoadingDocumentos(true);
+      const response = await getDocumentos();
+      console.log('Response from getDocumentos:', response);
+      
+      // Asegurar que siempre sea un array
+      let documentosData = [];
+      
+      // La respuesta del backend SIGESA tiene estructura: {exito, estado, mensaje, datos, error}
+      if (response && response.datos && Array.isArray(response.datos)) {
+        documentosData = response.datos;
+      } else if (response && response.data && Array.isArray(response.data)) {
+        documentosData = response.data;
+      } else if (response && Array.isArray(response)) {
+        documentosData = response;
+      }
+      
+      console.log('Setting documentos to:', documentosData);
+      setDocumentos(documentosData);
+    } catch (error) {
+      console.error('Error al cargar documentos:', error);
+      setDocumentos([]); // Asegurar que siempre sea un array en caso de error
+      alert('Error al cargar documentos: ' + error.message);
+    } finally {
+      setLoadingDocumentos(false);
+    }
+  };
+
+  const handleAbrirModalDocumento = async (type, id) => {
+    setDocumentoTarget({ type, id });
+    await loadDocumentos();
+    setShowDocumentModal(true);
+  };
+
+  const handleCerrarModalDocumento = () => {
+    setShowDocumentModal(false);
+    setDocumentoTarget({ type: null, id: null });
+  };
+
+  const handleSeleccionarDocumento = async (documento) => {
+    try {
+      console.log('Asociando documento:', documento.id, 'a', documentoTarget.type, documentoTarget.id);
+      
+      if (documentoTarget.type === 'fase') {
+        await asociarDocumentoAFase(documentoTarget.id, documento.id);
+        alert('Documento asociado a la fase exitosamente');
+      } else if (documentoTarget.type === 'subfase') {
+        await asociarDocumentoASubfase(documentoTarget.id, documento.id);
+        alert('Documento asociado a la subfase exitosamente');
+      }
+      
+      // No necesitamos recargar documentos aquí porque no se creó uno nuevo
+      handleCerrarModalDocumento();
+    } catch (error) {
+      console.error('Error al asociar documento:', error);
+      alert('Error al asociar documento: ' + error.message);
+    }
+  };
+
+  const handleSubirDocumento = async (documentoData) => {
+    try {
+      console.log('Subiendo nuevo documento:', documentoData);
+      
+      // Crear el documento
+      const response = await createDocumento(documentoData);
+      console.log('Response de createDocumento:', response);
+      
+      // La respuesta del backend tiene estructura: {exito, estado, mensaje, datos, error}
+      const nuevoDocumento = response.datos || response.data || response;
+      console.log('Nuevo documento creado:', nuevoDocumento);
+      console.log('ID del nuevo documento:', nuevoDocumento.id);
+      
+      if (!nuevoDocumento.id) {
+        throw new Error('No se pudo obtener el ID del documento creado');
+      }
+      
+      // Asociar inmediatamente al target
+      if (documentoTarget.type === 'fase') {
+        console.log('Asociando a fase:', documentoTarget.id, 'documento:', nuevoDocumento.id);
+        await asociarDocumentoAFase(documentoTarget.id, nuevoDocumento.id);
+        alert('Documento subido y asociado a la fase exitosamente');
+      } else if (documentoTarget.type === 'subfase') {
+        console.log('Asociando a subfase:', documentoTarget.id, 'documento:', nuevoDocumento.id);
+        await asociarDocumentoASubfase(documentoTarget.id, nuevoDocumento.id);
+        alert('Documento subido y asociado a la subfase exitosamente');
+      }
+      
+      handleCerrarModalDocumento();
+      
+    } catch (error) {
+      console.error('Error al subir documento:', error);
+      alert('Error al subir documento: ' + error.message);
+      throw error; // Re-lanzar para que el modal maneje el estado de loading
+    }
+  };
+
   const reloadSubfasesForFase = (faseId) => {
     loadSubfasesForFase(faseId);
   };
@@ -840,6 +950,19 @@ const FasesScreen = () => {
                       </svg>
                     </button>
                     <button 
+                      className="action-icon document"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAbrirModalDocumento('fase', fase.id);
+                      }}
+                      title="Agregar documento"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                    <button 
                       className="action-icon edit"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -917,6 +1040,16 @@ const FasesScreen = () => {
                             
                             <div className="subfase-controls">
                               <button 
+                                className="action-icon document"
+                                onClick={() => handleAbrirModalDocumento('subfase', subfase.id)}
+                                title="Agregar documento"
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                  <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                              </button>
+                              <button 
                                 className="action-icon edit"
                                 onClick={() => handleEditarSubfase(subfase, fase.id)}
                                 title="Editar subfase"
@@ -972,6 +1105,14 @@ const FasesScreen = () => {
         onConfirm={handleConfirmarEliminacion}
         faseNombre={faseToDelete ? faseToDelete.nombre : ''}
         loading={deleteLoading}
+      />
+
+      <ModalEscogerDocumento
+        isOpen={showDocumentModal}
+        onClose={handleCerrarModalDocumento}
+        onSelect={handleSeleccionarDocumento}
+        onUpload={handleSubirDocumento}
+        existingDocuments={documentos}
       />
     </div>
   );

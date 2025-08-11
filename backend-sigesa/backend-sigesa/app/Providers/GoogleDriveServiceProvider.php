@@ -33,10 +33,15 @@ class GoogleDriveServiceProvider extends ServiceProvider
                 $options['teamDriveId'] = $config['teamDriveId'];
             }
 
+            $client = new \Google_Client();
+            $client->setClientId($config['clientId']);
+            $client->setClientSecret($config['clientSecret']);
+            $client->refreshToken($config['refreshToken']);
+
+            $service = new \Google_Service_Drive($client);
+
             $adapter = new GoogleDriveAdapter(
-                $config['clientId'],
-                $config['clientSecret'],
-                $config['refreshToken'],
+                $service,
                 $config['folderId'] ?? '/',
                 $options
             );

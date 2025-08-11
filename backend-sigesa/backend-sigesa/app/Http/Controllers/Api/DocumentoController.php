@@ -73,6 +73,82 @@ class DocumentoController extends BaseApiController
      */
     public function store(Request $request)
     {
+        // Si no se especifica tipo_asociacion, solo crear el documento
+        if (!$request->has('tipo_asociacion')) {
+            return $this->storeDocumentoSolo($request);
+        }
+        
+        // Método original con asociación
+        return $this->storeConAsociacion($request);
+    }
+
+    /**
+     * Crear solo un documento sin asociación
+     */
+    public function storeDocumentoSolo(Request $request)
+    {
+        DB::beginTransaction();
+        
+        try {
+            // Validación de datos para documento solo
+            $validated = $request->validate([
+                'nombre_documento' => 'required|string|max:255',
+                'descripcion_documento' => 'nullable|string|max:1000',
+                'archivo_documento' => 'required|file|max:20480|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,jpg,jpeg,png,gif,zip,rar', // Max 20MB
+                'tipo_documento' => 'nullable|string|in:01,02', // '01' para específicos, '02' para generales
+                'id_usuario_updated' => 'nullable|integer',
+            ]);
+
+            // Procesar el archivo subido
+            $archivo = $request->file('archivo_documento');
+            $nombreOriginal = $archivo->getClientOriginalName();
+            $tipoMime = $archivo->getClientMimeType();
+            $tamanoArchivo = $archivo->getSize();
+
+            // Leer el contenido del archivo
+            $contenidoArchivo = file_get_contents($archivo->getRealPath());
+            
+            if ($contenidoArchivo === false) {
+                throw new ApiException('Error al leer el contenido del archivo', 500);
+            }
+
+            // Crear el documento
+            $documento = Documento::create([
+                'nombre_documento' => $validated['nombre_documento'],
+                'descripcion_documento' => $validated['descripcion_documento'] ?? null,
+                'nombre_archivo_original' => $nombreOriginal,
+                'tipo_mime' => $tipoMime,
+                'contenido_archivo' => $contenidoArchivo,
+                'tamano_archivo' => $tamanoArchivo,
+                'tipo_documento' => $validated['tipo_documento'] ?? '02', // Por defecto general
+                'id_usuario_updated_documento' => $validated['id_usuario_updated'] ?? null,
+            ]);
+
+            if (!$documento) {
+                throw ApiException::creationFailed('documento');
+            }
+
+            DB::commit();
+
+            return $this->successResponse($documento, 'Documento creado exitosamente', 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return $this->handleValidationException($e);
+        } catch (ApiException $e) {
+            DB::rollBack();
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * Método original para crear documento con asociación
+     */
+    public function storeConAsociacion(Request $request)
+    {
         DB::beginTransaction();
         
         try {
@@ -85,7 +161,7 @@ class DocumentoController extends BaseApiController
                 'tipo_documento' => 'required|string|in:01,02', // '01' para específicos, '02' para generales
                 'tipo_asociacion' => 'required|string|in:fase,subfase',
                 'fase_id' => 'required_if:tipo_asociacion,fase|exists:fases,id',
-                'subfase_id' => 'required_if:tipo_asociacion,subfase|exists:subfases,id',
+                'subfase_id' => 'required_if:tipo_asociacion,subfase|exists:sub_fases,id',
                 'id_usuario_updated' => 'nullable|integer',
             ]);
 
@@ -202,14 +278,47 @@ class DocumentoController extends BaseApiController
     public function index()
     {
         try {
-            $documentos = Documento::with(['fases', 'subfases'])->get();
+            Log::info('Obteniendo todos los documentos');
+            
+            // Primero probar sin relaciones para ver si hay documentos
+            $documentos = Documento::all();
+            
+            Log::info('Documentos encontrados (sin relaciones)', [
+                'count' => $documentos->count(),
+                'documentos' => $documentos->map(function($doc) {
+                    return [
+                        'id' => $doc->id,
+                        'nombre' => $doc->nombre_documento,
+                        'tipo' => $doc->tipo_documento,
+                        'tipo_mime' => $doc->tipo_mime,
+                        'nombre_archivo_original' => $doc->nombre_archivo_original,
+                        'created_at' => $doc->created_at
+                    ];
+                })
+            ]);
 
             if ($documentos->isEmpty()) {
+                Log::info('No hay documentos en la base de datos');
                 return $this->successResponse([], 'No hay documentos registrados', 200);
             }
 
-            return $this->successResponse($documentos, 'Documentos obtenidos exitosamente');
+            // Si hay documentos, intentar cargar con relaciones
+            try {
+                $documentosConRelaciones = Documento::with(['fases', 'subfases'])->get();
+                Log::info('Documentos con relaciones cargados exitosamente');
+                return $this->successResponse($documentosConRelaciones, 'Documentos obtenidos exitosamente');
+            } catch (\Exception $relException) {
+                Log::error('Error al cargar relaciones, devolviendo documentos sin relaciones', [
+                    'error' => $relException->getMessage()
+                ]);
+                return $this->successResponse($documentos, 'Documentos obtenidos exitosamente (sin relaciones)');
+            }
+
         } catch (\Exception $e) {
+            Log::error('Error al obtener documentos', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return $this->handleGeneralException($e);
         }
     }
@@ -443,6 +552,225 @@ class DocumentoController extends BaseApiController
         } catch (ApiException $e) {
             return $this->handleApiException($e);
         } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * Asociar un documento existente a una fase
+     * @OA\Post(
+     *     path="/api/fases/{faseId}/documentos",
+     *     tags={"Documento"},
+     *     @OA\Parameter(
+     *         name="faseId",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID de la fase"
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="documento_id", type="integer", example=1, description="ID del documento a asociar")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Documento asociado exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=true),
+     *             @OA\Property(property="estado", type="integer", example=201),
+     *             @OA\Property(property="datos", type="object"),
+     *             @OA\Property(property="error", type="string", nullable=true, example=null)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Error en la validación",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=false),
+     *             @OA\Property(property="estado", type="integer", example=400),
+     *             @OA\Property(property="datos", type="object", nullable=true),
+     *             @OA\Property(property="error", type="string", example="El documento ya está asociado a esta fase")
+     *         )
+     *     )
+     * )
+     */
+    public function asociarDocumentoAFase(Request $request, $faseId)
+    {
+        DB::beginTransaction();
+        
+        try {
+            // Validación
+            $validated = $request->validate([
+                'documento_id' => 'required|integer|exists:documentos,id'
+            ]);
+
+            $documentoId = $validated['documento_id'];
+
+            // Verificar que la fase existe
+            $faseExists = DB::table('fases')->where('id', $faseId)->exists();
+            if (!$faseExists) {
+                throw new ApiException('La fase especificada no existe', 404);
+            }
+
+            // Verificar si ya existe la asociación
+            $existeAsociacion = Fase_documento::where('fase_id', $faseId)
+                ->where('documento_id', $documentoId)
+                ->exists();
+
+            if ($existeAsociacion) {
+                throw new ApiException('El documento ya está asociado a esta fase', 400);
+            }
+
+            // Crear la asociación usando el modelo
+            $asociacion = Fase_documento::create([
+                'fase_id' => $faseId,
+                'documento_id' => $documentoId,
+            ]);
+
+            if (!$asociacion) {
+                throw new ApiException('Error al asociar el documento a la fase', 500);
+            }
+
+            DB::commit();
+
+            return $this->successResponse([
+                'fase_id' => $faseId,
+                'documento_id' => $documentoId,
+                'asociacion' => $asociacion,
+                'mensaje' => 'Documento asociado exitosamente a la fase'
+            ], 'Documento asociado exitosamente', 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return $this->handleValidationException($e);
+        } catch (ApiException $e) {
+            DB::rollBack();
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * Asociar un documento existente a una subfase
+     * @OA\Post(
+     *     path="/api/subfases/{subfaseId}/documentos",
+     *     tags={"Documento"},
+     *     @OA\Parameter(
+     *         name="subfaseId",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID de la subfase"
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="documento_id", type="integer", example=1, description="ID del documento a asociar")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Documento asociado exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=true),
+     *             @OA\Property(property="estado", type="integer", example=201),
+     *             @OA\Property(property="datos", type="object"),
+     *             @OA\Property(property="error", type="string", nullable=true, example=null)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Error en la validación",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=false),
+     *             @OA\Property(property="estado", type="integer", example=400),
+     *             @OA\Property(property="datos", type="object", nullable=true),
+     *             @OA\Property(property="error", type="string", example="El documento ya está asociado a esta subfase")
+     *         )
+     *     )
+     * )
+     */
+    public function asociarDocumentoASubfase(Request $request, $subfaseId)
+    {
+        DB::beginTransaction();
+        
+        try {
+            Log::info('Asociando documento a subfase', [
+                'subfase_id' => $subfaseId,
+                'request_data' => $request->all()
+            ]);
+
+            // Validación
+            $validated = $request->validate([
+                'documento_id' => 'required|integer|exists:documentos,id'
+            ]);
+
+            $documentoId = $validated['documento_id'];
+            
+            Log::info('Datos validados', [
+                'documento_id' => $documentoId,
+                'subfase_id' => $subfaseId
+            ]);
+
+            // Verificar que la subfase existe
+            $subfaseExists = DB::table('sub_fases')->where('id', $subfaseId)->exists();
+            if (!$subfaseExists) {
+                Log::error('Subfase no encontrada', ['subfase_id' => $subfaseId]);
+                throw new ApiException('La subfase especificada no existe', 404);
+            }
+
+            // Verificar si ya existe la asociación
+            $existeAsociacion = Subfase_documento::where('subfase_id', $subfaseId)
+                ->where('documento_id', $documentoId)
+                ->exists();
+
+            if ($existeAsociacion) {
+                Log::warning('Asociación ya existe', [
+                    'subfase_id' => $subfaseId,
+                    'documento_id' => $documentoId
+                ]);
+                throw new ApiException('El documento ya está asociado a esta subfase', 400);
+            }
+
+            // Crear la asociación usando el modelo
+            $asociacion = Subfase_documento::create([
+                'subfase_id' => $subfaseId,
+                'documento_id' => $documentoId,
+            ]);
+
+            if (!$asociacion) {
+                Log::error('Error al crear asociación');
+                throw new ApiException('Error al asociar el documento a la subfase', 500);
+            }
+
+            Log::info('Asociación creada exitosamente', [
+                'asociacion_id' => $asociacion->id
+            ]);
+
+            DB::commit();
+
+            return $this->successResponse([
+                'subfase_id' => $subfaseId,
+                'documento_id' => $documentoId,
+                'asociacion' => $asociacion,
+                'mensaje' => 'Documento asociado exitosamente a la subfase'
+            ], 'Documento asociado exitosamente', 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            Log::error('Error de validación', ['errors' => $e->errors()]);
+            return $this->handleValidationException($e);
+        } catch (ApiException $e) {
+            DB::rollBack();
+            Log::error('Error de API', ['message' => $e->getMessage()]);
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error general', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return $this->handleGeneralException($e);
         }
     }

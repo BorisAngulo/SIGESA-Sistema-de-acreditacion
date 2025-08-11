@@ -6,7 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import Footer from './components/Footer';
 
-import Home from './screens//home';
+import Home from './screens/Home';
 import Login from './screens/Login';
 import UsuariosScreen from './screens/UsuariosScreen';
 import ActividadScreen from './screens/ActividadScreen';

@@ -178,7 +178,7 @@
 
 .table-header {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1.2fr 1fr 1fr 1.5fr 1fr 1fr;
   gap: 1rem;
   padding: 1rem 1.5rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -188,7 +188,7 @@
 
 .table-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1.2fr 1fr 1fr 1.5fr 1fr 1fr;
   gap: 1rem;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #e2e8f0;
@@ -395,5 +395,101 @@
     width: 100%;
     justify-content: center;
     margin-top: 0.5rem;
+  }
+}
+
+/* Estilos para el selector de almacenamiento */
+.backup-storage-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.backup-storage-selector label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.storage-selector {
+  padding: 0.75rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  font-weight: 500;
+  color: #2c3e50;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 200px;
+}
+
+.storage-selector:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.storage-selector:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.storage-selector:disabled {
+  background: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Estilos para los badges de almacenamiento */
+.storage-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.storage-local {
+  background: linear-gradient(135deg, #a8e6cf 0%, #7fcdcd 100%);
+  color: #1a5f5f;
+}
+
+.storage-google {
+  background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+  color: white;
+}
+
+/* Ajustar el layout de backup-actions para acomodar el selector */
+.backup-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+/* Responsivo para el selector */
+@media (max-width: 768px) {
+  .backup-storage-selector {
+    flex-direction: row;
+    gap: 1rem;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .storage-selector {
+    min-width: auto;
+    flex: 1;
+    max-width: 250px;
+  }
+  
+  .backup-actions {
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
   }
 }
