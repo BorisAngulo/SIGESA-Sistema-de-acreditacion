@@ -99,8 +99,21 @@ const Login = () => {
 
             <div className="form-container">
               <h2 className="login-title">Iniciar Sesión</h2>
-              <div className="user-avatar">
-                <User size={40} />
+              <div style={{
+                width: '120px',
+                height: '120px',
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '2.5rem',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: '0 20px 40px -6px rgba(0, 0, 0, 0.25)',
+                backdropFilter: 'blur(4px)',
+                color: 'rgba(255, 255, 255, 0.8)'
+              }}>
+                <User size={50} />
               </div>
 
               <form onSubmit={handleSubmit} className="login-form">
@@ -174,7 +187,7 @@ const Login = () => {
 
             {/*  <button className="forgot-password">
                 ¿Olvidaste tu contraseña? Recuperar
-              </button> */} //
+              </button> */} 
             </div>
           </div>
         </div>
