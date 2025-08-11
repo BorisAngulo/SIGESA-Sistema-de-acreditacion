@@ -1464,6 +1464,72 @@
                 }
             }
         },
+        "/api/facultades-con-carreras": {
+            "get": {
+                "tags": [
+                    "Facultad"
+                ],
+                "summary": "Listado optimizado de facultades con conteo de carreras",
+                "operationId": "4aab24a1df8c99cd4d9e1f3d0482caca",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exito": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "estado": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "mensaje": {
+                                            "type": "string",
+                                            "example": "Facultades con conteo de carreras obtenidas exitosamente"
+                                        },
+                                        "datos": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "nombre_facultad": {
+                                                        "type": "string",
+                                                        "example": "Facultad de Ciencias y Tecnología"
+                                                    },
+                                                    "codigo_facultad": {
+                                                        "type": "string",
+                                                        "example": "FCyT"
+                                                    },
+                                                    "pagina_facultad": {
+                                                        "type": "string",
+                                                        "example": "https://fcyt.umss.edu.bo"
+                                                    },
+                                                    "numero_carreras": {
+                                                        "type": "integer",
+                                                        "example": 5
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                }
+            }
+        },
         "/api/facultades/{id}": {
             "get": {
                 "tags": [
