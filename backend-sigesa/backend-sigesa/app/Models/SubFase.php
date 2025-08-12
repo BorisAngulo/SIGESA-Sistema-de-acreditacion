@@ -19,6 +19,25 @@ class SubFase extends Model
         'descripcion_subfase',
         'fecha_inicio_subfase',
         'fecha_fin_subfase',
+        'url_subfase',
+        'estado_subfase',
         'id_usuario_updated_subfase'
     ];
+
+    /**
+     * Relación con la fase padre
+     */
+    public function fase()
+    {
+        return $this->belongsTo(Fase::class, 'fase_id');
+    }
+
+    /**
+     * Relación con los documentos a través de la tabla pivote subfase_documentos
+     */
+    public function documentos()
+    {
+        return $this->belongsToMany(Documento::class, 'subfase_documentos', 'subfase_id', 'documento_id')
+                    ->withTimestamps();
+    }
 }

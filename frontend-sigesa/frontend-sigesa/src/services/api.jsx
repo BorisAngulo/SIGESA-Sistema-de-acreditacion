@@ -1227,12 +1227,8 @@ export const createDocumento = async (documentoData) => {
     formData.append('nombre_documento', documentoData.nombre);
     formData.append('descripcion_documento', documentoData.descripcion || '');
     
-    // Mapear el tipo de documento a los códigos que espera el backend
-    const tipoDocumentoMap = {
-      'Específico': '01',
-      'General': '02'
-    };
-    const tipoDocumento = tipoDocumentoMap[documentoData.tipoDocumento] || '02';
+    // El tipoDocumento ya viene como código ('01' o '02') desde el frontend
+    const tipoDocumento = documentoData.tipoDocumento || '02';
     formData.append('tipo_documento', tipoDocumento);
     
     if (documentoData.archivo) {
@@ -1322,18 +1318,34 @@ export const asociarDocumentoASubfase = async (subfaseId, documentoId) => {
 // Obtener documentos de una fase específica
 export const getDocumentosByFase = async (faseId) => {
   try {
+    console.log('🔍 Obteniendo documentos para fase ID:', faseId);
+    
     const res = await fetch(`${API_URL}/fases/${faseId}/documentos`, {
       method: "GET",
       headers: getAuthHeaders(),
     });
     
+    console.log('📊 Response status:', res.status);
+    
     if (!res.ok) {
+      const errorText = await res.text();
+      console.error('❌ Error response:', errorText);
       throw new Error(`Error ${res.status}: ${res.statusText}`);
     }
     
-    return await res.json();
+    const data = await res.json();
+    console.log('📄 Respuesta de getDocumentosByFase:', data);
+    
+    // Retornar los datos según el formato de respuesta de SIGESA
+    if (data && data.exito && data.datos) {
+      console.log('✅ Documentos encontrados:', data.datos.length);
+      return data.datos;
+    } else {
+      console.log('⚠️ No se encontraron documentos o formato inesperado');
+      return [];
+    }
   } catch (error) {
-    console.error('Error al obtener documentos de fase:', error);
+    console.error('❌ Error al obtener documentos de fase:', error);
     throw error;
   }
 };
@@ -1341,65 +1353,111 @@ export const getDocumentosByFase = async (faseId) => {
 // Obtener documentos de una subfase específica
 export const getDocumentosBySubfase = async (subfaseId) => {
   try {
+    console.log('🔍 Obteniendo documentos para subfase ID:', subfaseId);
+    
     const res = await fetch(`${API_URL}/subfases/${subfaseId}/documentos`, {
       method: "GET",
       headers: getAuthHeaders(),
     });
     
+    console.log('📊 Response status:', res.status);
+    
     if (!res.ok) {
+      const errorText = await res.text();
+      console.error('❌ Error response:', errorText);
       throw new Error(`Error ${res.status}: ${res.statusText}`);
     }
     
-    return await res.json();
+    const data = await res.json();
+    console.log('📄 Respuesta de getDocumentosBySubfase:', data);
+    
+    // Retornar los datos según el formato de respuesta de SIGESA
+    if (data && data.exito && data.datos) {
+      console.log('✅ Documentos encontrados:', data.datos.length);
+      return data.datos;
+    } else {
+      console.log('⚠️ No se encontraron documentos o formato inesperado');
+      return [];
+    }
   } catch (error) {
-    console.error('Error al obtener documentos de subfase:', error);
+    console.error('❌ Error al obtener documentos de subfase:', error);
     throw error;
   }
 };
 
-// Descargar documento
+// Descargar documento (ruta pública)
 export const downloadDocumento = async (documentoId) => {
   try {
-    const token = getAuthToken();
-    const res = await fetch(`${API_URL}/documentos/${documentoId}/download`, {
-      method: "GET",
-      headers: {
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
-    });
+    console.log('⬇️ Descargando documento ID:', documentoId);
     
-    if (!res.ok) {
-      throw new Error(`Error ${res.status}: ${res.statusText}`);
-    }
+    // Construir la URL pública para descargar el documento
+    const url = `${API_URL}/documentos/${documentoId}/descargar`;
     
-    // Obtener el blob del archivo
-    const blob = await res.blob();
-    
-    // Crear URL temporal para descarga
-    const url = window.URL.createObjectURL(blob);
+    // Crear enlace temporal para descargar
     const a = document.createElement('a');
-    a.style.display = 'none';
     a.href = url;
+    a.style.display = 'none';
+    a.target = '_blank';
     
-    // Intentar obtener el nombre del archivo desde el header Content-Disposition
-    const disposition = res.headers.get('Content-Disposition');
-    let filename = 'documento';
-    if (disposition) {
-      const filenameMatch = disposition.match(/filename="(.+)"/);
-      if (filenameMatch) {
-        filename = filenameMatch[1];
-      }
-    }
-    
-    a.download = filename;
     document.body.appendChild(a);
     a.click();
-    window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
     
+    console.log('✅ Descarga iniciada');
     return true;
   } catch (error) {
-    console.error('Error al descargar documento:', error);
+    console.error('❌ Error al descargar documento:', error);
     throw error;
   }
 };
+
+// Obtener todos los documentos
+export const getAllDocumentos = async () => {
+  try {
+    const response = await fetch(`${API_URL}/documentos`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    if (result.exito) {
+      return result.datos;
+    } else {
+      throw new Error(result.error || 'Error al obtener documentos');
+    }
+  } catch (error) {
+    console.error('Error al obtener todos los documentos:', error);
+    throw error;
+  }
+};
+
+// Obtener asociaciones de un documento específico
+export const getAsociacionesDocumento = async (documentoId) => {
+  try {
+    const response = await fetch(`${API_URL}/documentos/${documentoId}/asociaciones`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    if (result.exito) {
+      return result.datos;
+    } else {
+      throw new Error(result.error || 'Error al obtener asociaciones del documento');
+    }
+  } catch (error) {
+    console.error('Error al obtener asociaciones del documento:', error);
+    throw error;
+  }
+};
+

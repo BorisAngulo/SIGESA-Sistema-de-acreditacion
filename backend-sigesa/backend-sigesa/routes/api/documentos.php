@@ -13,15 +13,23 @@ use App\Http\Controllers\Api\DocumentoController;
 |
 */
 
-// Todas las rutas de documentos requieren autenticación
+// === RUTA PÚBLICA DE DESCARGA ===
+// Esta ruta no requiere autenticación para permitir fácil descarga de documentos
+
+// Descargar un documento (público)
+Route::get('documentos/{documento}/descargar', [DocumentoController::class, 'descargar'])
+    ->name('documentos.descargar');
+
+// === RUTAS PROTEGIDAS ===
+// Todas las demás rutas de documentos requieren autenticación
 Route::middleware(['auth:sanctum'])->group(function () {
     // === DOCUMENTOS ===
     Route::apiResource('documentos', DocumentoController::class);
 
     // === RUTAS ESPECÍFICAS ===
-    // Descargar un documento
-    Route::get('documentos/{documento}/descargar', [DocumentoController::class, 'descargar'])
-        ->name('documentos.descargar');
+    // Obtener asociaciones de un documento específico
+    Route::get('documentos/{documento}/asociaciones', [DocumentoController::class, 'getAsociaciones'])
+        ->name('documentos.asociaciones');
 
     // Obtener documentos de una fase específica
     Route::get('fases/{fase}/documentos', [DocumentoController::class, 'getDocumentosByFase'])

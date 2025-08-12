@@ -61,7 +61,7 @@ const ModalEscogerDocumento = ({ isOpen, onClose, onSelect, onUpload, existingDo
     // Primero mostrar el tipo de documento (General/Específico) si está disponible
     let tipoTexto = '';
     if (tipoDocumento) {
-      tipoTexto = tipoDocumento === '01' ? 'General' : tipoDocumento === '02' ? 'Específico' : tipoDocumento;
+      tipoTexto = tipoDocumento === '01' ? 'Específico' : tipoDocumento === '02' ? 'General' : tipoDocumento;
     }
 
     // Luego determinar el tipo de archivo basado en MIME o extensión

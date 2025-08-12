@@ -93,6 +93,9 @@ const Header = () => {
             <NavLink to="/facultad" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
               Facultades
             </NavLink>
+            <NavLink to="/documentos" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
+              Documentos
+            </NavLink>
             <NavLink to="/reportes" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
               Reportes
             </NavLink>

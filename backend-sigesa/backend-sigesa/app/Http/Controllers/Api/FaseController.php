@@ -28,6 +28,8 @@ class FaseController extends BaseApiController
                 'descripcion_fase' => 'nullable|string|max:300',
                 'fecha_inicio_fase' => 'nullable|date',
                 'fecha_fin_fase' => 'nullable|date',
+                'url_fase' => 'nullable|string',
+                'estado_fase' => 'nullable|boolean',
                 'id_usuario_updated_fase' => 'nullable|integer',
             ]);
 
@@ -95,6 +97,8 @@ class FaseController extends BaseApiController
                 'descripcion_fase' => 'nullable|string|max:300',
                 'fecha_inicio_fase' => 'nullable|date',
                 'fecha_fin_fase' => 'nullable|date',
+                'url_fase' => 'nullable|string',
+                'estado_fase' => 'nullable|boolean',
                 'id_usuario_updated_fase' => 'nullable|integer',
             ]);
 

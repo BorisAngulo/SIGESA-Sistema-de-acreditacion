@@ -26,6 +26,7 @@ import ModalidadesScreen from './screens/ModalidadesScreen';
 import ReportesScreen from './screens/ReportesScreen';
 import BackupScreen from './screens/BackupScreen';
 import SubFaseScreen from './screens/SubFaseScreen';
+import DocumentosScreen from './screens/DocumentosScreen';
 
 function App() {
   const styles = {
@@ -148,6 +149,11 @@ function App() {
               <Route path="/backups" element={
                 <ProtectedRoute allowedRoles={['Admin']}>
                   <BackupScreen />
+                </ProtectedRoute>
+              } />
+              <Route path="/documentos" element={
+                <ProtectedRoute allowedRoles={['Admin', 'Tecnico']}>
+                  <DocumentosScreen />
                 </ProtectedRoute>
               } />
               <Route path="/subfase" element={<SubFaseScreen />} />

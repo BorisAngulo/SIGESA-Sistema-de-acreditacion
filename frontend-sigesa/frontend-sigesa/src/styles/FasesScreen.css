@@ -751,3 +751,15 @@
   font-size: 14px;
   font-weight: 500;
 }
+
+.fase-nombre.clickeable,
+.subfase-nombre.clickeable {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.fase-nombre.clickeable:hover,
+.subfase-nombre.clickeable:hover {
+  color: #3b82f6;
+  text-decoration: underline;
+}

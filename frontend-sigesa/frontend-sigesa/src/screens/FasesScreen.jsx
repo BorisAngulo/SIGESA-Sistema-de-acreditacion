@@ -12,7 +12,9 @@ import {
   getDocumentos,
   createDocumento,
   asociarDocumentoAFase,
-  asociarDocumentoASubfase
+  asociarDocumentoASubfase,
+  getDocumentosByFase,
+  getDocumentosBySubfase
 } from '../services/api';
 import { 
   getSubfasesByFase,
@@ -21,6 +23,7 @@ import {
 import ModalAgregarFase from '../components/ModalAgregarFase';
 import ModalConfirmacionFase from '../components/ModalConfirmacionFase'; 
 import ModalEscogerDocumento from '../components/ModalEscogerDocumento';
+import ModalDetallesFase from '../components/ModalDetallesFase';
 import '../styles/FasesScreen.css';
 
 const FasesScreen = () => {
@@ -46,6 +49,14 @@ const FasesScreen = () => {
   
   const [subfases, setSubfases] = useState({});
   const [loadingSubfases, setLoadingSubfases] = useState({});
+
+  const [showDetallesModal, setShowDetallesModal] = useState(false);
+  const [detallesData, setDetallesData] = useState({
+    tipo: null, // 'fase' o 'subfase'
+    data: null,
+    documentos: []
+  });
+  const [loadingDetalles, setLoadingDetalles] = useState(false);
 
   const getModalidadId = async (modalidadNombre) => {
     try {
@@ -816,6 +827,79 @@ const FasesScreen = () => {
     loadSubfasesForFase(faseId);
   };
 
+    const handleMostrarDetallesFase = async (fase) => {
+    try {
+      setLoadingDetalles(true);
+      setShowDetallesModal(true);
+      
+      console.log('🔍 Cargando documentos para la fase:', fase.id, fase.nombre_fase);
+      
+      // Obtener documentos asociados a la fase
+      const response = await getDocumentosByFase(fase.id);
+      console.log('📄 Respuesta completa de getDocumentosByFase:', response);
+      
+      // Extraer los documentos del formato de respuesta de SIGESA
+      const documentos = response?.datos || response || [];
+      console.log('📋 Documentos extraídos:', documentos);
+      
+      setDetallesData({
+        tipo: 'fase',
+        data: fase,
+        documentos: documentos
+      });
+    } catch (error) {
+      console.error('❌ Error al cargar detalles de la fase:', error);
+      setDetallesData({
+        tipo: 'fase',
+        data: fase,
+        documentos: []
+      });
+    } finally {
+      setLoadingDetalles(false);
+    }
+  };
+
+  const handleMostrarDetallesSubfase = async (subfase, faseId) => {
+    try {
+      setLoadingDetalles(true);
+      setShowDetallesModal(true);
+      
+      console.log('🔍 Cargando documentos para la subfase:', subfase.id, subfase.nombre_subfase);
+      
+      // Obtener documentos asociados a la subfase
+      const response = await getDocumentosBySubfase(subfase.id);
+      console.log('📄 Respuesta completa de getDocumentosBySubfase:', response);
+      
+      // Extraer los documentos del formato de respuesta de SIGESA
+      const documentos = response?.datos || response || [];
+      console.log('📋 Documentos extraídos:', documentos);
+      
+      setDetallesData({
+        tipo: 'subfase',
+        data: subfase,
+        documentos: documentos
+      });
+    } catch (error) {
+      console.error('❌ Error al cargar detalles de la subfase:', error);
+      setDetallesData({
+        tipo: 'subfase',
+        data: subfase,
+        documentos: []
+      });
+    } finally {
+      setLoadingDetalles(false);
+    }
+  };
+
+  const handleCerrarDetallesModal = () => {
+    setShowDetallesModal(false);
+    setDetallesData({
+      tipo: null,
+      data: null,
+      documentos: []
+    });
+  };
+
   const getStatusIcon = (completada, progreso) => {
     if (completada || progreso === 100) {
       return (
@@ -922,7 +1006,13 @@ const FasesScreen = () => {
                 onClick={() => toggleFase(fase.id)}
               >
                 <div className="fase-info">
-                  <h3 className="fase-nombre">{fase.nombre}</h3>
+                  <h3 
+                    className="fase-nombre clickeable" 
+                    onClick={() => handleMostrarDetallesFase(fase)}
+                    title="Ver detalles de la fase"
+                  >
+                    {fase.nombre}
+                  </h3>
                   {fase.fechaInicio && fase.fechaFin && (
                     <div className="fase-fechas">
                       Inicio {fase.fechaInicio} - Fin {fase.fechaFin}
@@ -1018,7 +1108,13 @@ const FasesScreen = () => {
                           <div className="subfase-numero">{index + 1}.</div>
                           <div className="subfase-content">
                             <div className="subfase-info">
-                              <span className="subfase-nombre">{subfase.nombre}</span>
+                              <span 
+                                className="subfase-nombre clickeable"
+                                onClick={() => handleMostrarDetallesSubfase(subfase, fase.id)}
+                                title="Ver detalles de la subfase"
+                              >
+                                {subfase.nombre}
+                              </span>
                               <span className="subfase-descripcion">{subfase.descripcion}</span>
                               <span className="subfase-fechas">
                                 {subfase.fechaInicio} - {subfase.fechaFin}
@@ -1113,6 +1209,15 @@ const FasesScreen = () => {
         onSelect={handleSeleccionarDocumento}
         onUpload={handleSubirDocumento}
         existingDocuments={documentos}
+      />
+
+      <ModalDetallesFase
+        isOpen={showDetallesModal}
+        onClose={handleCerrarDetallesModal}
+        fase={detallesData.tipo === 'fase' ? detallesData.data : null}
+        subfase={detallesData.tipo === 'subfase' ? detallesData.data : null}
+        tipo={detallesData.tipo}
+        documentosAsociados={detallesData.documentos}
       />
     </div>
   );
