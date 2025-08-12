@@ -493,6 +493,94 @@ class DocumentoController extends BaseApiController
     }
 
     /**
+     * Debug: Ver información del documento (temporal)
+     */
+    public function debug($id)
+    {
+        try {
+            $documento = Documento::find($id);
+
+            if (!$documento) {
+                throw ApiException::notFound('documento', $id);
+            }
+
+            return $this->successResponse([
+                'id' => $documento->id,
+                'nombre_documento' => $documento->nombre_documento,
+                'nombre_archivo_original' => $documento->nombre_archivo_original,
+                'tipo_mime' => $documento->tipo_mime,
+                'tamano_archivo' => $documento->tamano_archivo,
+                'tipo_documento' => $documento->tipo_documento,
+                'archivo_existe' => $documento->archivoExiste(),
+                'created_at' => $documento->created_at,
+            ], 'Información del documento obtenida');
+
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * Visualizar un documento en el navegador
+     * @OA\Get (
+     *     path="/api/documentos/{id}/ver",
+     *     tags={"Documento"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID del documento"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Documento visualizado exitosamente"
+     *     )
+     * )
+     */
+    public function ver($id)
+    {
+        try {
+            $documento = Documento::find($id);
+
+            if (!$documento) {
+                throw ApiException::notFound('documento', $id);
+            }
+
+            if (!$documento->archivoExiste()) {
+                throw new ApiException('El archivo no existe en la base de datos', 404);
+            }
+
+            // Obtener el contenido del archivo
+            $contenidoArchivo = $documento->getContenidoArchivo();
+            
+            if (!$contenidoArchivo) {
+                throw new ApiException('Error al recuperar el contenido del archivo', 500);
+            }
+
+            // Configurar headers para visualización en el navegador (inline)
+            $headers = [
+                'Content-Type' => $documento->tipo_mime ?: 'application/pdf',
+                'Content-Length' => $documento->tamano_archivo,
+                'Content-Disposition' => 'inline',  // Sin filename para evitar sugerencia de descarga
+                'Cache-Control' => 'public, max-age=3600',
+                'Pragma' => 'public',
+                'X-Content-Type-Options' => 'nosniff',
+                'X-Frame-Options' => 'SAMEORIGIN',  // Permitir iframe si es necesario
+            ];
+
+            return response($contenidoArchivo, 200, $headers);
+
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
      * Descargar un documento
      * @OA\Get (
      *     path="/api/documentos/{id}/descargar",
@@ -771,6 +859,139 @@ class DocumentoController extends BaseApiController
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error general', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * Obtener asociaciones de un documento específico
+     * @OA\Get (
+     *     path="/api/documentos/{id}/asociaciones",
+     *     tags={"Documento"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID del documento"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Asociaciones del documento obtenidas exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=true),
+     *             @OA\Property(property="estado", type="integer", example=200),
+     *             @OA\Property(
+     *                 property="datos",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="fases",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer"),
+     *                         @OA\Property(property="nombre_fase", type="string"),
+     *                         @OA\Property(property="descripcion_fase", type="string"),
+     *                         @OA\Property(property="fecha_inicio_fase", type="string"),
+     *                         @OA\Property(property="fecha_fin_fase", type="string"),
+     *                         @OA\Property(property="carrera_modalidad_id", type="integer"),
+     *                         @OA\Property(property="estado", type="string")
+     *                     )
+     *                 ),
+     *                 @OA\Property(
+     *                     property="subfases",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer"),
+     *                         @OA\Property(property="nombre_subfase", type="string"),
+     *                         @OA\Property(property="descripcion_subfase", type="string"),
+     *                         @OA\Property(property="fecha_inicio_subfase", type="string"),
+     *                         @OA\Property(property="fecha_fin_subfase", type="string"),
+     *                         @OA\Property(property="fase_id", type="integer"),
+     *                         @OA\Property(property="estado", type="string"),
+     *                         @OA\Property(
+     *                             property="fase",
+     *                             type="object",
+     *                             @OA\Property(property="id", type="integer"),
+     *                             @OA\Property(property="nombre_fase", type="string")
+     *                         )
+     *                     )
+     *                 )
+     *             ),
+     *             @OA\Property(property="mensaje", type="string", example="Asociaciones obtenidas exitosamente"),
+     *             @OA\Property(property="error", type="string", nullable=true, example=null)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Documento no encontrado",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=false),
+     *             @OA\Property(property="estado", type="integer", example=404),
+     *             @OA\Property(property="datos", type="object", nullable=true),
+     *             @OA\Property(property="error", type="string", example="Documento no encontrado")
+     *         )
+     *     )
+     * )
+     */
+    public function getAsociaciones($id)
+    {
+        try {
+            Log::info('Obteniendo asociaciones del documento', ['documento_id' => $id]);
+            
+            // Verificar que el documento existe
+            $documento = Documento::find($id);
+            if (!$documento) {
+                throw ApiException::notFound('documento', $id);
+            }
+
+            // Obtener fases asociadas con información completa
+            $fases = $documento->fases()->get();
+            
+            // Obtener subfases asociadas con información completa y la fase padre
+            $subfases = $documento->subfases()->with('fase:id,nombre_fase')->get();
+
+            Log::info('Asociaciones encontradas', [
+                'documento_id' => $id,
+                'fases_count' => $fases->count(),
+                'subfases_count' => $subfases->count(),
+                'fases' => $fases->map(function($fase) {
+                    return [
+                        'id' => $fase->id,
+                        'nombre' => $fase->nombre_fase,
+                        'carrera_modalidad_id' => $fase->carrera_modalidad_id
+                    ];
+                }),
+                'subfases' => $subfases->map(function($subfase) {
+                    return [
+                        'id' => $subfase->id,
+                        'nombre' => $subfase->nombre_subfase,
+                        'fase_id' => $subfase->fase_id,
+                        'fase_nombre' => $subfase->fase ? $subfase->fase->nombre_fase : 'N/A'
+                    ];
+                })
+            ]);
+
+            $asociaciones = [
+                'fases' => $fases,
+                'subfases' => $subfases
+            ];
+
+            return $this->successResponse($asociaciones, 'Asociaciones obtenidas exitosamente');
+
+        } catch (ApiException $e) {
+            Log::error('Error de API al obtener asociaciones', [
+                'documento_id' => $id,
+                'message' => $e->getMessage()
+            ]);
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            Log::error('Error general al obtener asociaciones', [
+                'documento_id' => $id,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return $this->handleGeneralException($e);
         }
     }
