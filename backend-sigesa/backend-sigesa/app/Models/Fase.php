@@ -19,6 +19,8 @@ class Fase extends Model
         'descripcion_fase',
         'fecha_inicio_fase',
         'fecha_fin_fase',
+        'url_fase',
+        'estado_fase',
         'id_usuario_updated_fase'
     ];
 }

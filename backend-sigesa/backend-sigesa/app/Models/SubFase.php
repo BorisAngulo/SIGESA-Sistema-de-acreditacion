@@ -19,6 +19,8 @@ class SubFase extends Model
         'descripcion_subfase',
         'fecha_inicio_subfase',
         'fecha_fin_subfase',
+        'url_subfase',
+        'estado_subfase',
         'id_usuario_updated_subfase'
     ];
 }
