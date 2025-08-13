@@ -126,7 +126,7 @@ export default function CarreraModalidad({ carreras }) {
     await createFase({
       ...nuevaFase,
       carrera_modalidad_id: carreraModalidadId,
-      id_usuario_updated_fase: 1, // Cambia según tu lógica de usuario
+      id_usuario_updated_user: 1, // Cambia según tu lógica de usuario
     });
     setNuevaFase({
       nombre_fase: "",

@@ -22,7 +22,7 @@ class CreateUsersTable extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
-            $table->integer('id_usuario_updated_fase')->nullable();
+            $table->integer('id_usuario_updated_user')->nullable();
         });
     }
 

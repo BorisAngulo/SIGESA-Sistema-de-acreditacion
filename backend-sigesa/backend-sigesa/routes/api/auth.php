@@ -26,5 +26,8 @@ Route::prefix('auth')->group(function () {
         
         // Obtener información del usuario autenticado
         Route::get('/me', [AuthController::class, 'me']);
+        
+        // Obtener permisos del usuario autenticado
+        Route::get('/permissions', [AuthController::class, 'getUserPermissions']);
     });
 });

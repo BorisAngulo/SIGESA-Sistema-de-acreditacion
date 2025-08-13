@@ -10,8 +10,6 @@ import Home from './screens/Home';
 import Login from './screens/Login';
 import UsuariosScreen from './screens/UsuariosScreen';
 import ActividadScreen from './screens/ActividadScreen';
-import AdminDashboard from './screens/UsersDashboarads/AdminDashboard';
-import CoordinadorDashboard from './screens/UsersDashboarads/CoordinadorDashboard';
 import TecnicoDUEA from './screens/TecnicoDUEA';
 import FacultadScreen from './screens/FacultadScreen';
 import CrearFacultad from './screens/CrearFacultad';
@@ -52,11 +50,6 @@ function App() {
               <Route path="/login" element={<Login />} />
               
               {/* Rutas para Admin */}
-              <Route path="/admin" element={
-                <ProtectedRoute allowedRoles={['Admin']}>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } />
               
               <Route path="/usuarios" element={
                 <ProtectedRoute allowedRoles={['Admin']}>
@@ -71,11 +64,6 @@ function App() {
               } />
               
               {/* Rutas para Coordinador */}
-              <Route path="/coordinador" element={
-                <ProtectedRoute allowedRoles={['Coordinador']}>
-                  <CoordinadorDashboard />
-                </ProtectedRoute>
-              } />
               
               {/* Rutas para Técnico */}
               <Route path="/tecnico" element={

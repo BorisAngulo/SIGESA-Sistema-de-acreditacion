@@ -52,6 +52,19 @@ export const authAPI = {
       console.error('Error obteniendo usuario:', error);
       throw error;
     }
+  },
+
+  permissions: async () => {
+    try {
+      const res = await fetch(`${API_URL}/auth/permissions`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      });
+      return await res.json();
+    } catch (error) {
+      console.error('Error obteniendo permisos:', error);
+      throw error;
+    }
   }
 };
 
@@ -551,7 +564,7 @@ export const createFase = async (faseData) => {
       descripcion_fase: faseData.descripcion,
       fecha_inicio_fase: faseData.fechaInicio,
       fecha_fin_fase: faseData.fechaFin,
-      id_usuario_updated_fase: 1
+      id_usuario_updated_user: 1
     };
 
     console.log('Enviando datos de fase:', dataToSend);
@@ -1123,7 +1136,7 @@ export const updateFase = async (faseId, faseData) => {
       descripcion_fase: faseData.descripcion,
       fecha_inicio_fase: faseData.fechaInicio,
       fecha_fin_fase: faseData.fechaFin,
-      id_usuario_updated_fase: 1
+      id_usuario_updated_user: 1
     };
 
     console.log('Actualizando fase:', faseId, dataToSend);

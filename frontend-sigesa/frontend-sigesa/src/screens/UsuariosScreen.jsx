@@ -36,11 +36,17 @@ const UsuariosScreen = () => {
       if (response.success) {
         setUsers(response.data);
       } else {
-        setError(response.error || 'Error al cargar usuarios');
+        const errorMessage = typeof response.error === 'string' 
+          ? response.error 
+          : response.error?.mensaje || response.error?.error || 'Error al cargar usuarios';
+        setError(errorMessage);
       }
     } catch (error) {
       console.error('Error al cargar usuarios:', error);
-      setError('Error de conexión al cargar usuarios');
+      const errorMessage = typeof error === 'string' 
+        ? error 
+        : error?.message || 'Error de conexión al cargar usuarios';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -69,11 +75,17 @@ const UsuariosScreen = () => {
         setShowDeleteModal(false);
         setSelectedUser(null);
       } else {
-        setError(response.error || 'Error al eliminar usuario');
+        const errorMessage = typeof response.error === 'string' 
+          ? response.error 
+          : response.error?.mensaje || response.error?.error || 'Error al eliminar usuario';
+        setError(errorMessage);
       }
     } catch (error) {
       console.error('Error al eliminar usuario:', error);
-      setError('Error de conexión al eliminar usuario');
+      const errorMessage = typeof error === 'string' 
+        ? error 
+        : error?.message || 'Error de conexión al eliminar usuario';
+      setError(errorMessage);
     }
   };
 
@@ -130,7 +142,7 @@ const UsuariosScreen = () => {
 
       {error && (
         <div className="error-alert">
-          <span>⚠️ {error}</span>
+          <span>⚠️ {typeof error === 'string' ? error : error.mensaje || error.error || 'Error desconocido'}</span>
           <button onClick={() => setError('')} className="close-alert">×</button>
         </div>
       )}

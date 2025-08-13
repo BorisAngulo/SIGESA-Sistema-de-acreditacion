@@ -57,7 +57,7 @@ class UsuarioController extends BaseApiController
     public function index()
     {
         try {
-            $usuarios = User::select('id', 'name', 'lastName', 'email', 'email_verified_at', 'created_at', 'updated_at', 'id_usuario_updated_fase')
+            $usuarios = User::select('id', 'name', 'lastName', 'email', 'email_verified_at', 'created_at', 'updated_at', 'id_usuario_updated_user')
                            ->with('roles:name')
                            ->get();
 
@@ -85,7 +85,7 @@ class UsuarioController extends BaseApiController
      *             @OA\Property(property="password", type="string", example="password123"),
      *             @OA\Property(property="password_confirmation", type="string", example="password123"),
      *             @OA\Property(property="role", type="string", example="General", description="Rol del usuario: Admin, General, Tecnico, Coordinador"),
-     *             @OA\Property(property="id_usuario_updated_fase", type="integer", nullable=true, example=1)
+     *             @OA\Property(property="id_usuario_updated_user", type="integer", nullable=true, example=1)
      *         )
      *     ),
      *     @OA\Response(
@@ -122,7 +122,7 @@ class UsuarioController extends BaseApiController
                 'email' => 'required|email|unique:users,email|max:255',
                 'password' => 'required|string|min:8|confirmed',
                 'role' => 'required|string|in:Admin,General,Tecnico,Coordinador',
-                'id_usuario_updated_fase' => 'nullable|integer',
+                'id_usuario_updated_user' => 'nullable|integer',
             ]);
 
             // Crear el usuario
@@ -131,7 +131,7 @@ class UsuarioController extends BaseApiController
                 'lastName' => $validated['lastName'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
-                'id_usuario_updated_fase' => $validated['id_usuario_updated_fase'] ?? null,
+                'id_usuario_updated_user' => $validated['id_usuario_updated_user'] ?? null,
             ]);
 
             if (!$usuario) {
@@ -148,7 +148,7 @@ class UsuarioController extends BaseApiController
                 User::class,
                 $usuario->id,
                 null,
-                $usuario->only(['name', 'lastName', 'email', 'id_usuario_updated_fase'])
+                $usuario->only(['name', 'lastName', 'email', 'id_usuario_updated_user'])
             );
 
             DB::commit();
@@ -210,7 +210,7 @@ class UsuarioController extends BaseApiController
     public function show($id)
     {
         try {
-            $usuario = User::select('id', 'name', 'lastName', 'email', 'email_verified_at', 'created_at', 'updated_at', 'id_usuario_updated_fase')
+            $usuario = User::select('id', 'name', 'lastName', 'email', 'email_verified_at', 'created_at', 'updated_at', 'id_usuario_updated_user')
                           ->with('roles:name')
                           ->find($id);
 
@@ -247,7 +247,7 @@ class UsuarioController extends BaseApiController
      *             @OA\Property(property="password", type="string", example="newpassword123", description="Opcional - solo si se quiere cambiar"),
      *             @OA\Property(property="password_confirmation", type="string", example="newpassword123", description="Requerido si se envía password"),
      *             @OA\Property(property="role", type="string", example="Coordinador", description="Opcional - Rol del usuario: Admin, General, Tecnico, Coordinador"),
-     *             @OA\Property(property="id_usuario_updated_fase", type="integer", nullable=true, example=2)
+     *             @OA\Property(property="id_usuario_updated_user", type="integer", nullable=true, example=2)
      *         )
      *     ),
      *     @OA\Response(
@@ -272,7 +272,7 @@ class UsuarioController extends BaseApiController
             }
 
             // Capturar valores originales para el log
-            $valoresOriginales = $usuario->only(['name', 'lastName', 'email', 'id_usuario_updated_fase']);
+            $valoresOriginales = $usuario->only(['name', 'lastName', 'email', 'id_usuario_updated_user']);
             $rolesOriginales = $usuario->roles->pluck('name')->toArray();
 
             // Validación de datos
@@ -288,7 +288,7 @@ class UsuarioController extends BaseApiController
                 ],
                 'password' => 'sometimes|required|string|min:8|confirmed',
                 'role' => 'sometimes|required|string|in:Admin,General,Tecnico,Coordinador',
-                'id_usuario_updated_fase' => 'nullable|integer',
+                'id_usuario_updated_user' => 'nullable|integer',
             ]);
 
             // Actualizar campos
@@ -308,8 +308,8 @@ class UsuarioController extends BaseApiController
                 $usuario->password = Hash::make($validated['password']);
             }
             
-            if (array_key_exists('id_usuario_updated_fase', $validated)) {
-                $usuario->id_usuario_updated_fase = $validated['id_usuario_updated_fase'];
+            if (array_key_exists('id_usuario_updated_user', $validated)) {
+                $usuario->id_usuario_updated_user = $validated['id_usuario_updated_user'];
             }
 
             // Actualizar rol si se proporciona
@@ -325,7 +325,7 @@ class UsuarioController extends BaseApiController
             }
 
             // Registrar actividad de actualización
-            $valoresNuevos = $usuario->only(['name', 'lastName', 'email', 'id_usuario_updated_fase']);
+            $valoresNuevos = $usuario->only(['name', 'lastName', 'email', 'id_usuario_updated_user']);
             $rolesNuevos = $usuario->roles->pluck('name')->toArray();
             
             // Agregar roles a los valores para el log si cambiaron
@@ -397,7 +397,7 @@ class UsuarioController extends BaseApiController
             }
 
             // Capturar datos del usuario antes de eliminar para el log
-            $datosUsuario = $usuario->only(['name', 'lastName', 'email', 'id_usuario_updated_fase']);
+            $datosUsuario = $usuario->only(['name', 'lastName', 'email', 'id_usuario_updated_user']);
             $rolesUsuario = $usuario->roles->pluck('name')->toArray();
             $datosUsuario['roles'] = $rolesUsuario;
 

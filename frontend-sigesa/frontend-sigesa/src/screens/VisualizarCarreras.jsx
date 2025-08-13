@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCarrerasByFacultad, getFacultades, deleteCarrera } from '../services/api';
+import { canManageCarreras } from '../services/permissions';
 import { 
   ArrowLeft, 
   Plus, 
@@ -211,17 +212,26 @@ export default function VisualizarCarreras() {
         )}
       </section>
 
-      {/* Header con mascota y botón */}
-      <div className="header-actions">
-        <div className="mascota-container">
-          <img src={mascota} alt="mascota" className="mascota-img" />
-          <span className="mascota-message">¡Explora las carreras disponibles!</span>
+      {/* Header con mascota y botón - Solo para Admin y Técnico */}
+      {canManageCarreras() ? (
+        <div className="header-actions">
+          <div className="mascota-container">
+            <img src={mascota} alt="mascota" className="mascota-img" />
+            <span className="mascota-message">¡Gestiona las carreras de la facultad!</span>
+          </div>
+          <button className="btn-agregar-facultad" onClick={handleAgregarCarrera}>
+            <Plus size={20} />
+            <span>Añadir Carrera</span>
+          </button>
         </div>
-        <button className="btn-agregar-facultad" onClick={handleAgregarCarrera}>
-          <Plus size={20} />
-          <span>Añadir Carrera</span>
-        </button>
-      </div>
+      ) : (
+        <div className="header-actions">
+          <div className="mascota-container">
+            <img src={mascota} alt="mascota" className="mascota-img" />
+            <span className="mascota-message">¡Explora las carreras disponibles!</span>
+          </div>
+        </div>
+      )}
 
       {/* Lista de carreras */}
       <section className="facultades-list" style={{ padding: '0 20px' }}>

@@ -357,7 +357,7 @@ const FasesScreen = () => {
                   completada: false,
                   expandida: false,
                   carreraModalidadId: fase.carrera_modalidad_id,
-                  usuarioUpdated: fase.id_usuario_updated_fase,
+                  usuarioUpdated: fase.id_usuario_updated_user,
                   createdAt: fase.created_at,
                   updatedAt: fase.updated_at
                 }));
@@ -382,7 +382,7 @@ const FasesScreen = () => {
                   completada: false,
                   expandida: false,
                   carreraModalidadId: fase.carrera_modalidad_id,
-                  usuarioUpdated: fase.id_usuario_updated_fase,
+                  usuarioUpdated: fase.id_usuario_updated_user,
                   createdAt: fase.created_at,
                   updatedAt: fase.updated_at
                 }));
@@ -614,7 +614,7 @@ const FasesScreen = () => {
           completada: false,
           expandida: false,
           carreraModalidadId: nuevaFaseCreada.carrera_modalidad_id,
-          usuarioUpdated: nuevaFaseCreada.id_usuario_updated_fase,
+          usuarioUpdated: nuevaFaseCreada.id_usuario_updated_user,
           createdAt: nuevaFaseCreada.created_at,
           updatedAt: nuevaFaseCreada.updated_at
         };

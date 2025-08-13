@@ -44,36 +44,44 @@ Route::get('facultades/{facultad}/carreras', [CarreraController::class, 'getByFa
 Route::get('carreras/buscar/{termino}', [CarreraController::class, 'buscar'])
     ->name('carreras.buscar');
 
-// === RUTAS PROTEGIDAS (REQUIEREN AUTENTICACIÓN) ===
-// Operaciones de escritura que requieren usuario autenticado
+// === RUTAS PROTEGIDAS CON PERMISOS ESPECÍFICOS ===
 Route::middleware(['auth:sanctum'])->group(function () {
+    
     // === FACULTADES ===
     // Crear facultad
     Route::post('facultades', [FacultadController::class, 'store'])
+        ->middleware(['permission:facultades.store'])
         ->name('facultades.store');
     
     // Actualizar facultad
     Route::put('facultades/{facultad}', [FacultadController::class, 'update'])
+        ->middleware(['permission:facultades.update'])
         ->name('facultades.update');
     Route::patch('facultades/{facultad}', [FacultadController::class, 'update'])
+        ->middleware(['permission:facultades.update'])
         ->name('facultades.patch');
     
     // Eliminar facultad
     Route::delete('facultades/{facultad}', [FacultadController::class, 'destroy'])
+        ->middleware(['permission:facultades.destroy'])
         ->name('facultades.destroy');
 
     // === CARRERAS ===
     // Crear carrera
     Route::post('carreras', [CarreraController::class, 'store'])
+        ->middleware(['permission:carreras.store'])
         ->name('carreras.store');
     
     // Actualizar carrera
     Route::put('carreras/{carrera}', [CarreraController::class, 'update'])
+        ->middleware(['permission:carreras.update'])
         ->name('carreras.update');
     Route::patch('carreras/{carrera}', [CarreraController::class, 'update'])
+        ->middleware(['permission:carreras.update'])
         ->name('carreras.patch');
     
     // Eliminar carrera
     Route::delete('carreras/{carrera}', [CarreraController::class, 'destroy'])
+        ->middleware(['permission:carreras.destroy'])
         ->name('carreras.destroy');
 });
