@@ -113,7 +113,7 @@ class AuthController extends BaseApiController
                     'lastName' => $user->lastName,
                     'email' => $user->email,
                     'email_verified_at' => $user->email_verified_at,
-                    'id_usuario_updated_fase' => $user->id_usuario_updated_fase,
+                    'id_usuario_updated_user' => $user->id_usuario_updated_user,
                     'roles' => $user->roles,
                     'created_at' => $user->created_at,
                     'updated_at' => $user->updated_at,
@@ -253,7 +253,7 @@ class AuthController extends BaseApiController
                 'lastName' => $user->lastName,
                 'email' => $user->email,
                 'email_verified_at' => $user->email_verified_at,
-                'id_usuario_updated_fase' => $user->id_usuario_updated_fase,
+                'id_usuario_updated_user' => $user->id_usuario_updated_user,
                 'roles' => $user->roles,
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at,
@@ -262,6 +262,40 @@ class AuthController extends BaseApiController
         } catch (ApiException $e) {
             return $this->handleApiException($e);
         } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * Obtener permisos del usuario autenticado
+     * @OA\Get(
+     *     path="/api/user/permissions",
+     *     tags={"Autenticación"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Permisos obtenidos exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=true),
+     *             @OA\Property(property="estado", type="integer", example=200),
+     *             @OA\Property(property="datos", type="array", @OA\Items(type="string"))
+     *         )
+     *     )
+     * )
+     */
+    public function getUserPermissions(Request $request)
+    {
+        try {
+            $user = $request->user();
+            $permissions = $user->getAllPermissions()->pluck('name')->toArray();
+            
+            return $this->successResponse($permissions, 'Permisos obtenidos exitosamente');
+        } catch (\Exception $e) {
+            \Log::error('Error al obtener permisos del usuario', [
+                'user_id' => $request->user()->id ?? null,
+                'error' => $e->getMessage()
+            ]);
+            
             return $this->handleGeneralException($e);
         }
     }

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getFacultadesConCarreras, deleteFacultad } from "../services/api";
 import { Search, Plus } from "lucide-react";
+import { hasAnyPermission, canManageFacultades } from "../services/permissions";
 import mascota from "../assets/mascota.png";
 import { useNavigate } from "react-router-dom";
 import ModalConfirmacion from "../components/ModalConfirmacion";
@@ -166,17 +167,19 @@ export default function FacultadScreen() {
         </div>
       </section>
 
-      {/* Header con mascota y botón */}
-      <div className="header-actions">
-        <div className="mascota-container">
-          <img src={mascota} alt="mascota" className="mascota-img" />
-          <span className="mascota-message">¡Gestiona tus facultades!</span>
+      {/* Header con mascota y botón - Solo para Admin y Técnico */}
+      {canManageFacultades() && (
+        <div className="header-actions">
+          <div className="mascota-container">
+            <img src={mascota} alt="mascota" className="mascota-img" />
+            <span className="mascota-message">¡Gestiona tus facultades!</span>
+          </div>
+          <button className="btn-agregar-facultad" onClick={handleAgregarFacultad}>
+            <Plus size={20} />
+            <span>Añadir Facultad</span>
+          </button>
         </div>
-        <button className="btn-agregar-facultad" onClick={handleAgregarFacultad}>
-          <Plus size={20} />
-          <span>Añadir Facultad</span>
-        </button>
-      </div>
+      )}
 
       {/* Lista de facultades */}
       <section className="facultades-list">
@@ -228,6 +231,7 @@ export default function FacultadScreen() {
                 </div>
               </div>
 
+              {/* Modal de opciones - visible para todos los usuarios autenticados */}
               <ModalOpciones
                 isVisible={opcionesVisibles === f.id}
                 onToggle={() => handleToggleOpciones(f.id)}

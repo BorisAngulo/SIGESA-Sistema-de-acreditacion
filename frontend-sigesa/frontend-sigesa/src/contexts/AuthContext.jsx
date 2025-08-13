@@ -37,6 +37,13 @@ export const AuthProvider = ({ children }) => {
       if (response.ok) {
         const userData = await response.json();
         setUser(userData.datos);
+        
+        // Guardar roles en localStorage para el servicio de permisos
+        if (userData.datos.roles && userData.datos.roles.length > 0) {
+          const roleNames = userData.datos.roles.map(role => role.name);
+          localStorage.setItem('userRoles', JSON.stringify(roleNames));
+          console.log('Roles cargados al verificar auth:', roleNames);
+        }
       } else {
         // Token inválido, limpiar estado
         logout();
@@ -76,6 +83,14 @@ export const AuthProvider = ({ children }) => {
         setToken(access_token);
         setUser(user);
         localStorage.setItem('token', access_token);
+        
+        // Guardar roles en localStorage para el servicio de permisos
+        if (user.roles && user.roles.length > 0) {
+          const roleNames = user.roles.map(role => role.name);
+          localStorage.setItem('userRoles', JSON.stringify(roleNames));
+          console.log('Roles guardados:', roleNames);
+        }
+        
         return { success: true, user: user };
       } else {
         console.error('Error en respuesta del servidor:', data);
@@ -112,6 +127,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setToken(null);
       localStorage.removeItem('token');
+      localStorage.removeItem('userRoles');
     }
   };
 

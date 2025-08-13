@@ -8,6 +8,7 @@ const Header = () => {
   const { user, isAuthenticated, logout, getUserRole } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showModalidadesMenu, setShowModalidadesMenu] = useState(false);
+  const [showAdminMenu, setShowAdminMenu] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -18,6 +19,15 @@ const Header = () => {
 
   const handleModalidadesClick = () => {
     setShowModalidadesMenu(!showModalidadesMenu);
+  };
+
+  const handleAdminMenuClick = () => {
+    setShowAdminMenu(!showAdminMenu);
+  };
+
+  const handleAdminOptionSelect = (route) => {
+    setShowAdminMenu(false);
+    navigate(route);
   };
 
   const handleModalidadSelect = (modalidad) => {
@@ -81,26 +91,49 @@ const Header = () => {
                 </div>
               )}
             </div>
-            <NavLink to="/admin" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
-              Panel Admin
-            </NavLink>
-            <NavLink to="/usuarios" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
-              Usuarios
-            </NavLink>
-            <NavLink to="/actividad" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
-              Logs
-            </NavLink>
+            <div className="modalidades-dropdown">
+              <button 
+                className="modalidades-toggle header-link"
+                onClick={handleAdminMenuClick}
+              >
+                Administrador
+                <span className={`dropdown-arrow ${showAdminMenu ? 'open' : ''}`}>▼</span>
+              </button>
+              
+              {showAdminMenu && (
+                <div className="modalidades-dropdown-menu">
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => handleAdminOptionSelect('/usuarios')}
+                  >
+                    Usuarios
+                  </button>
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => handleAdminOptionSelect('/actividad')}
+                  >
+                    Logs
+                  </button>
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => handleAdminOptionSelect('/backups')}
+                  >
+                    Backups
+                  </button>
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => handleAdminOptionSelect('/documentos')}
+                  >
+                    Documentos
+                  </button>
+                </div>
+              )}
+            </div>
             <NavLink to="/facultad" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
               Facultades
             </NavLink>
-            <NavLink to="/documentos" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
-              Documentos
-            </NavLink>
             <NavLink to="/reportes" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
               Reportes
-            </NavLink>
-            <NavLink to="/backups" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
-              Backups
             </NavLink>
           </>
         );
@@ -109,9 +142,32 @@ const Header = () => {
         return (
           <>
             {commonLinks}
-            <NavLink to="/tecnico" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
-              Panel Técnico
-            </NavLink>
+            <div className="modalidades-dropdown">
+              <button 
+                className="modalidades-toggle header-link"
+                onClick={handleModalidadesClick}
+              >
+                Modalidades
+                <span className={`dropdown-arrow ${showModalidadesMenu ? 'open' : ''}`}>▼</span>
+              </button>
+              
+              {showModalidadesMenu && (
+                <div className="modalidades-dropdown-menu">
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => handleModalidadSelect('arco-sur')}
+                  >
+                    ARCU SUR
+                  </button>
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => handleModalidadSelect('ceub')}
+                  >
+                    CEUB
+                  </button>
+                </div>
+              )}
+            </div>
             <NavLink to="/facultad" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
               Facultades
             </NavLink>
@@ -125,27 +181,15 @@ const Header = () => {
         return (
           <>
             {commonLinks}
-            <NavLink to="/coordinador" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
-              Panel Coordinador
-            </NavLink>
-            <NavLink to="/facultad" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
+            <NavLink to="/mi-facultad" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
               Mi Facultad
             </NavLink>
-            <NavLink to="/carreras" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
-              Carreras
+            <NavLink to="/facultad" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
+              Facultades
             </NavLink>
           </>
         );
-      
-      case 'General':
-        return (
-          <>
-            {commonLinks}
-            <NavLink to="/consultas" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
-              Consultas
-            </NavLink>
-          </>
-        );
+    
       
       default:
         return commonLinks;
