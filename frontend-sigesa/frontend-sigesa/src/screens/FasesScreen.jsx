@@ -976,27 +976,37 @@ const FasesScreen = () => {
         <span className="separator">&gt;&gt;</span>
         <span>Modalidades</span>
         <span className="separator">&gt;&gt;</span>
-        <span>{fasesData.modalidad?.toUpperCase()}</span>
+        <span>{fasesData.modalidad?.replace('-', ' ').replace('arco', 'arcu').toUpperCase()}</span>
         <span className="separator">&gt;&gt;</span>
         <span className="current">{fasesData.carreraNombre}</span>
       </div>
 
-      <div className="action-buttons-header">
-        <button className="btn-agregar-fase" onClick={handleAgregarFase}>
-          Agregar Fase
-        </button>
-        <button className="btn-finalizar" onClick={handleFinalizarAcreditacion}>
-          Finalizar Acreditación
-        </button>
-      </div>
+      {fases.length > 0 && (
+        <div className="action-buttons-header">
+          <button className="btn-agregar-fase" onClick={handleAgregarFase}>
+            Agregar Fase
+          </button>
+          <button className="btn-finalizar" onClick={handleFinalizarAcreditacion}>
+            Finalizar Acreditación
+          </button>
+        </div>
+      )}
 
       <div className="fases-list">
         {fases.length === 0 ? (
           <div className="no-fases">
-            <p>No hay fases creadas para esta carrera y modalidad.</p>
-            <button className="btn-agregar-fase" onClick={handleAgregarFase}>
-              Crear primera fase
-            </button>
+            <div className="empty-state">
+              <div className="empty-icon">
+                📋
+              </div>
+              <h3>No hay fases creadas</h3>
+              <p>
+                 Para <strong>{fasesData.carreraNombre}</strong> - {fasesData.modalidad?.replace('-', ' ').replace('arco', 'arcu').toUpperCase()}
+              </p>
+              <button className="btn-crear-primera-fase" onClick={handleAgregarFase}>
+                + Crear primera fase
+              </button>
+            </div>
           </div>
         ) : (
           fases.map((fase) => (
