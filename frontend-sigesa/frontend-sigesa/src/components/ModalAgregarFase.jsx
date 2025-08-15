@@ -87,12 +87,6 @@ const ModalAgregarFase = ({ isOpen, onClose, onSave, fase = null }) => {
     if (formData.fechaInicio && formData.fechaFin) {
       const fechaInicio = new Date(formData.fechaInicio);
       const fechaFin = new Date(formData.fechaFin);
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-      
-      if (fechaInicio < hoy) {
-        newErrors.fechaInicio = 'La fecha de inicio no puede ser anterior a hoy';
-      }
       
       if (fechaFin <= fechaInicio) {
         newErrors.fechaFin = 'La fecha de fin debe ser posterior al inicio';
@@ -222,7 +216,6 @@ const ModalAgregarFase = ({ isOpen, onClose, onSave, fase = null }) => {
                   onChange={handleInputChange}
                   disabled={isLoading}
                   className={`form-input ${errors.fechaInicio ? 'form-input-error' : ''}`}
-                  min={new Date().toISOString().split('T')[0]}
                 />
                 {errors.fechaInicio && (
                   <p className="error-message">{errors.fechaInicio}</p>
@@ -242,7 +235,7 @@ const ModalAgregarFase = ({ isOpen, onClose, onSave, fase = null }) => {
                   onChange={handleInputChange}
                   disabled={isLoading}
                   className={`form-input ${errors.fechaFin ? 'form-input-error' : ''}`}
-                  min={formData.fechaInicio || new Date().toISOString().split('T')[0]}
+                  min={formData.fechaInicio}
                 />
                 {errors.fechaFin && (
                   <p className="error-message">{errors.fechaFin}</p>
