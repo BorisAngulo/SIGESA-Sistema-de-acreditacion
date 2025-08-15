@@ -30,6 +30,7 @@ class SubfaseController extends BaseApiController
                 'fecha_inicio_subfase' => 'nullable|date',
                 'fecha_fin_subfase' => 'nullable|date',
                 'url_subfase' => 'nullable|string',
+                'url_subfase_respuesta' => 'nullable|string',
                 'estado_subfase' => 'nullable|boolean',
                 'id_usuario_updated_subfase' => 'nullable|integer',
             ]);
@@ -99,6 +100,7 @@ class SubfaseController extends BaseApiController
                 'fecha_inicio_subfase' => 'nullable|date',
                 'fecha_fin_subfase' => 'nullable|date',
                 'url_subfase' => 'nullable|string',
+                'url_subfase_respuesta' => 'nullable|string',
                 'estado_subfase' => 'nullable|boolean',
                 'id_usuario_updated_subfase' => 'nullable|integer',
             ]);

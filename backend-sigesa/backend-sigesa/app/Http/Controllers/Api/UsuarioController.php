@@ -57,8 +57,8 @@ class UsuarioController extends BaseApiController
     public function index()
     {
         try {
-            $usuarios = User::select('id', 'name', 'lastName', 'email', 'email_verified_at', 'created_at', 'updated_at', 'id_usuario_updated_user')
-                           ->with('roles:name')
+            $usuarios = User::select('id', 'name', 'lastName', 'email', 'email_verified_at', 'created_at', 'updated_at', 'id_usuario_updated_user', 'id_carrera_usuario')
+                           ->with(['roles:name', 'carrera.facultad'])
                            ->get();
 
             if ($usuarios->isEmpty()) {
@@ -123,6 +123,7 @@ class UsuarioController extends BaseApiController
                 'password' => 'required|string|min:8|confirmed',
                 'role' => 'required|string|in:Admin,General,Tecnico,Coordinador',
                 'id_usuario_updated_user' => 'nullable|integer',
+                'id_carrera_usuario' => 'nullable|integer',
             ]);
 
             // Crear el usuario
@@ -132,6 +133,7 @@ class UsuarioController extends BaseApiController
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
                 'id_usuario_updated_user' => $validated['id_usuario_updated_user'] ?? null,
+                'id_carrera_usuario' => $validated['id_carrera_usuario'] ?? null,
             ]);
 
             if (!$usuario) {
@@ -148,7 +150,7 @@ class UsuarioController extends BaseApiController
                 User::class,
                 $usuario->id,
                 null,
-                $usuario->only(['name', 'lastName', 'email', 'id_usuario_updated_user'])
+                $usuario->only(['name', 'lastName', 'email', 'id_usuario_updated_user', 'id_carrera_usuario'])
             );
 
             DB::commit();
@@ -210,7 +212,7 @@ class UsuarioController extends BaseApiController
     public function show($id)
     {
         try {
-            $usuario = User::select('id', 'name', 'lastName', 'email', 'email_verified_at', 'created_at', 'updated_at', 'id_usuario_updated_user')
+            $usuario = User::select('id', 'name', 'lastName', 'email', 'email_verified_at', 'created_at', 'updated_at', 'id_usuario_updated_user', 'id_carrera_usuario')
                           ->with('roles:name')
                           ->find($id);
 
@@ -272,7 +274,7 @@ class UsuarioController extends BaseApiController
             }
 
             // Capturar valores originales para el log
-            $valoresOriginales = $usuario->only(['name', 'lastName', 'email', 'id_usuario_updated_user']);
+            $valoresOriginales = $usuario->only(['name', 'lastName', 'email', 'id_usuario_updated_user', 'id_carrera_usuario']);
             $rolesOriginales = $usuario->roles->pluck('name')->toArray();
 
             // Validación de datos
@@ -289,6 +291,7 @@ class UsuarioController extends BaseApiController
                 'password' => 'sometimes|required|string|min:8|confirmed',
                 'role' => 'sometimes|required|string|in:Admin,General,Tecnico,Coordinador',
                 'id_usuario_updated_user' => 'nullable|integer',
+                'id_carrera_usuario' => 'nullable|integer',
             ]);
 
             // Actualizar campos
@@ -310,6 +313,10 @@ class UsuarioController extends BaseApiController
             
             if (array_key_exists('id_usuario_updated_user', $validated)) {
                 $usuario->id_usuario_updated_user = $validated['id_usuario_updated_user'];
+            }
+
+            if (array_key_exists('id_carrera_usuario', $validated)) {
+                $usuario->id_carrera_usuario = $validated['id_carrera_usuario'];
             }
 
             // Actualizar rol si se proporciona

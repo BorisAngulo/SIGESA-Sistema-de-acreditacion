@@ -22,39 +22,41 @@ const ConfirmDeleteModal = ({ user, onClose, onConfirm }) => {
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
 
-        <div className="delete-content">
-          <div className="warning-icon">
-            ⚠️
-          </div>
-          
-          <div className="delete-message">
-            <p>¿Estás seguro de que quieres eliminar este usuario?</p>
-            <p className="warning-text">
-              Esta acción <strong>no se puede deshacer</strong>.
-            </p>
-          </div>
-
-          <div className="user-preview">
-            <div className="preview-avatar">
-              {user.name ? user.name.charAt(0).toUpperCase() : '?'}
+        <div className="modal-body">
+          <div className="delete-content">
+            <div className="warning-icon">
+              ⚠️
             </div>
-            <div className="preview-info">
-              <h4>{user.name} {user.lastName || ''}</h4>
-              <p>{user.email}</p>
-              <span className="preview-role">
-                {getRoleDisplayName(userRole)}
-              </span>
+            
+            <div className="delete-message">
+              <p>¿Estás seguro de que quieres eliminar este usuario?</p>
+              <p className="warning-text">
+                Esta acción <strong>no se puede deshacer</strong>.
+              </p>
             </div>
-          </div>
 
-          <div className="consequences">
-            <h4>Consecuencias de esta acción:</h4>
-            <ul>
-              <li>Se eliminará toda la información del usuario</li>
-              <li>Se revocarán todos sus accesos al sistema</li>
-              <li>Sus datos asociados podrían quedar huérfanos</li>
-              <li>No podrá volver a acceder con estas credenciales</li>
-            </ul>
+            <div className="user-preview">
+              <div className="preview-avatar">
+                {user.name ? user.name.charAt(0).toUpperCase() : '?'}
+              </div>
+              <div className="preview-info">
+                <h4>{user.name} {user.lastName || ''}</h4>
+                <p>{user.email}</p>
+                <span className="preview-role">
+                  {getRoleDisplayName(userRole)}
+                </span>
+              </div>
+            </div>
+
+            <div className="consequences">
+              <h4>Consecuencias de esta acción:</h4>
+              <ul>
+                <li>Se eliminará toda la información del usuario</li>
+                <li>Se revocarán todos sus accesos al sistema</li>
+                <li>Sus datos asociados podrían quedar huérfanos</li>
+                <li>No podrá volver a acceder con estas credenciales</li>
+              </ul>
+            </div>
           </div>
         </div>
 

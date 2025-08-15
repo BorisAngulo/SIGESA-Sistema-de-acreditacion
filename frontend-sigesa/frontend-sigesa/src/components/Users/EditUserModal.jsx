@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { updateUserAPI, getRolesAPI } from '../../services/userAPI';
+import { getFacultades, getCarrerasByFacultad } from '../../services/api';
 import './UserModal.css';
 
 const EditUserModal = ({ user, onClose, onUserUpdated, token }) => {
@@ -9,16 +10,26 @@ const EditUserModal = ({ user, onClose, onUserUpdated, token }) => {
     email: user.email || '',
     password: '',
     password_confirmation: '',
-    role: user.roles && user.roles.length > 0 ? user.roles[0].name : ''
+    role: user.roles && user.roles.length > 0 ? user.roles[0].name : '',
+    facultad_id: user.carrera?.facultad?.id || '',
+    id_carrera_usuario: user.id_carrera_usuario || ''
   });
   
   const [roles, setRoles] = useState([]);
+  const [facultades, setFacultades] = useState([]);
+  const [carreras, setCarreras] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
 
   useEffect(() => {
     loadRoles();
+    loadFacultades();
+    
+    // Si el usuario es coordinador y tiene carrera, cargar las carreras de esa facultad
+    if (user.roles && user.roles.length > 0 && user.roles[0].name === 'Coordinador' && user.carrera?.facultad?.id) {
+      loadCarrerasByFacultad(user.carrera.facultad.id);
+    }
   }, []);
 
   const loadRoles = async () => {
@@ -34,12 +45,69 @@ const EditUserModal = ({ user, onClose, onUserUpdated, token }) => {
     }
   };
 
+  const loadFacultades = async () => {
+    try {
+      const response = await getFacultades();
+      if (response && response.length > 0) {
+        setFacultades(response);
+      }
+    } catch (error) {
+      console.error('Error al cargar facultades:', error);
+    }
+  };
+
+  const loadCarrerasByFacultad = async (facultadId) => {
+    try {
+      const response = await getCarrerasByFacultad(facultadId);
+      if (response && response.length > 0) {
+        setCarreras(response);
+      } else {
+        setCarreras([]);
+      }
+    } catch (error) {
+      console.error('Error al cargar carreras:', error);
+      setCarreras([]);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // Si se cambió la facultad, cargar las carreras de esa facultad
+    if (name === 'facultad_id' && value) {
+      loadCarrerasByFacultad(value);
+      // Limpiar la carrera seleccionada cuando se cambia la facultad
+      setFormData(prev => ({
+        ...prev,
+        facultad_id: value,
+        id_carrera_usuario: ''
+      }));
+      return;
+    }
+    
+    // Si se cambió el rol y no es Coordinador, limpiar facultad y carrera
+    if (name === 'role') {
+      if (value !== 'Coordinador') {
+        setFormData(prev => ({
+          ...prev,
+          role: value,
+          facultad_id: '',
+          id_carrera_usuario: ''
+        }));
+        setCarreras([]);
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          role: value
+        }));
+      }
+    } else {
+      // Para todos los demás campos
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
     
     // Limpiar error de validación cuando el usuario empiece a escribir
     if (validationErrors[name]) {
@@ -82,6 +150,16 @@ const EditUserModal = ({ user, onClose, onUserUpdated, token }) => {
       errors.role = 'El rol es requerido';
     }
     
+    // Validaciones adicionales para Coordinador
+    if (formData.role === 'Coordinador') {
+      if (!formData.facultad_id) {
+        errors.facultad_id = 'La facultad es requerida para el rol Coordinador';
+      }
+      if (!formData.id_carrera_usuario) {
+        errors.id_carrera_usuario = 'La carrera es requerida para el rol Coordinador';
+      }
+    }
+    
     return errors;
   };
 
@@ -104,7 +182,8 @@ const EditUserModal = ({ user, onClose, onUserUpdated, token }) => {
         name: formData.name,
         lastName: formData.lastName,
         email: formData.email,
-        role: formData.role
+        role: formData.role,
+        id_carrera_usuario: formData.id_carrera_usuario
       };
       
       if (formData.password) {
@@ -140,6 +219,7 @@ const EditUserModal = ({ user, onClose, onUserUpdated, token }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="user-form">
+          <div className="modal-body">
           {error && (
             <div className="error-message">
               {error}
@@ -264,6 +344,64 @@ const EditUserModal = ({ user, onClose, onUserUpdated, token }) => {
             {validationErrors.role && (
               <span className="field-error">{validationErrors.role}</span>
             )}
+          </div>
+
+          {/* Campos adicionales para Coordinador */}
+          {formData.role === 'Coordinador' && (
+            <>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="facultad_id">Facultad *</label>
+                  <select
+                    id="facultad_id"
+                    name="facultad_id"
+                    value={formData.facultad_id}
+                    onChange={handleInputChange}
+                    className={validationErrors.facultad_id ? 'error' : ''}
+                    disabled={loading}
+                  >
+                    <option value="">Seleccionar facultad</option>
+                    {facultades.map(facultad => (
+                      <option key={facultad.id} value={facultad.id}>
+                        {facultad.nombre_facultad}
+                      </option>
+                    ))}
+                  </select>
+                  {validationErrors.facultad_id && (
+                    <span className="field-error">{validationErrors.facultad_id}</span>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="id_carrera_usuario">Carrera *</label>
+                  <select
+                    id="id_carrera_usuario"
+                    name="id_carrera_usuario"
+                    value={formData.id_carrera_usuario}
+                    onChange={handleInputChange}
+                    className={validationErrors.id_carrera_usuario ? 'error' : ''}
+                    disabled={loading || !formData.facultad_id}
+                  >
+                    <option value="">
+                      {!formData.facultad_id ? 'Primero selecciona una facultad' : 'Seleccionar carrera'}
+                    </option>
+                    {carreras.map(carrera => (
+                      <option 
+                        key={carrera.id} 
+                        value={carrera.id}
+                        title={carrera.nombre_carrera}
+                      >
+                        {carrera.nombre_carrera}
+                      </option>
+                    ))}
+                  </select>
+                  {validationErrors.id_carrera_usuario && (
+                    <span className="field-error">{validationErrors.id_carrera_usuario}</span>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
           </div>
 
           <div className="modal-actions">

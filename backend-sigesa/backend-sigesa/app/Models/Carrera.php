@@ -20,4 +20,12 @@ class Carrera extends Model
         'pagina_carrera',
         'id_usuario_updated_carrera'
     ];
+
+    /**
+     * Relación con la facultad a la que pertenece la carrera
+     */
+    public function facultad()
+    {
+        return $this->belongsTo(Facultad::class, 'facultad_id');
+    }
 }
