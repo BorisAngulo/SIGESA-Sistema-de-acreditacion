@@ -534,6 +534,29 @@ export const getCarreraModalidadEspecifica = async (carreraId, modalidadId) => {
   }
 };
 
+export const getCarreraModalidadActiva = async (carreraId, modalidadId) => {
+  try {
+    console.log(`🔍 Buscando carrera-modalidad activa: carrera_id=${carreraId}, modalidad_id=${modalidadId}`);
+    
+    const res = await fetch(`${API_URL}/carrera-modalidad/buscar-activa/${carreraId}/${modalidadId}`);
+    const data = await res.json();
+    
+    console.log(`📊 Respuesta de buscar-activa:`, data);
+    
+    if (data.exito && data.datos) {
+      console.log('✅ Carrera-modalidad activa encontrada:', data.datos);
+      return data.datos;
+    } else {
+      console.log('ℹ️ No se encontró carrera-modalidad activa para las fechas actuales');
+      return null;
+    }
+    
+  } catch (error) {
+    console.error('💥 Error al buscar carrera-modalidad activa:', error);
+    return null;
+  }
+};
+
 export const createCarreraModalidad = async (data) => {
   try {
     const res = await fetch(`${API_URL}/acreditacion-carreras`, {

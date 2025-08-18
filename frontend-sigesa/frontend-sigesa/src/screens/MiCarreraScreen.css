@@ -1,0 +1,255 @@
+.mi-carrera-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #f8f9fa;
+  min-height: 80vh;
+}
+
+.mi-carrera-header {
+  margin-bottom: 2rem;
+}
+
+.mi-carrera-header h1 {
+  color: #2c3e50;
+  font-size: 2.5rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.carrera-info-card {
+  background: white;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #3498db;
+}
+
+.carrera-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.carrera-info-item:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #34495e;
+  font-size: 1rem;
+}
+
+.info-value {
+  color: #2c3e50;
+  font-size: 1rem;
+  text-align: right;
+  max-width: 60%;
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #ecf0f1;
+  border-top: 5px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* No Proceso Activo */
+.no-proceso-container {
+  background: white;
+  border-radius: 15px;
+  padding: 3rem;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid #f39c12;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.no-proceso-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+}
+
+.no-proceso-container h2 {
+  color: #e67e22;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.no-proceso-message {
+  color: #34495e;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.no-proceso-submessage {
+  color: #7f8c8d;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.no-proceso-info {
+  background-color: #fef9e7;
+  border-radius: 8px;
+  padding: 1rem;
+  border-left: 4px solid #f39c12;
+}
+
+.no-proceso-info p {
+  margin: 0.5rem 0;
+  color: #8e6a00;
+  font-size: 0.95rem;
+}
+
+/* Error State */
+.error-container {
+  background: white;
+  border-radius: 15px;
+  padding: 3rem;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e74c3c;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.error-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+}
+
+.error-container h2 {
+  color: #c0392b;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.error-container p {
+  color: #34495e;
+  font-size: 1.1rem;
+}
+
+/* Proceso Activo */
+.proceso-activo-container {
+  background: white;
+  border-radius: 15px;
+  padding: 3rem;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid #27ae60;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.proceso-activo-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+}
+
+.proceso-activo-container h2 {
+  color: #27ae60;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.proceso-activo-message {
+  color: #34495e;
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  font-weight: 500;
+}
+
+.ver-fases-button {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.ver-fases-button:hover {
+  background: linear-gradient(135deg, #2980b9, #1f639a);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+}
+
+.ver-fases-button:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .mi-carrera-container {
+    padding: 1rem;
+  }
+
+  .mi-carrera-header h1 {
+    font-size: 2rem;
+  }
+
+  .carrera-info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .info-value {
+    text-align: left;
+    max-width: 100%;
+  }
+
+  .no-proceso-container,
+  .error-container,
+  .proceso-activo-container {
+    padding: 2rem 1.5rem;
+  }
+
+  .no-proceso-container h2,
+  .error-container h2,
+  .proceso-activo-container h2 {
+    font-size: 1.5rem;
+  }
+
+  .no-proceso-message,
+  .proceso-activo-message {
+    font-size: 1.1rem;
+  }
+
+  .ver-fases-button {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+}

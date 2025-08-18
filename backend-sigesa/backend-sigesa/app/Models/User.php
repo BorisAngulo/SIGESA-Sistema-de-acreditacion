@@ -21,7 +21,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'lastName', 'id_usuario_updated_user'
+        'name', 'email', 'password', 'lastName', 'id_usuario_updated_user', 'id_carrera_usuario'
     ];
 
     /**
@@ -41,4 +41,12 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Relación con la carrera asignada al usuario
+     */
+    public function carrera()
+    {
+        return $this->belongsTo(Carrera::class, 'id_carrera_usuario');
+    }
 }

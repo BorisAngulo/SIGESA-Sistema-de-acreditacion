@@ -25,6 +25,8 @@ class CarreraModalidadController extends BaseApiController
                 'carrera_id' => 'required|exists:carreras,id',
                 'modalidad_id' => 'required|exists:modalidades,id',
                 'estado_modalidad' => 'boolean',
+                'fecha_ini_proceso' => 'nullable|date',
+                'fecha_fin_proceso' => 'nullable|date',
                 'id_usuario_updated_carrera_modalidad' => 'nullable|integer',
                 'fecha_ini_aprobacion' => 'nullable|date',
                 'fecha_fin_aprobacion' => 'nullable|date',
@@ -93,6 +95,8 @@ class CarreraModalidadController extends BaseApiController
                 'carrera_id' => 'sometimes|required|exists:carreras,id',
                 'modalidad_id' => 'sometimes|required|exists:modalidades,id',
                 'estado_modalidad' => 'sometimes|boolean',
+                'fecha_ini_proceso' => 'nullable|date',
+                'fecha_fin_proceso' => 'nullable|date',
                 'id_usuario_updated_carrera_modalidad' => 'nullable|integer',
                 'fecha_ini_aprobacion' => 'nullable|date',
                 'fecha_fin_aprobacion' => 'nullable|date',
@@ -135,6 +139,83 @@ class CarreraModalidadController extends BaseApiController
 
         } catch (ApiException $e) {
             return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/carrera-modalidad/buscar-activa/{carrera_id}/{modalidad_id}",
+     *     summary="Buscar carrera-modalidad activa dentro del rango de fechas actual",
+     *     description="Busca una carrera-modalidad que esté activa (fecha actual entre fecha_ini_proceso y fecha_fin_proceso)",
+     *     tags={"CarreraModalidad"},
+     *     @OA\Parameter(
+     *         name="carrera_id",
+     *         in="path",
+     *         required=true,
+     *         description="ID de la carrera",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="modalidad_id",
+     *         in="path",
+     *         required=true,
+     *         description="ID de la modalidad",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Carrera-modalidad activa encontrada",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=true),
+     *             @OA\Property(property="mensaje", type="string", example="Carrera-modalidad activa encontrada"),
+     *             @OA\Property(property="datos", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="No se encontró carrera-modalidad activa"
+     *     )
+     * )
+     */
+    public function buscarActiva($carrera_id, $modalidad_id)
+    {
+        try {
+            $fechaActual = now()->toDateString();
+            
+            $carreraModalidadActiva = CarreraModalidad::with(['carrera:id,nombre_carrera', 'modalidad:id,nombre_modalidad'])
+                ->where('carrera_id', $carrera_id)
+                ->where('modalidad_id', $modalidad_id)
+                ->where(function($query) use ($fechaActual) {
+                    $query->where(function($subQuery) use ($fechaActual) {
+                        // Caso 1: Ambas fechas están definidas y la fecha actual está en el rango
+                        $subQuery->whereNotNull('fecha_ini_proceso')
+                                ->whereNotNull('fecha_fin_proceso')
+                                ->where('fecha_ini_proceso', '<=', $fechaActual)
+                                ->where('fecha_fin_proceso', '>=', $fechaActual);
+                    })
+                    ->orWhere(function($subQuery) {
+                        // Caso 2: Las fechas no están definidas (proceso permanente/sin límite)
+                        $subQuery->whereNull('fecha_ini_proceso')
+                                ->whereNull('fecha_fin_proceso');
+                    });
+                })
+                ->first();
+
+            if ($carreraModalidadActiva) {
+                return $this->successResponse(
+                    $carreraModalidadActiva, 
+                    'Carrera-modalidad activa encontrada'
+                );
+            } else {
+                return $this->successResponse(
+                    null, 
+                    'No se encontró carrera-modalidad activa para las fechas actuales',
+                    404
+                );
+            }
+
         } catch (\Exception $e) {
             return $this->handleGeneralException($e);
         }

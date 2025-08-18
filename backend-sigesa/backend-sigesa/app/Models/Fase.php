@@ -20,6 +20,7 @@ class Fase extends Model
         'fecha_inicio_fase',
         'fecha_fin_fase',
         'url_fase',
+        'url_fase_respuesta',
         'estado_fase',
         'id_usuario_updated_fase'
     ];

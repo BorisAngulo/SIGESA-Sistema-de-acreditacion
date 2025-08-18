@@ -20,6 +20,7 @@ class SubFase extends Model
         'fecha_inicio_subfase',
         'fecha_fin_subfase',
         'url_subfase',
+        'url_subfase_respuesta',
         'estado_subfase',
         'id_usuario_updated_subfase'
     ];

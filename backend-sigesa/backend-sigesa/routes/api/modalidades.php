@@ -33,6 +33,10 @@ Route::get('acreditacion-carreras', [CarreraModalidadController::class, 'index']
 Route::get('acreditacion-carreras/{acreditacion_carrera}', [CarreraModalidadController::class, 'show'])
     ->name('acreditacion-carreras.show');
 
+// Buscar carrera-modalidad activa dentro del rango de fechas actual (público)
+Route::get('carrera-modalidad/buscar-activa/{carrera_id}/{modalidad_id}', [CarreraModalidadController::class, 'buscarActiva'])
+    ->name('carrera-modalidad.buscar-activa');
+
 // Obtener modalidades disponibles para una carrera (público)
 Route::get('carreras/{carrera}/modalidades', [CarreraModalidadController::class, 'getModalidadesByCarrera'])
     ->name('carreras.modalidades');

@@ -23,6 +23,7 @@ class CreateUsersTable extends Migration
             $table->rememberToken();
             $table->timestamps();
             $table->integer('id_usuario_updated_user')->nullable();
+            $table->integer('id_carrera_usuario')->nullable();
         });
     }
 

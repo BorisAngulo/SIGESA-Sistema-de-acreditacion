@@ -23,6 +23,7 @@ class CreateSubFasesTable extends Migration
             $table->date('fecha_inicio_subfase')->nullable();
             $table->date('fecha_fin_subfase')->nullable();
             $table->string('url_subfase')->nullable();
+            $table->string('url_subfase_respuesta')->nullable();
             $table->boolean('estado_subfase')->default(false);
             $table->integer('id_usuario_updated_subfase')->nullable();
             $table->timestamps();
