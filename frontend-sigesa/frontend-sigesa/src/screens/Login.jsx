@@ -59,11 +59,29 @@ const Login = () => {
         }
       } else {
         console.error('Error de login:', result);
-        setError(result.error || 'Error en las credenciales');
+        // Asegurar que el error siempre sea una string
+        let errorMessage = 'Error en las credenciales';
+        if (typeof result.error === 'string') {
+          errorMessage = result.error;
+        } else if (typeof result.error === 'object' && result.error.mensaje) {
+          errorMessage = result.error.mensaje;
+        } else if (typeof result.error === 'object') {
+          errorMessage = JSON.stringify(result.error);
+        }
+        setError(errorMessage);
       }
     } catch (error) {
       console.error('Error inesperado en login:', error);
-      setError(`Error inesperado: ${error.message || error.toString()}`);
+      // Asegurar que el error siempre sea una string
+      let errorMessage = 'Error inesperado';
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else {
+        errorMessage = error.toString();
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

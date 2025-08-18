@@ -94,9 +94,24 @@ export const AuthProvider = ({ children }) => {
         return { success: true, user: user };
       } else {
         console.error('Error en respuesta del servidor:', data);
+        // Manejar diferentes formatos de error
+        let errorMessage = 'Credenciales inválidas';
+        
+        if (data.error) {
+          if (typeof data.error === 'string') {
+            errorMessage = data.error;
+          } else if (typeof data.error === 'object' && data.error.mensaje) {
+            errorMessage = data.error.mensaje;
+          } else if (typeof data.error === 'object') {
+            errorMessage = JSON.stringify(data.error);
+          }
+        } else if (data.mensaje) {
+          errorMessage = data.mensaje;
+        }
+        
         return { 
           success: false, 
-          error: data.error || data.mensaje || 'Credenciales inválidas',
+          error: errorMessage,
           details: data
         };
       }

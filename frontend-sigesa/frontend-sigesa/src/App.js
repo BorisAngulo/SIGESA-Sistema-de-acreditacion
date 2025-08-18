@@ -25,6 +25,7 @@ import ReportesScreen from './screens/ReportesScreen';
 import BackupScreen from './screens/BackupScreen';
 import SubFaseScreen from './screens/SubFaseScreen';
 import DocumentosScreen from './screens/DocumentosScreen';
+import MiCarreraScreen from './screens/MiCarreraScreen';
 
 function App() {
   const styles = {
@@ -64,6 +65,11 @@ function App() {
               } />
               
               {/* Rutas para Coordinador */}
+              <Route path="/mi-facultad" element={
+                <ProtectedRoute allowedRoles={['Coordinador']}>
+                  <MiCarreraScreen />
+                </ProtectedRoute>
+              } />
               
               {/* Rutas para Técnico */}
               <Route path="/tecnico" element={
@@ -147,6 +153,11 @@ function App() {
               <Route path="/subfase" element={<SubFaseScreen />} />
 
               <Route path="/fases/:carreraId/:modalidadId"  element={
+                <ProtectedRoute>
+                  <FasesScreen />
+                </ProtectedRoute>
+              } />
+              <Route path="/fases"  element={
                 <ProtectedRoute>
                   <FasesScreen />
                 </ProtectedRoute>

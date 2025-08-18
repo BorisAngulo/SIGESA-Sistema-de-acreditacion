@@ -182,7 +182,7 @@ const Header = () => {
           <>
             {commonLinks}
             <NavLink to="/mi-facultad" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
-              Mi Facultad
+              Mi Carrera
             </NavLink>
             <NavLink to="/facultad" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
               Facultades

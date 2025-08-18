@@ -80,7 +80,7 @@ class AuthController extends BaseApiController
             ]);
 
             // Verificar credenciales
-            $user = User::with('roles:name')->where('email', $validated['email'])->first();
+            $user = User::with(['roles:name', 'carrera:id,nombre_carrera'])->where('email', $validated['email'])->first();
 
             if (!$user || !Hash::check($validated['password'], $user->password)) {
                 throw new ApiException('Credenciales incorrectas', 401);
@@ -115,6 +115,7 @@ class AuthController extends BaseApiController
                     'email_verified_at' => $user->email_verified_at,
                     'id_usuario_updated_user' => $user->id_usuario_updated_user,
                     'id_carrera_usuario' => $user->id_carrera_usuario,
+                    'carrera' => $user->carrera,
                     'roles' => $user->roles,
                     'created_at' => $user->created_at,
                     'updated_at' => $user->updated_at,
@@ -242,7 +243,7 @@ class AuthController extends BaseApiController
     public function me(Request $request)
     {
         try {
-            $user = $request->user()->load('roles:name');
+            $user = $request->user()->load(['roles:name', 'carrera:id,nombre_carrera']);
             
             if (!$user) {
                 throw new ApiException('Usuario no autenticado', 401);
@@ -256,6 +257,7 @@ class AuthController extends BaseApiController
                 'email_verified_at' => $user->email_verified_at,
                 'id_usuario_updated_user' => $user->id_usuario_updated_user,
                 'id_carrera_usuario' => $user->id_carrera_usuario,
+                'carrera' => $user->carrera,
                 'roles' => $user->roles,
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at,
