@@ -85,17 +85,19 @@ class RoleSeeder extends Seeder
             'subfases.store',
             'subfases.update',
             'subfases.destroy',
-            'subfases.documentos',
             'subfases.estado',
         ];
         foreach ($subfasePerms as $perm) {
             Permission::firstOrCreate(['name' => $perm])->syncRoles([$adminRole, $tecnicoRole]);
         }
 
+        // Permisos específicos que también incluyen al Coordinador
+        Permission::firstOrCreate(['name' => 'subfases.documentos'])->syncRoles([$adminRole, $tecnicoRole, $coordinadorRole]);
+
+        // Asignar permisos específicos al Coordinador
         Permission::findByName('subfases.index')->givePermissionTo([$coordinadorRole]);
         Permission::findByName('subfases.show')->givePermissionTo([$coordinadorRole]);
         Permission::findByName('subfases.update')->givePermissionTo([$coordinadorRole]);
-        Permission::findByName('subfases.documentos')->givePermissionTo([$coordinadorRole]);
 
         // === PERMISOS DE USUARIOS ===
         $usuarioPerms = [

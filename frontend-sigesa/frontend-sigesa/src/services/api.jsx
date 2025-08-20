@@ -688,6 +688,15 @@ export const getSubfasesByFase = async (faseId) => {
         }
         
         if (subfases.length > 0) {
+          // Debug: Verificar campos URL en las subfases recibidas
+          console.log('🔍 DEBUG - Verificando campos URL en subfases del backend:');
+          subfases.forEach((subfase, index) => {
+            console.log(`Subfase ${index + 1} (ID: ${subfase.id}):`);
+            console.log('  - url_subfase:', subfase.url_subfase);
+            console.log('  - url_subfase_respuesta:', subfase.url_subfase_respuesta);
+            console.log('  - Campos disponibles:', Object.keys(subfase));
+          });
+          
           const subfasesValidas = subfases.filter(subfase => {
             const subfaseFaseId = parseInt(subfase.fase_id);
             const targetId = parseInt(faseId);
@@ -1180,6 +1189,60 @@ export const updateFase = async (faseId, faseData) => {
     }
   } catch (error) {
     console.error('Error al actualizar fase:', error);
+    throw error;
+  }
+};
+
+// Actualizar solo la observación de una fase
+export const updateObservacionFase = async (faseId, observacion) => {
+  try {
+    console.log('Actualizando observación de fase:', faseId, observacion);
+
+    const res = await fetch(`${API_URL}/fases/${faseId}`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        observacion_fase: observacion
+      }),
+    });
+    
+    const response = await res.json();
+    
+    if (response.exito && response.datos) {
+      return response.datos;
+    } else {
+      console.error('Error al actualizar observación de fase:', response.error || 'Error desconocido');
+      throw new Error(response.error || 'Error al actualizar observación de fase');
+    }
+  } catch (error) {
+    console.error('Error al actualizar observación de fase:', error);
+    throw error;
+  }
+};
+
+// Actualizar solo la observación de una subfase
+export const updateObservacionSubfase = async (subfaseId, observacion) => {
+  try {
+    console.log('Actualizando observación de subfase:', subfaseId, observacion);
+
+    const res = await fetch(`${API_URL}/subfases/${subfaseId}`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        observacion_subfase: observacion
+      }),
+    });
+    
+    const response = await res.json();
+    
+    if (response.exito || res.ok) {
+      return response.datos || response;
+    } else {
+      console.error('Error al actualizar observación de subfase:', response.error || 'Error desconocido');
+      throw new Error(response.error || 'Error al actualizar observación de subfase');
+    }
+  } catch (error) {
+    console.error('Error al actualizar observación de subfase:', error);
     throw error;
   }
 };

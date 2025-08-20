@@ -24,6 +24,7 @@ class CreateFasesTable extends Migration
             $table->date('fecha_fin_fase')->nullable();
             $table->string('url_fase')->nullable();
             $table->string('url_fase_respuesta')->nullable();
+            $table->string('observacion_fase')->nullable();
             $table->boolean('estado_fase')->default(false);
             $table->integer('id_usuario_updated_fase')->nullable();
             $table->timestamps();

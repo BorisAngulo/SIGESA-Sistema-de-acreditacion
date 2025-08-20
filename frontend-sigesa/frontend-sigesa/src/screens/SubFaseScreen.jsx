@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Upload, FileText, Link, Trash2, Eye, Plus, Save } from 'lucide-react';
+import { FileText, Link, Plus, Save } from 'lucide-react';
 import { createSubfase, updateSubfase } from '../services/api';
 import '../styles/SubFaseScreen.css';
 
@@ -11,11 +11,9 @@ const SubFaseScreen = () => {
   const [descripcion, setDescripcion] = useState('');
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
-  const [documentos, setDocumentos] = useState([]);
   const [urlDrive, setUrlDrive] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
-  const [activeTab, setActiveTab] = useState('archivos');
   const [isEditing, setIsEditing] = useState(false);
   const [subfaseId, setSubfaseId] = useState(null);
   const [faseData, setFaseData] = useState(null);
@@ -53,7 +51,7 @@ const SubFaseScreen = () => {
         setDescripcion(subfase.descripcion_subfase || '');
         setFechaInicio(subfase.fecha_inicio_subfase || '');
         setFechaFin(subfase.fecha_fin_subfase || '');
-        setUrlDrive(subfase.url_drive || '');
+        setUrlDrive(subfase.url_subfase || '');
         
         console.log('📝 Modo edición activado para subfase:', subfase);
       } else {
@@ -108,7 +106,7 @@ const SubFaseScreen = () => {
         descripcion_subfase: descripcion,
         fecha_inicio_subfase: fechaInicio,
         fecha_fin_subfase: fechaFin,
-        url_drive: urlDrive || null,
+        url_subfase: urlDrive || null,
         fase_id: faseData.faseId
       };
 
@@ -137,39 +135,6 @@ const SubFaseScreen = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleFileUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const newDocs = files.map(file => ({
-      id: Date.now() + Math.random(),
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      file: file
-    }));
-    
-    setDocumentos(prev => [...prev, ...newDocs]);
-  };
-
-  const removeDocument = (id) => {
-    setDocumentos(prev => prev.filter(doc => doc.id !== id));
-  };
-
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const getFileIcon = (fileName) => {
-    const extension = fileName.split('.').pop().toLowerCase();
-    if (['pdf'].includes(extension)) return '📄';
-    if (['doc', 'docx'].includes(extension)) return '📝';
-    if (['xls', 'xlsx'].includes(extension)) return '📊';
-    return '📎';
   };
 
   const handleClose = () => {
@@ -335,109 +300,26 @@ const SubFaseScreen = () => {
           <div className="subfase-form-section">
             <h2 className="subfase-section-title">
               <div className="subfase-section-icon-wrapper subfase-section-icon-green">
-                <Upload className="subfase-section-icon subfase-icon-green" />
+                <Link className="subfase-section-icon subfase-icon-green" />
               </div>
               Documentos
             </h2>
-
-            <div className="subfase-tabs-container">
-              <button
-                type="button"
-                onClick={() => setActiveTab('archivos')}
-                className={`subfase-tab-button ${
-                  activeTab === 'archivos' ? 'subfase-tab-active' : 'subfase-tab-inactive'
-                }`}
-              >
-                <Upload className="subfase-tab-icon" />
-                Subir Archivos
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('drive')}
-                className={`subfase-tab-button ${
-                  activeTab === 'drive' ? 'subfase-tab-active' : 'subfase-tab-inactive'
-                }`}
-              >
-                <Link className="subfase-tab-icon" />
-                URL de Drive
-              </button>
+            
+            <div>
+              <label className="subfase-form-label">
+                URL de Google Drive
+              </label>
+              <input
+                type="url"
+                value={urlDrive}
+                onChange={(e) => setUrlDrive(e.target.value)}
+                placeholder="https://drive.google.com/drive/folders/..."
+                className="subfase-form-input"
+              />
+              <p className="subfase-helper-text">
+                Asegúrate de que la carpeta tenga permisos de visualización
+              </p>
             </div>
-
-            {activeTab === 'archivos' && (
-              <div>
-                <div>
-                  <label className="subfase-file-upload-area">
-                    <div className="subfase-file-upload-content">
-                      <Upload className="subfase-upload-icon" />
-                      <p className="subfase-upload-text">
-                        <span className="subfase-upload-text-bold">Click para subir</span> o arrastra archivos
-                      </p>
-                      <p className="subfase-upload-formats">
-                        Formatos admitidos: PDF, DOCX, XLSX (Max. 10MB)
-                      </p>
-                    </div>
-                    <input
-                      type="file"
-                      className="subfase-file-input-hidden"
-                      multiple
-                      accept=".pdf,.doc,.docx,.xls,.xlsx"
-                      onChange={handleFileUpload}
-                    />
-                  </label>
-                </div>
-
-                {documentos.length > 0 && (
-                  <div className="subfase-documents-list">
-                    <h3 className="subfase-documents-title">Documentos subidos:</h3>
-                    {documentos.map((doc) => (
-                      <div key={doc.id} className="subfase-document-item">
-                        <div className="subfase-document-info">
-                          <span className="subfase-document-icon">{getFileIcon(doc.name)}</span>
-                          <div>
-                            <p className="subfase-document-name">{doc.name}</p>
-                            <p className="subfase-document-size">{formatFileSize(doc.size)}</p>
-                          </div>
-                        </div>
-                        <div className="subfase-document-actions">
-                          <button
-                            type="button"
-                            className="subfase-document-action-btn subfase-document-view-btn"
-                            onClick={() => alert(`Ver ${doc.name}`)}
-                          >
-                            <Eye className="subfase-action-icon" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => removeDocument(doc.id)}
-                            className="subfase-document-action-btn subfase-document-delete-btn"
-                          >
-                            <Trash2 className="subfase-action-icon" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === 'drive' && (
-              <div>
-                <label className="subfase-form-label">
-                  URL de Google Drive
-                </label>
-                <input
-                  type="url"
-                  value={urlDrive}
-                  onChange={(e) => setUrlDrive(e.target.value)}
-                  placeholder="https://drive.google.com/drive/folders/..."
-                  className="subfase-form-input"
-                />
-                <p className="subfase-helper-text">
-                  Asegúrate de que la carpeta tenga permisos de visualización
-                </p>
-              </div>
-            )}
           </div>
 
           <div className="subfase-actions">

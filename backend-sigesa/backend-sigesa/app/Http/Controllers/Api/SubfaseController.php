@@ -33,6 +33,7 @@ class SubfaseController extends BaseApiController
                 'url_subfase_respuesta' => 'nullable|string',
                 'estado_subfase' => 'nullable|boolean',
                 'id_usuario_updated_subfase' => 'nullable|integer',
+                'observacion_subfase' => 'nullable|string|max:300',
             ]);
 
             $subfase = SubFase::create($validated);
@@ -102,6 +103,7 @@ class SubfaseController extends BaseApiController
                 'url_subfase' => 'nullable|string',
                 'url_subfase_respuesta' => 'nullable|string',
                 'estado_subfase' => 'nullable|boolean',
+                'observacion_subfase' => 'nullable|string|max:300',
                 'id_usuario_updated_subfase' => 'nullable|integer',
             ]);
 
@@ -197,6 +199,65 @@ class SubfaseController extends BaseApiController
             return $this->successResponse($subfases, 'Subfases obtenidas exitosamente');
         } catch (\Exception $e) {
             return $this->errorResponse('Error al obtener las subfases por fase', 500, $e->getMessage());
+        }
+    }
+
+    /**
+     * Obtener documentos de una subfase específica
+     * @OA\Get (
+     *     path="/api/subfases/{subfase}/documentos",
+     *     tags={"Subfase"},
+     *     @OA\Parameter(
+     *         name="subfase",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID de la subfase"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Documentos de la subfase obtenidos exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=true),
+     *             @OA\Property(property="estado", type="integer", example=200),
+     *             @OA\Property(
+     *                 property="datos",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="nombre_documento", type="string", example="Documento 1"),
+     *                     @OA\Property(property="descripcion_documento", type="string", example="Descripción del documento"),
+     *                     @OA\Property(property="tipo_documento", type="string", example="PDF"),
+     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2023-01-01T00:00:00Z"),
+     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2023-01-01T00:00:00Z")
+     *                 )
+     *             ),
+     *             @OA\Property(property="error", type="string", nullable=true, example=null)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Subfase no encontrada"
+     *     )
+     * )
+     */
+    public function getDocumentos($id)
+    {
+        try {
+            $subfase = Subfase::find($id);
+
+            if (!$subfase) {
+                throw ApiException::notFound('subfase', $id);
+            }
+
+            $documentos = $subfase->documentos()->get();
+
+            return $this->successResponse($documentos, 'Documentos de la subfase obtenidos exitosamente');
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
         }
     }
 }
