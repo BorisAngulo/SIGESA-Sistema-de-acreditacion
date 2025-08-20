@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom'; 
 import { useAuth } from '../contexts/AuthContext';
 import departamento from '../assets/departamento.png';
@@ -10,6 +10,35 @@ const Header = () => {
   const [showModalidadesMenu, setShowModalidadesMenu] = useState(false);
   const [showAdminMenu, setShowAdminMenu] = useState(false);
   const navigate = useNavigate();
+
+  // Referencias para detectar clics fuera de los menús
+  const modalidadesAdminRef = useRef(null);
+  const modalidadesTecnicoRef = useRef(null);
+  const adminRef = useRef(null);
+  const userMenuRef = useRef(null);
+
+  // Efecto para cerrar menús al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalidadesAdminRef.current && !modalidadesAdminRef.current.contains(event.target)) {
+        setShowModalidadesMenu(false);
+      }
+      if (modalidadesTecnicoRef.current && !modalidadesTecnicoRef.current.contains(event.target)) {
+        setShowModalidadesMenu(false);
+      }
+      if (adminRef.current && !adminRef.current.contains(event.target)) {
+        setShowAdminMenu(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -46,10 +75,15 @@ const Header = () => {
           <NavLink to="/" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
             Inicio
           </NavLink>
+          <NavLink to="/facultad" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
+              Facultades
+          </NavLink>
           <NavLink to="/login" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
             Iniciar Sesión
           </NavLink>
+          
         </>
+        
       );
     }
 
@@ -65,7 +99,7 @@ const Header = () => {
         return (
           <>
             {commonLinks}
-            <div className="modalidades-dropdown">
+            <div className="modalidades-dropdown" ref={modalidadesAdminRef}>
               <button 
                 className="modalidades-toggle header-link"
                 onClick={handleModalidadesClick}
@@ -91,7 +125,7 @@ const Header = () => {
                 </div>
               )}
             </div>
-            <div className="modalidades-dropdown">
+            <div className="modalidades-dropdown" ref={adminRef}>
               <button 
                 className="modalidades-toggle header-link"
                 onClick={handleAdminMenuClick}
@@ -142,7 +176,7 @@ const Header = () => {
         return (
           <>
             {commonLinks}
-            <div className="modalidades-dropdown">
+            <div className="modalidades-dropdown" ref={modalidadesTecnicoRef}>
               <button 
                 className="modalidades-toggle header-link"
                 onClick={handleModalidadesClick}
@@ -206,7 +240,7 @@ const Header = () => {
           {renderNavLinks()}
           
           {isAuthenticated() && (
-            <div className="user-menu">
+            <div className="user-menu" ref={userMenuRef}>
               <button 
                 className="user-menu-toggle"
                 onClick={() => setShowUserMenu(!showUserMenu)}

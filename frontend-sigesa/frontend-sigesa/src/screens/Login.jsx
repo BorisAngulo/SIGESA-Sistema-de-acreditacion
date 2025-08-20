@@ -45,13 +45,13 @@ const Login = () => {
         
         switch (userRole) {
           case 'Admin':
-            navigate('/admin');
+            navigate('/');
             break;
           case 'Tecnico':
             navigate('/tecnico');
             break;
           case 'Coordinador':
-            navigate('/coordinador');
+            navigate('/');
             break;
           case 'General':
           default:

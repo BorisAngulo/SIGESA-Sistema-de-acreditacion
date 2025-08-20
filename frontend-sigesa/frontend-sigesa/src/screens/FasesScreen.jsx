@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import DateProcessModal from '../components/DateProcessModal';
 import { 
   getFasesByCarreraModalidad, 
@@ -32,6 +33,7 @@ const FasesScreen = () => {
   const location = useLocation();
   const params = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const [fasesData, setFasesData] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -64,6 +66,13 @@ const FasesScreen = () => {
     documentos: []
   });
   const [loadingDetalles, setLoadingDetalles] = useState(false);
+
+  // Función para verificar si el usuario puede editar/eliminar
+  const puedeRealizarAcciones = () => {
+    if (!user || !user.roles || !user.roles[0]) return false;
+    const rol = user.roles[0].name;
+    return rol === 'Admin' || rol === 'Tecnico';
+  };
 
   const getModalidadId = async (modalidadNombre) => {
     try {
@@ -167,13 +176,19 @@ const FasesScreen = () => {
         descripcion: subfase.descripcion_subfase,
         fechaInicio: subfase.fecha_inicio_subfase,
         fechaFin: subfase.fecha_fin_subfase,
-        urlDrive: subfase.url_drive,
+        url_subfase: subfase.url_subfase,
+        url_subfase_respuesta: subfase.url_subfase_respuesta,
+        observacionSubfase: subfase.observacion_subfase,
+        urlDrive: subfase.url_subfase, // Mapear también a urlDrive para compatibilidad
+        estadoSubfase: subfase.estado_subfase,
         faseId: subfase.fase_id,
         createdAt: subfase.created_at,
         updatedAt: subfase.updated_at,
         progreso: 0, 
         completada: false 
       }));
+      
+      console.log('📋 SUBFASES TRANSFORMADAS:', subfasesTransformadas);
       
       setSubfases(prev => ({
         ...prev,
@@ -395,6 +410,10 @@ const FasesScreen = () => {
                   descripcion: fase.descripcion_fase,
                   fechaInicio: fase.fecha_inicio_fase,
                   fechaFin: fase.fecha_fin_fase,
+                  urlFase: fase.url_fase,
+                  urlFaseRespuesta: fase.url_fase_respuesta,
+                  observacionFase: fase.observacion_fase,
+                  estadoFase: fase.estado_fase,
                   progreso: 0,
                   completada: false,
                   expandida: false,
@@ -420,6 +439,10 @@ const FasesScreen = () => {
                   descripcion: fase.descripcion_fase,
                   fechaInicio: fase.fecha_inicio_fase,
                   fechaFin: fase.fecha_fin_fase,
+                  urlFase: fase.url_fase,
+                  urlFaseRespuesta: fase.url_fase_respuesta,
+                  observacionFase: fase.observacion_fase,
+                  estadoFase: fase.estado_fase,
                   progreso: 0,
                   completada: false,
                   expandida: false,
@@ -845,6 +868,10 @@ const FasesScreen = () => {
             descripcion: fase.descripcion_fase,
             fechaInicio: fase.fecha_inicio_fase,
             fechaFin: fase.fecha_fin_fase,
+            urlFase: fase.url_fase,
+            urlFaseRespuesta: fase.url_fase_respuesta,
+            observacionFase: fase.observacion_fase,
+            estadoFase: fase.estado_fase,
             progreso: 0,
             completada: false,
             expandida: false,
@@ -870,6 +897,10 @@ const FasesScreen = () => {
             descripcion: fase.descripcion_fase,
             fechaInicio: fase.fecha_inicio_fase,
             fechaFin: fase.fecha_fin_fase,
+            urlFase: fase.url_fase,
+            urlFaseRespuesta: fase.url_fase_respuesta,
+            observacionFase: fase.observacion_fase,
+            estadoFase: fase.estado_fase,
             progreso: 0,
             completada: false,
             expandida: false,
@@ -1169,12 +1200,16 @@ const FasesScreen = () => {
 
       {fases.length > 0 && (
         <div className="action-buttons-header">
-          <button className="btn-agregar-fase" onClick={handleAgregarFase}>
-            Agregar Fase
-          </button>
-          <button className="btn-finalizar" onClick={handleFinalizarAcreditacion}>
-            Finalizar Acreditación
-          </button>
+          {puedeRealizarAcciones() && (
+            <button className="btn-agregar-fase" onClick={handleAgregarFase}>
+              Agregar Fase
+            </button>
+          )}
+          {puedeRealizarAcciones() && (
+            <button className="btn-finalizar" onClick={handleFinalizarAcreditacion}>
+              Finalizar Acreditación
+            </button>
+          )}
         </div>
       )}
 
@@ -1189,9 +1224,11 @@ const FasesScreen = () => {
               <p>
                  Para <strong>{fasesData.carreraNombre}</strong> - {fasesData.modalidad?.replace('-', ' ').replace('arco', 'arcu').toUpperCase()}
               </p>
-              <button className="btn-crear-primera-fase" onClick={handleAgregarFase}>
-                + Crear primera fase
-              </button>
+              {puedeRealizarAcciones() && (
+                <button className="btn-crear-primera-fase" onClick={handleAgregarFase}>
+                  + Crear primera fase
+                </button>
+              )}
             </div>
           </div>
         ) : (
@@ -1223,18 +1260,20 @@ const FasesScreen = () => {
                 
                 <div className="fase-controls">
                   <div className="fase-actions">
-                    <button 
-                      className="action-icon add" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAgregarSubfase(fase.id);
-                      }}
-                      title="Agregar subfase"
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </button>
+                    {puedeRealizarAcciones() && (
+                      <button 
+                        className="action-icon add" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAgregarSubfase(fase.id);
+                        }}
+                        title="Agregar subfase"
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                          <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                    )}
                     <button 
                       className="action-icon document"
                       onClick={(e) => {
@@ -1248,33 +1287,35 @@ const FasesScreen = () => {
                         <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </button>
-                    <button 
-                      className="action-icon edit"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditarFase(fase);
-                      }}
-                      title="Editar fase"
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13M18.5 2.50023C18.8978 2.1024 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.1024 21.5 2.50023C21.8978 2.89805 22.1215 3.43762 22.1215 4.00023C22.1215 4.56284 21.8978 5.1024 21.5 5.50023L12 15.0002L8 16.0002L9 12.0002L18.5 2.50023Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </button>
-                    <button 
-                      className="action-icon delete"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEliminarFase(fase);
-                      }}
-                      title="Eliminar fase"
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M3 6H5H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </button>
-                  </div>
-                  
-                  <div className="fase-progress">
+                    {puedeRealizarAcciones() && (
+                      <button 
+                        className="action-icon edit"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditarFase(fase);
+                        }}
+                        title="Editar fase"
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                          <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13M18.5 2.50023C18.8978 2.1024 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.1024 21.5 2.50023C21.8978 2.89805 22.1215 3.43762 22.1215 4.00023C22.1215 4.56284 21.8978 5.1024 21.5 5.50023L12 15.0002L8 16.0002L9 12.0002L18.5 2.50023Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                    )}
+                    {puedeRealizarAcciones() && (
+                      <button 
+                        className="action-icon delete"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEliminarFase(fase);
+                        }}
+                        title="Eliminar fase"
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                          <path d="M3 6H5H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                    )}
+                  </div>                  <div className="fase-progress">
                     <span className="progress-text">{fase.progreso}%</span>
                     {getStatusIcon(fase.completada, fase.progreso)}
                   </div>
@@ -1341,24 +1382,28 @@ const FasesScreen = () => {
                                   <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                                 </svg>
                               </button>
-                              <button 
-                                className="action-icon edit"
-                                onClick={() => handleEditarSubfase(subfase, fase.id)}
-                                title="Editar subfase"
-                              >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                  <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13M18.5 2.50023C18.8978 2.1024 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.1024 21.5 2.50023C21.8978 2.89805 22.1215 3.43762 22.1215 4.00023C22.1215 4.56284 21.8978 5.1024 21.5 5.50023L12 15.0002L8 16.0002L9 12.0002L18.5 2.50023Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                              </button>
-                              <button 
-                                className="action-icon delete"
-                                onClick={() => handleEliminarSubfase(subfase, fase.id)}
-                                title="Eliminar subfase"
-                              >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                  <path d="M3 6H5H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                              </button>
+                              {puedeRealizarAcciones() && (
+                                <button 
+                                  className="action-icon edit"
+                                  onClick={() => handleEditarSubfase(subfase, fase.id)}
+                                  title="Editar subfase"
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13M18.5 2.50023C18.8978 2.1024 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.1024 21.5 2.50023C21.8978 2.89805 22.1215 3.43762 22.1215 4.00023C22.1215 4.56284 21.8978 5.1024 21.5 5.50023L12 15.0002L8 16.0002L9 12.0002L18.5 2.50023Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                </button>
+                              )}
+                              {puedeRealizarAcciones() && (
+                                <button 
+                                  className="action-icon delete"
+                                  onClick={() => handleEliminarSubfase(subfase, fase.id)}
+                                  title="Eliminar subfase"
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path d="M3 6H5H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                </button>
+                              )}
                               
                               {getSubfaseStatusIcon(subfase.completada)}
                             </div>

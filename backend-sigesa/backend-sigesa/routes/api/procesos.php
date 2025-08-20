@@ -94,7 +94,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('subfases/{subfase}/completar', [SubfaseController::class, 'marcarCompletada'])
         ->name('subfases.completar');
 
-    // Obtener documentos de una subfase específica (requiere auth)
+    // Obtener documentos de una subfase específica (requiere auth y permisos)
     Route::get('subfases/{subfase}/documentos', [SubfaseController::class, 'getDocumentos'])
+        ->middleware('permission:subfases.documentos')
         ->name('subfases.documentos');
 });

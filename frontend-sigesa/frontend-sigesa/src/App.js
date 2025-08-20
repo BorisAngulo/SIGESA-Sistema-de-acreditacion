@@ -49,7 +49,9 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
-              
+              <Route path="/facultad" element={<FacultadScreen />} />
+              <Route path="/visualizar-carreras/:facultadId" element={<VisualizarCarreras />} />
+              <Route path="/informacion-carrera/:carreraId" element={<InformacionCarrera />} />
               {/* Rutas para Admin */}
               
               <Route path="/usuarios" element={
@@ -79,11 +81,7 @@ function App() {
               } />
               
               {/* Rutas protegidas que requieren autenticación */}
-              <Route path="/facultad" element={
-                <ProtectedRoute>
-                  <FacultadScreen />
-                </ProtectedRoute>
-              } />
+              
               
               <Route path="/facultad/crear" element={
                 <ProtectedRoute allowedRoles={['Admin', 'Tecnico']}>
@@ -97,11 +95,7 @@ function App() {
                 </ProtectedRoute>
               } />
               
-              <Route path="/visualizar-carreras/:facultadId" element={
-                <ProtectedRoute>
-                  <VisualizarCarreras />
-                </ProtectedRoute>
-              } />
+              
 
               <Route path="/carrera/editar/:id" element={
                 <ProtectedRoute allowedRoles={['Admin', 'Tecnico', 'Coordinador']}>
@@ -118,12 +112,6 @@ function App() {
               <Route path="/facultad/editar/:id" element={
                 <ProtectedRoute allowedRoles={['Admin']}>
                   <EditarFacultadScreen />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/informacion-carrera/:carreraId" element={
-                <ProtectedRoute>
-                  <InformacionCarrera />
                 </ProtectedRoute>
               } />
               

@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, User, ExternalLink, FileText, Download } from 'lucide-react';
-import { downloadDocumento } from '../services/api';
+import { X, Calendar, User, ExternalLink, FileText, Download, Edit3, Save, MessageSquare } from 'lucide-react';
+import { downloadDocumento, updateObservacionFase, updateObservacionSubfase } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import '../styles/ModalDetallesFase.css';
 
 const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAsociados }) => {
   const [loading, setLoading] = useState(false);
+  const [editandoObservacion, setEditandoObservacion] = useState(false);
+  const [observacionTemp, setObservacionTemp] = useState('');
+  const [guardandoObservacion, setGuardandoObservacion] = useState(false);
+  
+  const { user } = useAuth();
 
   useEffect(() => {
     if (isOpen) {
@@ -46,6 +52,50 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
       return <FileText size={16} color="#16a34a" />;
     } else {
       return <FileText size={16} color="#6b7280" />;
+    }
+  };
+
+  // Función para verificar si el usuario puede editar observaciones
+  const puedeEditarObservaciones = () => {
+    const userRole = user?.roles?.[0]?.name;
+    return userRole === 'Admin' || userRole === 'Tecnico';
+  };
+
+  // Función para iniciar edición de observación
+  const iniciarEdicionObservacion = () => {
+    const observacionActual = tipo === 'fase' ? data?.observacionFase : data?.observacionSubfase;
+    setObservacionTemp(observacionActual || '');
+    setEditandoObservacion(true);
+  };
+
+  // Función para cancelar edición
+  const cancelarEdicionObservacion = () => {
+    setEditandoObservacion(false);
+    setObservacionTemp('');
+  };
+
+  // Función para guardar observación
+  const guardarObservacion = async () => {
+    setGuardandoObservacion(true);
+    try {
+      if (tipo === 'fase') {
+        await updateObservacionFase(data.id, observacionTemp);
+        // Actualizar el dato local
+        fase.observacionFase = observacionTemp;
+      } else {
+        await updateObservacionSubfase(data.id, observacionTemp);
+        // Actualizar el dato local
+        subfase.observacionSubfase = observacionTemp;
+      }
+      
+      setEditandoObservacion(false);
+      setObservacionTemp('');
+      
+    } catch (error) {
+      console.error('Error al guardar observación:', error);
+      alert('Error al guardar la observación: ' + error.message);
+    } finally {
+      setGuardandoObservacion(false);
     }
   };
 
@@ -101,66 +151,147 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
             <div className="info-grid">
               <div className="info-item">
                 <label>Nombre:</label>
-                <span className="info-value">{data?.nombre || 'Sin nombre'}</span>
+                <span className="info-value-fase">{data?.nombre || 'Sin nombre'}</span>
               </div>
               
               <div className="info-item full-width">
                 <label>Descripción:</label>
-                <span className="info-value description">
+                <span className="info-value-fase description-fase">
                   {data?.descripcion || 'Sin descripción'}
                 </span>
               </div>
 
-              {data?.urlFase && (
-                <div className="info-item full-width">
-                  <label>URL:</label>
+              {/* Mostrar URL dependiendo del tipo */}
+              <div className="info-item full-width">
+                <label>URL de Google Drive:</label>
+                {((tipo === 'fase' && data?.urlFase) || (tipo === 'subfase' && (data?.url_subfase || data?.urlDrive))) ? (
                   <a 
-                    href={data.urlFase} 
+                    href={tipo === 'fase' ? data.urlFase : (data.url_subfase || data.urlDrive)} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="url-link"
                   >
                     <ExternalLink size={16} />
-                    {data.urlFase}
+                    {tipo === 'fase' ? data.urlFase : (data.url_subfase || data.urlDrive)}
+                  </a>
+                ) : (
+                  <span className="info-value-fase">No hay URL configurada</span>
+                )}
+              </div>
+
+              {/* Mostrar URL de respuesta dependiendo del tipo */}
+              {((tipo === 'fase' && data?.urlFaseRespuesta) || (tipo === 'subfase' && data?.url_subfase_respuesta)) && (
+                <div className="info-item full-width">
+                  <label>URL de Respuesta:</label>
+                  <a 
+                    href={tipo === 'fase' ? data.urlFaseRespuesta : data.url_subfase_respuesta} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="url-link"
+                  >
+                    <ExternalLink size={16} />
+                    {tipo === 'fase' ? data.urlFaseRespuesta : data.url_subfase_respuesta}
                   </a>
                 </div>
               )}
 
               <div className="info-item">
                 <label>Estado:</label>
-                <span className={`estado-badge ${data?.estadoFase ? 'activo' : 'inactivo'}`}>
-                  {data?.estadoFase ? 'Activo' : 'Inactivo'}
+                <span className={`estado-badge ${
+                  tipo === 'fase' 
+                    ? (data?.estadoFase ? 'completo' : 'en-proceso') 
+                    : (data?.estadoSubfase ? 'completo' : 'en-proceso')
+                }`}>
+                  {tipo === 'fase' 
+                    ? (data?.estadoFase ? 'Completo' : 'En proceso') 
+                    : (data?.estadoSubfase ? 'Completo' : 'En proceso')
+                  }
                 </span>
               </div>
             </div>
           </div>
 
           {/* Fechas */}
-          <div className="detalles-section">
-            <h3 className="section-title">
+          <div className="detalles-section fechas-section">
+            <h3 className="section-title fechas-title">
               <Calendar size={20} />
               Fechas
             </h3>
-            <div className="info-grid">
+            <div className="info-grid fechas-grid">
               <div className="info-item">
                 <label>Fecha de Inicio:</label>
-                <span className="info-value">{formatDate(data?.fechaInicio)}</span>
+                <span className="info-value-fecha">{formatDate(data?.fechaInicio)}</span>
               </div>
               
               <div className="info-item">
                 <label>Fecha de Fin:</label>
-                <span className="info-value">{formatDate(data?.fechaFin)}</span>
+                <span className="info-value-fecha">{formatDate(data?.fechaFin)}</span>
               </div>
             </div>
           </div>
 
-          {/* Metadatos */}
+          {/* Observaciones */}
           <div className="detalles-section">
             <h3 className="section-title">
+              <MessageSquare size={20} />
+              Observaciones
+              {puedeEditarObservaciones() && !editandoObservacion && (
+                <button 
+                  onClick={iniciarEdicionObservacion}
+                  className="edit-observacion-btn"
+                  title="Editar observación"
+                >
+                  <Edit3 size={16} />
+                </button>
+              )}
+            </h3>
+            
+            <div className="observacion-container">
+              {editandoObservacion ? (
+                <div className="observacion-edit">
+                  <textarea
+                    value={observacionTemp}
+                    onChange={(e) => setObservacionTemp(e.target.value)}
+                    placeholder="Escriba sus observaciones aquí..."
+                    className="observacion-textarea"
+                    rows={4}
+                    maxLength={500}
+                  />
+                  <div className="observacion-actions">
+                    <button 
+                      onClick={guardarObservacion}
+                      disabled={guardandoObservacion}
+                      className="btn-guardar"
+                    >
+                      <Save size={16} />
+                      {guardandoObservacion ? 'Guardando...' : 'Guardar'}
+                    </button>
+                    <button 
+                      onClick={cancelarEdicionObservacion}
+                      className="btn-cancelar"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="observacion-display">
+                  <p className="observacion-text">
+                    {(tipo === 'fase' ? data?.observacionFase : data?.observacionSubfase) || 
+                     'No hay observaciones registradas'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Metadatos */}
+          <div className="detalles-section metadatos-section">
+            <h3 className="section-title metadatos-title">
               <User size={20} />
               Metadatos
             </h3>
-            <div className="info-grid">
+            <div className="info-grid metadatos-grid">
               <div className="info-item">
                 <label>ID:</label>
                 <span className="info-value">{data?.id}</span>
