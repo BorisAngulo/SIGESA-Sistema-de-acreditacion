@@ -25,38 +25,35 @@ const Home = () => {
           <section className="home-section">
             <h2>¿Qué es SIGESA?</h2>
             <p>
-              El SIGESA (Sistema de Gestión y Seguimiento al Proceso de Acreditación) es una plataforma digital desarrollada por la Dirección Universitaria de Evaluación y Acreditación (DUEA) de la Universidad Mayor de San Simón (UMSS), con el objetivo de facilitar, organizar y dar seguimiento al proceso de acreditación de carreras universitarias bajo los estándares establecidos por el Sistema ARCU-SUR del MERCOSUR y el Comité Universitario Boliviano (CUB).
+              El <strong>SIGESA</strong> (Sistema de Gestión y Seguimiento al Proceso de Acreditación) es una plataforma digital desarrollada por la <strong>Dirección Universitaria de Evaluación y Acreditación (DUEA)</strong> de la <strong>Universidad Mayor de San Simón (UMSS)</strong>, con el propósito de facilitar, organizar y dar seguimiento al proceso de acreditación de carreras universitarias bajo los estándares establecidos por el <strong>Sistema ARCU-SUR</strong> del MERCOSUR y en coordinación con el <strong>Comité Ejecutivo de la Universidad Boliviana (CEUB)</strong>.
             </p>
             <p>
-              Este sistema es de uso exclusivo de la unidad DUEA, y responde a la necesidad de contar con una herramienta que permita gestionar de manera sistemática y transparente cada una de las etapas que componen los procesos de acreditación. A través del SIGESA, la DUEA garantiza una administración eficiente y un seguimiento riguroso del cumplimiento de los criterios de calidad definidos a nivel nacional y regional.
+              Este sistema responde a la necesidad institucional de contar con una herramienta que permita gestionar de forma sistemática y transparente cada una de las etapas de la acreditación. A través del SIGESA, la DUEA asegura una administración eficiente, un seguimiento riguroso y la adecuada documentación del cumplimiento de los criterios de calidad definidos a nivel nacional y regional.
             </p>
             <p>
-              El ARCU-SUR, promovido por los países del MERCOSUR y asociados, es el sistema de acreditación regional que da continuidad al anterior Mecanismo Experimental de Acreditación (MEXA), aplicado inicialmente en carreras como Agronomía, Ingeniería y Medicina. Hoy en día, ARCU-SUR representa un mecanismo consolidado que busca asegurar la calidad académica, promover la movilidad estudiantil y profesional, y facilitar el reconocimiento mutuo de títulos universitarios en la región.
+              En este marco, el SIGESA brinda a la DUEA las herramientas necesarias para organizar información relevante, almacenar evidencias, elaborar informes de autoevaluación, gestionar observaciones emitidas por pares evaluadores y generar reportes útiles para la toma de decisiones. Además, permite planificar y dar seguimiento a las actividades de acuerdo con los cronogramas establecidos por ARCU-SUR y el CEUB.
             </p>
             <p>
-              El SIGESA, en ese marco, permite a la DUEA cumplir con sus funciones de evaluación institucional mediante herramientas que organizan la información relevante, almacenan evidencias, permiten la elaboración de informes de autoevaluación, gestionan las observaciones emitidas por pares evaluadores, y generan reportes útiles para la toma de decisiones. También apoya la planificación y seguimiento de actividades en función de cronogramas establecidos por los sistemas ARCU-SUR y CUB.
+              Aunque está diseñado principalmente para administradores, técnicos y responsables de la DUEA, el SIGESA también ofrece acceso público a información relacionada con los procesos de acreditación, fortaleciendo la transparencia y visibilizando el trabajo institucional en materia de aseguramiento de la calidad.
             </p>
             <p>
-              Este sistema está diseñado para ser utilizado por administradores, técnicos y tramitadores de la DUEA, pero también permite el acceso al público en general, con el fin de promover la transparencia y dar visibilidad al trabajo que se realiza en materia de aseguramiento de la calidad. La interfaz del SIGESA permite la consulta pública de información relacionada con los procesos de acreditación y resultados alcanzados por las distintas carreras sometidas a evaluación.
-            </p>
-            <p>
-              En síntesis, el SIGESA es una herramienta clave que refuerza el compromiso de la UMSS, a través de su unidad DUEA, con la mejora continua, la calidad académica y la integración regional. Es un sistema que no solo gestiona información, sino que promueve una cultura institucional de evaluación permanente, responsabilidad y apertura hacia la comunidad universitaria y la sociedad en general.
+              En síntesis, el SIGESA constituye una herramienta clave que refuerza el compromiso de la <strong>UMSS</strong>, a través de la <strong>DUEA</strong>, con la mejora continua, la calidad académica y la integración regional. No solo gestiona información, sino que impulsa una cultura universitaria de evaluación permanente, responsabilidad institucional y apertura hacia la comunidad y la sociedad en general.
             </p>
           </section>
 
           <section className="home-section">
             <h2>¿Qué es el Proceso de Acreditación?</h2>
             <p>
-              El proceso de acreditación es un mecanismo de evaluación externa que permite verificar y garantizar que una carrera universitaria cumpla con criterios de calidad previamente establecidos. En el ámbito regional, este proceso se lleva a cabo a través del <strong>Sistema de Acreditación Regional de Carreras Universitarias del MERCOSUR (ARCU-SUR)</strong>, el cual promueve la integración educativa entre los países miembros y asociados del bloque.
+              El proceso de acreditación es un mecanismo de evaluación externa que verifica y garantiza que una carrera universitaria cumpla con criterios de calidad previamente definidos. En el ámbito regional, este proceso se desarrolla a través del <strong>Sistema de Acreditación Regional de Carreras Universitarias del MERCOSUR (ARCU-SUR)</strong>, que impulsa la integración y cooperación académica entre los países miembros y asociados.
             </p>
             <p>
-              ARCU-SUR es la continuación del <em>Mecanismo Experimental de Acreditación (MEXA)</em>, una iniciativa previa que evaluó de forma piloto carreras como Agronomía, Ingeniería y Medicina, sentando las bases para un sistema permanente, sólido y reconocido internacionalmente.
+              ARCU-SUR surge como continuidad del <em>Mecanismo Experimental de Acreditación (MEXA)</em>, iniciativa que evaluó de manera piloto carreras como Agronomía, Ingeniería y Medicina, y que sentó las bases para un sistema permanente, sólido y reconocido internacionalmente.
             </p>
             <p>
-              A través de este proceso, se busca asegurar que las carreras universitarias ofrezcan una formación académica de alta calidad, con pertinencia social, infraestructura adecuada, cuerpo docente calificado y mecanismos de mejora continua. Además, la acreditación regional favorece la movilidad de estudiantes y profesionales, así como el reconocimiento mutuo de títulos en el MERCOSUR.
+              El propósito central de la acreditación es asegurar que las carreras universitarias brinden una formación académica de excelencia, socialmente pertinente, con infraestructura adecuada, docentes calificados y procesos de mejora continua. Asimismo, la acreditación regional facilita la movilidad de estudiantes y profesionales, y favorece el reconocimiento mutuo de títulos en el MERCOSUR.
             </p>
             <p>
-              En la <strong>Universidad Mayor de San Simón (UMSS)</strong>, este proceso es liderado y gestionado por la <strong>Dirección Universitaria de Evaluación y Acreditación (DUEA)</strong>, unidad encargada de acompañar a las carreras durante todas las etapas de autoevaluación, evaluación externa y seguimiento, en cumplimiento de los requisitos del ARCU-SUR y del <strong>Comité Universitario Boliviano (CUB)</strong>.
+              En la <strong>Universidad Mayor de San Simón (UMSS)</strong>, la conducción de este proceso está a cargo de la <strong>Dirección Universitaria de Evaluación y Acreditación (DUEA)</strong>, que acompaña a las carreras en todas las etapas: autoevaluación, evaluación externa y seguimiento. Todo ello en articulación con los lineamientos del ARCU-SUR y en coordinación con el <strong>Comité Ejecutivo de la Universidad Boliviana (CEUB)</strong>.
             </p>
           </section>
         </div>
