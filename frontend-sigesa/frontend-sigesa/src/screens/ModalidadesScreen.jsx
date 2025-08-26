@@ -11,10 +11,8 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
   const [selectedFacultad, setSelectedFacultad] = useState('');
   const [selectedCarrera, setSelectedCarrera] = useState('');
   const [filteredCarreras, setFilteredCarreras] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   const [currentModalidad, setCurrentModalidad] = useState(null);
-  const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedFacultadNombre, setSelectedFacultadNombre] = useState('');
   const [selectedCarreraNombre, setSelectedCarreraNombre] = useState('');
@@ -22,8 +20,6 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        setLoading(true);
-        setError(null);
         
         console.log('Iniciando carga de datos...');
         
@@ -59,9 +55,9 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
           let modalidadActual;
           
           if (modalidad === 'arco-sur') {
-            modalidadActual = modalidadesData.find(m => m.id === 1) || modalidadesData[0];
-          } else {
             modalidadActual = modalidadesData.find(m => m.id === 2) || modalidadesData[1] || modalidadesData[0];
+          } else {
+            modalidadActual = modalidadesData.find(m => m.id === 1) || modalidadesData[0];
           }
           
           console.log('✅ Modalidad asignada:', modalidadActual);
@@ -70,11 +66,9 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
         
       } catch (error) {
         console.error('Error al cargar datos:', error);
-        setError(error.message);
         setFacultades([]);
         setCarreras([]);
       } finally {
-        setLoading(false);
       }
     };
 

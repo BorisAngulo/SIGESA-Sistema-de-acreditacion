@@ -220,4 +220,91 @@ class CarreraModalidadController extends BaseApiController
             return $this->handleGeneralException($e);
         }
     }
+
+    /**
+     * @OA\Get(
+     *     path="/api/carrera-modalidad/detalles-completos",
+     *     summary="Obtener todas las carreras-modalidades con detalles completos",
+     *     description="Retorna todas las carreras-modalidades con información de facultad, carrera, modalidad, y sus fases/subfases asociadas",
+     *     tags={"CarreraModalidad"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de carreras-modalidades con detalles completos"
+     *     )
+     * )
+     */
+    public function getDetallesCompletos()
+    {
+        try {
+            $carrerasModalidades = CarreraModalidad::with([
+                'carrera.facultad',
+                'modalidad',
+                'fases.subfases'
+            ])
+            ->get()
+            ->map(function ($carreraModalidad) {
+                return [
+                    'id' => $carreraModalidad->id,
+                    'carrera_id' => $carreraModalidad->carrera_id,
+                    'modalidad_id' => $carreraModalidad->modalidad_id,
+                    'estado_modalidad' => $carreraModalidad->estado_modalidad,
+                    'fecha_ini_proceso' => $carreraModalidad->fecha_ini_proceso,
+                    'fecha_fin_proceso' => $carreraModalidad->fecha_fin_proceso,
+                    'fecha_ini_aprobacion' => $carreraModalidad->fecha_ini_aprobacion,
+                    'fecha_fin_aprobacion' => $carreraModalidad->fecha_fin_aprobacion,
+                    'certificado' => $carreraModalidad->certificado,
+                    'created_at' => $carreraModalidad->created_at,
+                    'updated_at' => $carreraModalidad->updated_at,
+                    'facultad' => [
+                        'id' => $carreraModalidad->carrera->facultad->id,
+                        'nombre_facultad' => $carreraModalidad->carrera->facultad->nombre_facultad,
+                        'codigo_facultad' => $carreraModalidad->carrera->facultad->codigo_facultad,
+                    ],
+                    'carrera' => [
+                        'id' => $carreraModalidad->carrera->id,
+                        'nombre_carrera' => $carreraModalidad->carrera->nombre_carrera,
+                        'codigo_carrera' => $carreraModalidad->carrera->codigo_carrera,
+                    ],
+                    'modalidad' => [
+                        'id' => $carreraModalidad->modalidad->id,
+                        'nombre_modalidad' => $carreraModalidad->modalidad->nombre_modalidad,
+                        'descripcion_modalidad' => $carreraModalidad->modalidad->descripcion_modalidad,
+                    ],
+                    'total_fases' => $carreraModalidad->fases->count(),
+                    'total_subfases' => $carreraModalidad->fases->sum(function ($fase) {
+                        return $fase->subfases->count();
+                    }),
+                    'fases' => $carreraModalidad->fases->map(function ($fase) {
+                        return [
+                            'id' => $fase->id,
+                            'nombre' => $fase->nombre_fase,
+                            'descripcion' => $fase->descripcion_fase,
+                            'fecha_inicio' => $fase->fecha_inicio_fase,
+                            'fecha_fin' => $fase->fecha_fin_fase,
+                            'estado_fase' => $fase->estado_fase,
+                            'subfases_count' => $fase->subfases->count(),
+                            'subfases' => $fase->subfases->map(function ($subfase) {
+                                return [
+                                    'id' => $subfase->id,
+                                    'nombre' => $subfase->nombre_subfase,
+                                    'descripcion' => $subfase->descripcion_subfase,
+                                    'fecha_inicio' => $subfase->fecha_inicio_subfase,
+                                    'fecha_fin' => $subfase->fecha_fin_subfase,
+                                    'estado_subfase' => $subfase->estado_subfase,
+                                ];
+                            })
+                        ];
+                    })
+                ];
+            });
+
+            return $this->successResponse(
+                $carrerasModalidades, 
+                'Carreras-modalidades con detalles completos obtenidas exitosamente'
+            );
+
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
 }

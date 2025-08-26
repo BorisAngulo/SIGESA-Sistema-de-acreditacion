@@ -1,3 +1,67 @@
+/* Estilos base del header - original */
+.header-container.header-original {
+  background-color: #072543;
+  color: white;
+  text-align: center;
+  padding: 0.5rem 1rem; /* Reducido de 1rem a 0.5rem 1rem */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Añadida sombra para distinguir mejor */
+}
+
+/* Estilos del header con imagen de fondo */
+.header-container.header-with-image {
+  background-image: url('../assets/navbar-background.avif');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: white;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+/* Overlay semitransparente para mejorar legibilidad del texto */
+.header-container.header-with-image::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(7, 37, 67, 0.7); /* Overlay azul semitransparente */
+  z-index: 1;
+}
+
+/* Asegurar que el contenido esté por encima del overlay */
+.header-container.header-with-image > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Botón para alternar fondos */
+.background-toggle {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  margin-left: 0.5rem;
+}
+
+.background-toggle:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Mantener compatibilidad con estilos existentes para cuando no se use clase específica */
 .header-container {
   background-color: #072543;
   color: white;
@@ -12,6 +76,12 @@
 .header-left {
   display: flex;
   align-items: center;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .header-logo {

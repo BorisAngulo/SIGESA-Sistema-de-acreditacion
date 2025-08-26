@@ -1,0 +1,453 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Building2, 
+  GraduationCap, 
+  FileText, 
+  Calendar, 
+  ChevronDown, 
+  ChevronRight, 
+  Search,
+  Filter,
+  Users,
+  CheckCircle,
+  Clock,
+  AlertCircle
+} from 'lucide-react';
+import { getCarrerasModalidadesDetallesCompletos } from '../services/api';
+import './CarrerasModalidadesAdmin.css';
+
+const CarrerasModalidadesAdmin = () => {
+  const navigate = useNavigate();
+  const [carrerasModalidades, setCarrerasModalidades] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedFacultad, setSelectedFacultad] = useState('');
+  const [selectedModalidad, setSelectedModalidad] = useState('');
+  const [expandedItems, setExpandedItems] = useState(new Set());
+
+  useEffect(() => {
+    cargarCarrerasModalidades();
+  }, []);
+
+  const cargarCarrerasModalidades = async () => {
+    try {
+      setLoading(true);
+      const data = await getCarrerasModalidadesDetallesCompletos();
+      console.log('Datos recibidos de la API:', data);
+      console.log('Tipo de datos:', typeof data);
+      console.log('Es array?:', Array.isArray(data));
+      console.log('Cantidad de elementos:', data?.length);
+      if (data && data.length > 0) {
+        console.log('Primer elemento:', data[0]);
+      }
+      setCarrerasModalidades(data);
+    } catch (err) {
+      setError('Error al cargar las carreras-modalidades');
+      console.error('Error completo:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleExpanded = (id) => {
+    const newExpanded = new Set(expandedItems);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedItems(newExpanded);
+  };
+
+  const handleCarreraModalidadClick = (carreraModalidad) => {
+    console.log('Navegando a fases con carrera-modalidad:', carreraModalidad);
+    // Navegar a la pantalla de fases con los datos de la carrera-modalidad seleccionada
+    navigate('/fases', { 
+      state: { 
+        carreraModalidad: carreraModalidad,
+        carreraId: carreraModalidad.carrera_id,
+        modalidadId: carreraModalidad.modalidad_id,
+        carreraModalidadId: carreraModalidad.id, // Pasar el ID de la carrera-modalidad existente
+        carreraNombre: carreraModalidad.carrera?.nombre_carrera,
+        facultadNombre: carreraModalidad.facultad?.nombre_facultad,
+        modalidadNombre: carreraModalidad.modalidad?.nombre_modalidad,
+        fromCarrerasModalidadesAdmin: true // Flag para indicar el origen
+      } 
+    });
+  };
+
+  const getEstadoBadge = (estado, carreraModalidad = null) => {
+    // Si se proporciona la carrera-modalidad, usar la lógica avanzada
+    if (carreraModalidad) {
+      const estadoProceso = getEstadoProceso(carreraModalidad);
+      return (
+        <span className={`estado-badge ${estadoProceso.clase}`}>
+          {estadoProceso.icono}
+          {estadoProceso.texto}
+        </span>
+      );
+    }
+
+    // Lógica para fases y subfases
+    if (estado === true) {
+      return (
+        <span className="estado-badge completado">
+          <CheckCircle size={12} />
+          Completado
+        </span>
+      );
+    } else if (estado === false) {
+      return (
+        <span className="estado-badge en-proceso">
+          <Clock size={12} />
+          En Proceso
+        </span>
+      );
+    } else {
+      return (
+        <span className="estado-badge pendiente">
+          <Clock size={12} />
+          Pendiente
+        </span>
+      );
+    }
+  };
+
+  const formatFecha = (fecha) => {
+    if (!fecha) return 'No definida';
+    return new Date(fecha).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getEstadoProceso = (carreraModalidad) => {
+    const ahora = new Date();
+    const fechaInicio = carreraModalidad.fecha_ini_proceso ? new Date(carreraModalidad.fecha_ini_proceso) : null;
+    const fechaFin = carreraModalidad.fecha_fin_proceso ? new Date(carreraModalidad.fecha_fin_proceso) : null;
+    const estado = carreraModalidad.estado_modalidad;
+
+    console.log('Evaluando estado para carrera-modalidad:', {
+      id: carreraModalidad.id,
+      ahora: ahora.toISOString(),
+      fechaInicio: fechaInicio?.toISOString(),
+      fechaFin: fechaFin?.toISOString(),
+      estado: estado,
+      carreraNombre: carreraModalidad.carrera?.nombre_carrera
+    });
+
+    // Si el estado es true, está aprobado
+    if (estado === true) {
+      return {
+        texto: 'Aprobado',
+        clase: 'aprobado',
+        icono: <CheckCircle size={12} />
+      };
+    }
+
+    // Si hay fechas de proceso, verificar si está en proceso
+    if (fechaInicio && fechaFin) {
+      const enProceso = ahora >= fechaInicio && ahora <= fechaFin;
+      
+      if (enProceso) {
+        return {
+          texto: 'En Proceso',
+          clase: 'en-proceso',
+          icono: <Clock size={12} />
+        };
+      }
+      
+      // Si está fuera del proceso y el estado es false, está rechazado
+      if (estado === false && ahora > fechaFin) {
+        return {
+          texto: 'Rechazado',
+          clase: 'rechazado',
+          icono: <AlertCircle size={12} />
+        };
+      }
+    }
+
+    // Estado por defecto para otros casos
+    if (estado === false) {
+      return {
+        texto: 'Inactivo',
+        clase: 'inactivo',
+        icono: <AlertCircle size={12} />
+      };
+    }
+
+    return {
+      texto: 'Pendiente',
+      clase: 'pendiente',
+      icono: <Clock size={12} />
+    };
+  };
+
+  // Validar que carrerasModalidades sea un array
+  const carrerasModalidadesArray = Array.isArray(carrerasModalidades) ? carrerasModalidades : [];
+
+  // Obtener listas únicas para filtros
+  const facultadesUnicas = [...new Set(carrerasModalidadesArray
+    .filter(cm => cm.facultad?.nombre_facultad)
+    .map(cm => cm.facultad.nombre_facultad))];
+  const modalidadesUnicas = [...new Set(carrerasModalidadesArray
+    .filter(cm => cm.modalidad?.nombre_modalidad)
+    .map(cm => cm.modalidad.nombre_modalidad))];
+
+  // Filtrar datos
+  const carrerasModalidadesFiltradas = carrerasModalidadesArray.filter(cm => {
+    const matchesSearch = 
+      (cm.carrera?.nombre_carrera || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (cm.facultad?.nombre_facultad || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (cm.modalidad?.nombre_modalidad || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesFacultad = !selectedFacultad || cm.facultad?.nombre_facultad === selectedFacultad;
+    const matchesModalidad = !selectedModalidad || cm.modalidad?.nombre_modalidad === selectedModalidad;
+
+    return matchesSearch && matchesFacultad && matchesModalidad;
+  });
+
+  if (loading) {
+    return (
+      <div className="carreras-modalidades-admin">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Cargando carreras-modalidades...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="carreras-modalidades-admin">
+        <div className="error-container">
+          <AlertCircle size={48} />
+          <h3>Error al cargar datos</h3>
+          <p>{error}</p>
+          <button onClick={cargarCarrerasModalidades} className="btn-retry">
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="carreras-modalidades-admin">
+      <div className="header-section">
+        <h1>
+          <GraduationCap size={28} />
+          Gestión de Carreras-Modalidades
+        </h1>
+        <p>Administración completa de todas las carreras-modalidades del sistema</p>
+      </div>
+
+      {/* Filtros y búsqueda */}
+      <div className="filters-section">
+        <div className="search-box">
+          <Search size={20} />
+          <input
+            type="text"
+            placeholder="Buscar por carrera, facultad o modalidad..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <div className="filters-row">
+          <div className="filter-group">
+            <Filter size={16} />
+            <select
+              value={selectedFacultad}
+              onChange={(e) => setSelectedFacultad(e.target.value)}
+            >
+              <option value="">Todas las facultades</option>
+              {facultadesUnicas.map(facultad => (
+                <option key={facultad} value={facultad}>{facultad}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <select
+              value={selectedModalidad}
+              onChange={(e) => setSelectedModalidad(e.target.value)}
+            >
+              <option value="">Todas las modalidades</option>
+              {modalidadesUnicas.map(modalidad => (
+                <option key={modalidad} value={modalidad}>{modalidad}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="results-count">
+            {carrerasModalidadesFiltradas.length} de {carrerasModalidades.length} resultados
+          </div>
+        </div>
+      </div>
+
+      {/* Lista de carreras-modalidades */}
+      <div className="carreras-modalidades-list">
+        {carrerasModalidadesFiltradas.map(cm => (
+          <div key={cm.id} className="carrera-modalidad-card">
+            <div className="card-header">
+              <div className="card-main-info" onClick={() => handleCarreraModalidadClick(cm)}>
+                <div className="card-title">
+                  <Building2 size={20} />
+                  <span className="facultad-name">{cm.facultad?.nombre_facultad || 'Sin facultad'}</span>
+                  <span className="separator">→</span>
+                  <span className="carrera-name">{cm.carrera?.nombre_carrera || 'Sin carrera'}</span>
+                </div>
+                <div className="card-subtitle">
+                  <span className="modalidad-name">{cm.modalidad?.nombre_modalidad || 'Sin modalidad'}</span>
+                  {getEstadoBadge(cm.estado_modalidad, cm)}
+                </div>
+              </div>
+
+              <div className="card-stats">
+                <div className="stat-item">
+                  <FileText size={16} />
+                  <span>{cm.total_fases || 0} fases</span>
+                </div>
+                <div className="stat-item">
+                  <Users size={16} />
+                  <span>{cm.total_subfases || 0} subfases</span>
+                </div>
+                <div className="expand-icon" onClick={(e) => {
+                  e.stopPropagation();
+                  toggleExpanded(cm.id);
+                }}>
+                  {expandedItems.has(cm.id) ? 
+                    <ChevronDown size={20} /> : 
+                    <ChevronRight size={20} />
+                  }
+                </div>
+              </div>
+            </div>
+
+            {expandedItems.has(cm.id) && (
+              <div className="card-details">
+                {/* Información general */}
+                <div className="details-section">
+                  <h4>Información General</h4>
+                  <div className="info-grid">
+                    <div className="info-item">
+                      <label>ID:</label>
+                      <span>{cm.id}</span>
+                    </div>
+                    <div className="info-item">
+                      <label>Facultad:</label>
+                      <span>{cm.facultad.nombre_facultad} ({cm.facultad.codigo_facultad})</span>
+                    </div>
+                    <div className="info-item">
+                      <label>Carrera:</label>
+                      <span>{cm.carrera.nombre_carrera} ({cm.carrera.codigo_carrera})</span>
+                    </div>
+                    <div className="info-item">
+                      <label>Modalidad:</label>
+                      <span>{cm.modalidad.nombre_modalidad}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fechas del proceso */}
+                <div className="details-section">
+                  <h4>
+                    <Calendar size={16} />
+                    Fechas del Proceso
+                  </h4>
+                  <div className="fechas-grid">
+                    <div className="fecha-item">
+                      <label>Inicio del Proceso:</label>
+                      <span>{formatFecha(cm.fecha_ini_proceso)}</span>
+                    </div>
+                    <div className="fecha-item">
+                      <label>Fin del Proceso:</label>
+                      <span>{formatFecha(cm.fecha_fin_proceso)}</span>
+                    </div>
+                    <div className="fecha-item">
+                      <label>Inicio Aprobación:</label>
+                      <span>{formatFecha(cm.fecha_ini_aprobacion)}</span>
+                    </div>
+                    <div className="fecha-item">
+                      <label>Fin Aprobación:</label>
+                      <span>{formatFecha(cm.fecha_fin_aprobacion)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fases y subfases */}
+                {cm.fases && cm.fases.length > 0 && (
+                  <div className="details-section">
+                    <h4>Fases y Subfases</h4>
+                    <div className="fases-list">
+                      {cm.fases.map(fase => (
+                        <div key={fase.id} className="fase-item">
+                          <div className="fase-header">
+                            <span className="fase-name">{fase.nombre}</span>
+                            <span className="subfases-count">
+                              {fase.subfases_count} subfases
+                            </span>
+                            {getEstadoBadge(fase.estado_fase)}
+                          </div>
+                          {fase.descripcion && (
+                            <p className="fase-descripcion">{fase.descripcion}</p>
+                          )}
+                          <div className="fase-fechas">
+                            <span>{formatFecha(fase.fecha_inicio)} - {formatFecha(fase.fecha_fin)}</span>
+                          </div>
+                          
+                          {fase.subfases && fase.subfases.length > 0 && (
+                            <div className="subfases-list">
+                              {fase.subfases.map(subfase => (
+                                <div key={subfase.id} className="subfase-item">
+                                  <div className="subfase-header">
+                                    <span className="subfase-name">{subfase.nombre}</span>
+                                    {getEstadoBadge(subfase.estado_subfase)}
+                                  </div>
+                                  {subfase.descripcion && (
+                                    <p className="subfase-descripcion">{subfase.descripcion}</p>
+                                  )}
+                                  <div className="subfase-fechas">
+                                    <span>{formatFecha(subfase.fecha_inicio)} - {formatFecha(subfase.fecha_fin)}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Mensajes de estado */}
+      {carrerasModalidadesArray.length === 0 && (
+        <div className="empty-state">
+          <GraduationCap size={48} />
+          <h3>No hay carreras-modalidades registradas</h3>
+          <p>No se encontraron datos en el sistema. Contacte al administrador.</p>
+        </div>
+      )}
+
+      {carrerasModalidadesArray.length > 0 && carrerasModalidadesFiltradas.length === 0 && (
+        <div className="empty-state">
+          <Search size={48} />
+          <h3>No se encontraron resultados</h3>
+          <p>Intenta ajustar los filtros o términos de búsqueda</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CarrerasModalidadesAdmin;

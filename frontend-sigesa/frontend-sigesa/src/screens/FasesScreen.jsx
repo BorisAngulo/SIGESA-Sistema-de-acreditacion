@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import DateProcessModal from '../components/DateProcessModal';
@@ -7,7 +7,6 @@ import {
   createFase, 
   updateFase, 
   deleteFase,
-  getCarreraModalidades,
   getCarreraModalidadEspecifica,
   getCarreraModalidadActiva,
   createCarreraModalidad,
@@ -49,7 +48,6 @@ const FasesScreen = () => {
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [documentoTarget, setDocumentoTarget] = useState({ type: null, id: null }); // 'fase' o 'subfase'
   const [documentos, setDocumentos] = useState([]);
-  const [loadingDocumentos, setLoadingDocumentos] = useState(false);
   
   // Estados para el modal de fechas del proceso
   const [showDateProcessModal, setShowDateProcessModal] = useState(false);
@@ -65,7 +63,6 @@ const FasesScreen = () => {
     data: null,
     documentos: []
   });
-  const [loadingDetalles, setLoadingDetalles] = useState(false);
 
   // Función para verificar si el usuario puede editar/eliminar
   const puedeRealizarAcciones = () => {
@@ -161,7 +158,7 @@ const FasesScreen = () => {
     }
   };
 
-  const loadSubfasesForFase = async (faseId) => {
+  const loadSubfasesForFase = useCallback(async (faseId) => {
     try {
       setLoadingSubfases(prev => ({ ...prev, [faseId]: true }));
       
@@ -206,7 +203,7 @@ const FasesScreen = () => {
     } finally {
       setLoadingSubfases(prev => ({ ...prev, [faseId]: false }));
     }
-  };
+  }, []);
 
   useEffect(() => {
     const processLocationData = async () => {
@@ -215,12 +212,8 @@ const FasesScreen = () => {
         const {
           modalidad,
           modalidadId,
-          facultadId,
           carreraId,
-          carreraModalidadId, 
-          facultadNombre,
-          carreraNombre,
-          modalidadData
+          carreraModalidadId
         } = location.state;
         
         console.log('Datos recibidos en FasesScreen (location.state):', location.state);
@@ -250,7 +243,7 @@ const FasesScreen = () => {
         setFasesData({
           ...location.state,
           modalidadId: resolvedModalidadId,
-          carreraModalidadId: null 
+          carreraModalidadId: carreraModalidadId || null // Conservar el ID si viene desde CarrerasModalidadesAdmin
         });
         
         console.log('✅ Datos procesados para FasesScreen:', {
@@ -288,7 +281,7 @@ const FasesScreen = () => {
     };
 
     processLocationData();
-  }, [location.state, params]);
+  }, [location.state, location.search, params]);
 
   useEffect(() => {
     const loadFases = async () => {
@@ -304,10 +297,23 @@ const FasesScreen = () => {
         console.log('🔍 === INICIANDO CARGA DE FASES ===');
         console.log('  - carreraId:', fasesData.carreraId);
         console.log('  - modalidadId:', fasesData.modalidadId);
+        console.log('  - carreraModalidadId:', fasesData.carreraModalidadId);
+        console.log('  - fromCarrerasModalidadesAdmin:', fasesData.fromCarrerasModalidadesAdmin);
         
         let existeCarreraModalidad = null;
+        let carreraModalidadIdFinal;
         
-        // Primero buscar una carrera-modalidad activa (dentro del rango de fechas)
+        // Si viene desde CarrerasModalidadesAdmin, usar directamente el ID proporcionado
+        if (fasesData.fromCarrerasModalidadesAdmin && fasesData.carreraModalidadId) {
+          console.log('✅ Navegación desde CarrerasModalidadesAdmin - usando ID existente:', fasesData.carreraModalidadId);
+          carreraModalidadIdFinal = fasesData.carreraModalidadId;
+          
+          // Simular que encontramos una carrera-modalidad para evitar mostrar el modal
+          existeCarreraModalidad = { id: fasesData.carreraModalidadId };
+        } else {
+          console.log('🔍 Navegación desde ModalidadesScreen - verificando carrera-modalidad...');
+        
+          // Primero buscar una carrera-modalidad activa (dentro del rango de fechas)
         try {
           console.log('🗓️ Buscando carrera-modalidad activa (dentro del rango de fechas)...');
           existeCarreraModalidad = await getCarreraModalidadActiva(
@@ -342,34 +348,40 @@ const FasesScreen = () => {
         } catch (error) {
           console.log('❌ Error al buscar carrera-modalidad:', error);
         }
+        } // Cierre del else
 
         // Nota: Si llegamos aquí con existeCarreraModalidad = null, 
         // significa que debemos crear una nueva (ya sea porque no existe ninguna
         // o porque la existente está fuera del rango de fechas)
         
-        let carreraModalidadIdFinal;
+        // let carreraModalidadIdFinal; // Ya se declaró arriba
         
         if (existeCarreraModalidad) {
           carreraModalidadIdFinal = existeCarreraModalidad.id;
           
-          console.log('🎯 === VALIDACIÓN DE CARRERA-MODALIDAD ===');
-          console.log('  - carrera_id esperado:', fasesData.carreraId);
-          console.log('  - modalidad_id esperado:', fasesData.modalidadId);
-          console.log('  - carrera_id encontrado:', existeCarreraModalidad.carrera_id);
-          console.log('  - modalidad_id encontrado:', existeCarreraModalidad.modalidad_id);
-          console.log('  - carrera_modalidad_id final:', carreraModalidadIdFinal);
-          
-          const carreraCoincide = parseInt(existeCarreraModalidad.carrera_id) === parseInt(fasesData.carreraId);
-          const modalidadCoincide = parseInt(existeCarreraModalidad.modalidad_id) === parseInt(fasesData.modalidadId);
-          
-          if (!carreraCoincide || !modalidadCoincide) {
-            console.error('❌ ERROR CRÍTICO: Los IDs no coinciden exactamente');
-            console.error('  Carrera coincide:', carreraCoincide);
-            console.error('  Modalidad coincide:', modalidadCoincide);
-            throw new Error('Inconsistencia en los IDs de carrera-modalidad');
+          // Solo validar IDs si NO viene desde CarrerasModalidadesAdmin
+          if (!fasesData.fromCarrerasModalidadesAdmin) {
+            console.log('🎯 === VALIDACIÓN DE CARRERA-MODALIDAD ===');
+            console.log('  - carrera_id esperado:', fasesData.carreraId);
+            console.log('  - modalidad_id esperado:', fasesData.modalidadId);
+            console.log('  - carrera_id encontrado:', existeCarreraModalidad.carrera_id);
+            console.log('  - modalidad_id encontrado:', existeCarreraModalidad.modalidad_id);
+            console.log('  - carrera_modalidad_id final:', carreraModalidadIdFinal);
+            
+            const carreraCoincide = parseInt(existeCarreraModalidad.carrera_id) === parseInt(fasesData.carreraId);
+            const modalidadCoincide = parseInt(existeCarreraModalidad.modalidad_id) === parseInt(fasesData.modalidadId);
+            
+            if (!carreraCoincide || !modalidadCoincide) {
+              console.error('❌ ERROR CRÍTICO: Los IDs no coinciden exactamente');
+              console.error('  Carrera coincide:', carreraCoincide);
+              console.error('  Modalidad coincide:', modalidadCoincide);
+              throw new Error('Inconsistencia en los IDs de carrera-modalidad');
+            }
+            
+            console.log('✅ Validación de IDs exitosa');
+          } else {
+            console.log('✅ Navegación desde CarrerasModalidadesAdmin - omitiendo validación de IDs');
           }
-          
-          console.log('✅ Validación de IDs exitosa');
           
           setFasesData(prev => ({
             ...prev,
@@ -501,7 +513,7 @@ const FasesScreen = () => {
     };
 
     loadFases();
-  }, [fasesData?.carreraId, fasesData?.modalidadId, location.state?.subfaseActualizada]);
+  }, [fasesData, location.state?.subfaseActualizada, loadSubfasesForFase]);
 
   const toggleFase = (faseId) => {
     setFases(fases.map(fase => 
@@ -565,22 +577,53 @@ const FasesScreen = () => {
       console.log('fasesData completo:', fasesData);
       
       let carreraModalidadIdFinal = fasesData.carreraModalidadId;
-  
-      console.log('🔍 Método 1: Buscando carrera-modalidad específica...');
       let existeCarreraModalidad = null;
-      
-      try {
-        existeCarreraModalidad = await getCarreraModalidadEspecifica(
-          fasesData.carreraId, 
-          fasesData.modalidadId
-        );
+  
+      // Si viene desde CarrerasModalidadesAdmin, usar directamente el ID proporcionado
+      if (fasesData.fromCarrerasModalidadesAdmin && fasesData.carreraModalidadId) {
+        console.log('✅ Creación desde CarrerasModalidadesAdmin - usando ID específico:', fasesData.carreraModalidadId);
+        carreraModalidadIdFinal = fasesData.carreraModalidadId;
         
-        if (existeCarreraModalidad) {
-          console.log('✅ Método 1 exitoso - Carrera-modalidad encontrada:', existeCarreraModalidad);
-          carreraModalidadIdFinal = existeCarreraModalidad.id;
+        // Simular que existe para continuar con la creación
+        existeCarreraModalidad = { id: fasesData.carreraModalidadId };
+      } else {
+        console.log('🔍 PRIORIDAD 1: Buscando carrera-modalidad ACTIVA (desde modalidades)...');
+      
+        try {
+          // PRIMERO buscar carrera-modalidad activa (dentro del rango de fechas)
+          existeCarreraModalidad = await getCarreraModalidadActiva(
+            fasesData.carreraId, 
+            fasesData.modalidadId
+          );
+          
+          if (existeCarreraModalidad) {
+            console.log('✅ PRIORIDAD 1 exitosa - Carrera-modalidad ACTIVA encontrada:', existeCarreraModalidad);
+            carreraModalidadIdFinal = existeCarreraModalidad.id;
+          } else {
+            console.log('⚠️ PRIORIDAD 1 falló - No hay carrera-modalidad activa');
+            
+            // Solo como respaldo, buscar cualquier carrera-modalidad existente
+            console.log('🔍 RESPALDO: Buscando cualquier carrera-modalidad específica...');
+            existeCarreraModalidad = await getCarreraModalidadEspecifica(
+              fasesData.carreraId, 
+              fasesData.modalidadId
+            );
+            
+            if (existeCarreraModalidad) {
+              console.log('⚠️ RESPALDO exitoso - Carrera-modalidad encontrada (posiblemente fuera de fechas):', existeCarreraModalidad);
+              carreraModalidadIdFinal = existeCarreraModalidad.id;
+            }
+          }
+        } catch (error) {
+          console.log('❌ Error en búsqueda de carrera-modalidad:', error);
         }
-      } catch (error) {
-        console.log('❌ Método 1 falló:', error);
+      } // Cierre del else
+      
+      // Continuar con la lógica común para ambos casos
+      if (fasesData.fromCarrerasModalidadesAdmin) {
+        existeCarreraModalidad = { id: carreraModalidadIdFinal };
+      } else {
+        // La variable ya se asignó en el bloque anterior
       }
       
       if (!existeCarreraModalidad) {
@@ -794,7 +837,6 @@ const FasesScreen = () => {
 
   const loadDocumentos = async () => {
     try {
-      setLoadingDocumentos(true);
       const response = await getDocumentos();
       console.log('Response from getDocumentos:', response);
       
@@ -816,8 +858,6 @@ const FasesScreen = () => {
       console.error('Error al cargar documentos:', error);
       setDocumentos([]); // Asegurar que siempre sea un array en caso de error
       alert('Error al cargar documentos: ' + error.message);
-    } finally {
-      setLoadingDocumentos(false);
     }
   };
 
@@ -1040,13 +1080,8 @@ const FasesScreen = () => {
     }
   };
 
-  const reloadSubfasesForFase = (faseId) => {
-    loadSubfasesForFase(faseId);
-  };
-
-    const handleMostrarDetallesFase = async (fase) => {
+  const handleMostrarDetallesFase = async (fase) => {
     try {
-      setLoadingDetalles(true);
       setShowDetallesModal(true);
       
       console.log('🔍 Cargando documentos para la fase:', fase.id, fase.nombre_fase);
@@ -1071,14 +1106,11 @@ const FasesScreen = () => {
         data: fase,
         documentos: []
       });
-    } finally {
-      setLoadingDetalles(false);
     }
   };
 
   const handleMostrarDetallesSubfase = async (subfase, faseId) => {
     try {
-      setLoadingDetalles(true);
       setShowDetallesModal(true);
       
       console.log('🔍 Cargando documentos para la subfase:', subfase.id, subfase.nombre_subfase);
@@ -1103,8 +1135,6 @@ const FasesScreen = () => {
         data: subfase,
         documentos: []
       });
-    } finally {
-      setLoadingDetalles(false);
     }
   };
 

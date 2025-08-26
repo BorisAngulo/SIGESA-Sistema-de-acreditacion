@@ -450,9 +450,6 @@ export const getCarreraModalidades = async () => {
       `${API_URL}/acreditacion-carreras` 
     ];
     
-    let response = null;
-    let workingEndpoint = null;
-    
     for (const endpoint of possibleEndpoints) {
       try {
         console.log(`🌐 Probando endpoint: ${endpoint}`);
@@ -575,6 +572,31 @@ export const createCarreraModalidad = async (data) => {
   } catch (error) {
     console.error('Error al crear carrera modalidad:', error);
     throw error;
+  }
+};
+
+// Obtener todas las carreras-modalidades con detalles completos
+export const getCarrerasModalidadesDetallesCompletos = async () => {
+  try {
+    console.log('🔍 Obteniendo carreras-modalidades con detalles completos...');
+    
+    const res = await fetch(`${API_URL}/carrera-modalidad/detalles-completos`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    
+    const response = await res.json();
+    
+    if (response.exito && response.datos) {
+      console.log('✅ Carreras-modalidades con detalles obtenidas:', response.datos.length);
+      return response.datos;
+    } else {
+      console.error('Error en la respuesta:', response.error || 'Error desconocido');
+      return [];
+    }
+  } catch (error) {
+    console.error('💥 Error al obtener carreras-modalidades con detalles:', error);
+    return [];
   }
 };
 
@@ -1243,6 +1265,60 @@ export const updateObservacionSubfase = async (subfaseId, observacion) => {
     }
   } catch (error) {
     console.error('Error al actualizar observación de subfase:', error);
+    throw error;
+  }
+};
+
+// Actualizar solo la URL de respuesta de una fase
+export const updateUrlFaseRespuesta = async (faseId, urlRespuesta) => {
+  try {
+    console.log('Actualizando URL de respuesta de fase:', faseId, urlRespuesta);
+
+    const res = await fetch(`${API_URL}/fases/${faseId}`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        url_fase_respuesta: urlRespuesta
+      }),
+    });
+    
+    const response = await res.json();
+    
+    if (response.exito && response.datos) {
+      return response.datos;
+    } else {
+      console.error('Error al actualizar URL de respuesta de fase:', response.error || 'Error desconocido');
+      throw new Error(response.error || 'Error al actualizar URL de respuesta de fase');
+    }
+  } catch (error) {
+    console.error('Error al actualizar URL de respuesta de fase:', error);
+    throw error;
+  }
+};
+
+// Actualizar solo la URL de respuesta de una subfase
+export const updateUrlSubfaseRespuesta = async (subfaseId, urlRespuesta) => {
+  try {
+    console.log('Actualizando URL de respuesta de subfase:', subfaseId, urlRespuesta);
+
+    const res = await fetch(`${API_URL}/subfases/${subfaseId}`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        url_subfase_respuesta: urlRespuesta
+      }),
+    });
+    
+    const response = await res.json();
+    
+    if (response.exito || res.ok) {
+      return response.datos || response;
+    } else {
+      console.error('Error al actualizar URL de respuesta de subfase:', response.error || 'Error desconocido');
+      throw new Error(response.error || 'Error al actualizar URL de respuesta de subfase');
+    }
+  } catch (error) {
+    console.error('Error al actualizar URL de respuesta de subfase:', error);
     throw error;
   }
 };

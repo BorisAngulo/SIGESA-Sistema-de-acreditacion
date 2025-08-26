@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './DateProcessModal.css';
 
 const DateProcessModal = ({ 
@@ -9,6 +10,7 @@ const DateProcessModal = ({
   modalidadNombre,
   loading = false 
 }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fecha_ini_proceso: '',
     fecha_fin_proceso: ''
@@ -74,14 +76,28 @@ const DateProcessModal = ({
         fecha_fin_proceso: ''
       });
       setErrors({});
-      onClose();
+      
+      // Ejecutar onClose si existe (para compatibilidad)
+      if (onClose) {
+        onClose();
+      }
+      
+      // Navegar hacia atrás en el historial
+      navigate(-1);
+    }
+  };
+
+  const handleOverlayClick = (e) => {
+    // Solo cerrar si se hace clic en el overlay, no en el contenido del modal
+    if (e.target === e.currentTarget) {
+      handleClose();
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal-content date-process-modal">
         <div className="modal-header">
           <h2>Configurar Fechas del Proceso</h2>

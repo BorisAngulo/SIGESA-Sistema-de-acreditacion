@@ -40,4 +40,20 @@ class CarreraModalidad extends Model
     {
         return $this->belongsTo(Modalidad::class, 'modalidad_id');
     }
+
+    /**
+     * Relación con las fases de esta carrera-modalidad
+     */
+    public function fases()
+    {
+        return $this->hasMany(Fase::class, 'carrera_modalidad_id');
+    }
+
+    /**
+     * Relación con las subfases a través de las fases
+     */
+    public function subfases()
+    {
+        return $this->hasManyThrough(SubFase::class, Fase::class, 'carrera_modalidad_id', 'fase_id');
+    }
 }

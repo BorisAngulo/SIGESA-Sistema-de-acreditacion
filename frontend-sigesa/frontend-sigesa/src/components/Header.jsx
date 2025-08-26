@@ -9,6 +9,7 @@ const Header = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showModalidadesMenu, setShowModalidadesMenu] = useState(false);
   const [showAdminMenu, setShowAdminMenu] = useState(false);
+  const [useImageBackground, setUseImageBackground] = useState(true); // Nueva opción para alternar fondo
   const navigate = useNavigate();
 
   // Referencias para detectar clics fuera de los menús
@@ -160,6 +161,12 @@ const Header = () => {
                   >
                     Documentos
                   </button>
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => handleAdminOptionSelect('/carreras-modalidades')}
+                  >
+                    Carreras-Modalidades
+                  </button>
                 </div>
               )}
             </div>
@@ -202,6 +209,9 @@ const Header = () => {
                 </div>
               )}
             </div>
+            <NavLink to="/carreras-modalidades" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
+              Carreras-Modalidades
+            </NavLink>
             <NavLink to="/facultad" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
               Facultades
             </NavLink>
@@ -231,9 +241,17 @@ const Header = () => {
   };
 
   return (
-    <header className="header-container">
+    <header className={`header-container ${useImageBackground ? 'header-with-image' : 'header-original'}`}>
       <div className="header-top">
         <img src={departamento} alt="Logo general" className="header-logo" />
+        {/* Botón para alternar entre fondos - solo visible para desarrollo */}
+        <button 
+          className="background-toggle"
+          onClick={() => setUseImageBackground(!useImageBackground)}
+          title={useImageBackground ? 'Cambiar a fondo original' : 'Cambiar a fondo con imagen'}
+        >
+          {useImageBackground ? '🎨' : '🖼️'}
+        </button>
       </div>
       <div className="header-bottom">
         <nav className="header-nav">
