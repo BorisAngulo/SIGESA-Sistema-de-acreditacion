@@ -52,15 +52,22 @@ class FaseController extends BaseApiController
         }
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $fases = Fase::all();
-            
+            $query = Fase::query();
+
+            // Filtrar por carrera_modalidad_id si se envía en la query string
+            if ($request->has('carrera_modalidad_id')) {
+                $query->where('carrera_modalidad_id', $request->input('carrera_modalidad_id'));
+            }
+
+            $fases = $query->get();
+
             if ($fases->isEmpty()) {
                 return $this->successResponse([], 'No hay fases registradas', 200);
             }
-            
+
             return $this->successResponse($fases, 'Fases obtenidas exitosamente');
         } catch (\Exception $e) {
             return $this->errorResponse('Error al obtener las fases', 500, $e->getMessage());

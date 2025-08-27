@@ -554,6 +554,44 @@ export const getCarreraModalidadActiva = async (carreraId, modalidadId) => {
   }
 };
 
+// Nueva función para obtener carrera-modalidad por ID específico
+export const getCarreraModalidadPorId = async (carreraModalidadId) => {
+  try {
+    console.log(`🔍 Buscando carrera-modalidad por ID específico: ${carreraModalidadId}`);
+    
+    // Usar el endpoint específico para obtener una acreditación por ID
+    const res = await fetch(`${API_URL}/acreditacion-carreras/${carreraModalidadId}`, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      console.log(`✅ Respuesta de acreditacion-carreras/${carreraModalidadId}:`, data);
+      
+      let carreraModalidad = null;
+      if (data.exito && data.datos) {
+        carreraModalidad = data.datos;
+      } else if (data.data) {
+        carreraModalidad = data.data;
+      } else if (data.id) {
+        carreraModalidad = data;
+      }
+      
+      if (carreraModalidad && parseInt(carreraModalidad.id) === parseInt(carreraModalidadId)) {
+        console.log('✅ Carrera-modalidad específica encontrada:', carreraModalidad);
+        return carreraModalidad;
+      }
+    }
+    
+    console.log('❌ No se encontró carrera-modalidad con ID:', carreraModalidadId);
+    return null;
+    
+  } catch (error) {
+    console.error('💥 Error al obtener carrera-modalidad por ID:', error);
+    return null;
+  }
+};
+
 export const createCarreraModalidad = async (data) => {
   try {
     const res = await fetch(`${API_URL}/acreditacion-carreras`, {
@@ -698,7 +736,6 @@ export const getSubfasesByFase = async (faseId) => {
       
       if (res.ok) {
         const response = await res.json();
-        console.log('Respuesta del servidor:', response);
         
         let subfases = [];
         if (response.exito && response.datos) {
@@ -710,14 +747,6 @@ export const getSubfasesByFase = async (faseId) => {
         }
         
         if (subfases.length > 0) {
-          // Debug: Verificar campos URL en las subfases recibidas
-          console.log('🔍 DEBUG - Verificando campos URL en subfases del backend:');
-          subfases.forEach((subfase, index) => {
-            console.log(`Subfase ${index + 1} (ID: ${subfase.id}):`);
-            console.log('  - url_subfase:', subfase.url_subfase);
-            console.log('  - url_subfase_respuesta:', subfase.url_subfase_respuesta);
-            console.log('  - Campos disponibles:', Object.keys(subfase));
-          });
           
           const subfasesValidas = subfases.filter(subfase => {
             const subfaseFaseId = parseInt(subfase.fase_id);
@@ -736,12 +765,9 @@ export const getSubfasesByFase = async (faseId) => {
             console.error('EL BACKEND NO ESTÁ FILTRANDO CORRECTAMENTE. Se filtró en frontend.');
             console.log(`Subfases recibidas: ${subfases.length}, Subfases válidas: ${subfasesValidas.length}`);
           }
-          
-          console.log('Método 1 exitoso - Subfases validadas:', subfasesValidas.length);
+        
           return subfasesValidas;
         }
-        
-        console.log('Método 1 exitoso - Sin subfases:', subfases.length);
         return subfases;
       } else {
         console.log('Método 1 falló - Status:', res.status);

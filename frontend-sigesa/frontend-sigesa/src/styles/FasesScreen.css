@@ -56,6 +56,13 @@
   transition: background-color 0.2s;
 }
 
+.btn-finalizar .loading-spinner {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
 .btn-finalizar:hover {
   background-color: #2d3748;
 }
