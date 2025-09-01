@@ -270,8 +270,8 @@ export default function CrearFacultad({ onNuevaFacultad }) {
         {/* Nombre de la Facultad */}
         <div className="form-group">
           <label className="form-label">
-            <Building2 className="label-icon" />
-            Nombre de la Facultad
+            <Building2 className="label-icon" style={{ marginRight: '8px' }} />
+            <span>Nombre de la Facultad</span>
           </label>
           <input
             type="text"
@@ -292,8 +292,8 @@ export default function CrearFacultad({ onNuevaFacultad }) {
         {/* Código de la Facultad */}
         <div className="form-group">
           <label className="form-label">
-            <Hash className="label-icon" />
-            Código de la Facultad
+            <Hash className="label-icon" style={{ marginRight: '8px' }} />
+            <span>Código de la Facultad</span>
           </label>
           <input
             type="text"
@@ -314,8 +314,8 @@ export default function CrearFacultad({ onNuevaFacultad }) {
         {/* Página web de la facultad*/}
         <div className="form-group">
           <label className="form-label">
-            <Globe className="label-icon" />
-            Página Web <span className="optional-text">(opcional)</span>
+            <Globe className="label-icon" style={{ marginRight: '8px' }} />
+            <span>Página Web <span className="optional-text">(opcional)</span></span>
           </label>
           <input
             type="url"
@@ -336,8 +336,8 @@ export default function CrearFacultad({ onNuevaFacultad }) {
         {/* Logo */}
         <div className="form-group">
           <label className="form-label">
-            <Image className="label-icon" />
-            Logo de la Facultad <span className="optional-text">(opcional)</span>
+            <Image className="label-icon" style={{ marginRight: '8px' }} />
+            <span>Logo de la Facultad <span className="optional-text">(opcional)</span></span>
           </label>
           
           <div className="logo-upload-container">
