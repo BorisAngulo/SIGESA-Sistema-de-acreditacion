@@ -265,10 +265,7 @@ export default function InformacionCarrera() {
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
           <p>Cargando información de la carrera...</p>
-        </div>
       </div>
     );
   }
