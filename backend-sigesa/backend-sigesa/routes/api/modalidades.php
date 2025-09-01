@@ -49,6 +49,10 @@ Route::get('modalidades/{modalidad}/carreras', [CarreraModalidadController::clas
 Route::get('carreras/{carrera}/modalidades/{modalidad}/verificar', [CarreraModalidadController::class, 'verificarAsociacion'])
     ->name('carreras.modalidades.verificar');
 
+// Obtener todas las carreras-modalidades con detalles completos (facultad, carrera, fases, subfases)
+Route::get('carrera-modalidad/detalles-completos', [CarreraModalidadController::class, 'getDetallesCompletos'])
+    ->name('carrera-modalidad.detalles-completos');
+
 // === RUTAS PROTEGIDAS (REQUIEREN AUTENTICACIÓN) ===
 // Operaciones de escritura que requieren usuario autenticado
 Route::middleware(['auth:sanctum'])->group(function () {

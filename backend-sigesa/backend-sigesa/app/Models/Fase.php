@@ -27,6 +27,14 @@ class Fase extends Model
     ];
 
     /**
+     * Relación con la carrera-modalidad
+     */
+    public function carreraModalidad()
+    {
+        return $this->belongsTo(CarreraModalidad::class, 'carrera_modalidad_id');
+    }
+
+    /**
      * Relación con las subfases
      */
     public function subfases()

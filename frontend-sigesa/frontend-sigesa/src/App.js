@@ -1,11 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate  } from 'react-router-dom';
-
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import Footer from './components/Footer';
-
 import Home from './screens/Home';
 import Login from './screens/Login';
 import UsuariosScreen from './screens/UsuariosScreen';
@@ -26,6 +24,7 @@ import BackupScreen from './screens/BackupScreen';
 import SubFaseScreen from './screens/SubFaseScreen';
 import DocumentosScreen from './screens/DocumentosScreen';
 import MiCarreraScreen from './screens/MiCarreraScreen';
+import CarrerasModalidadesAdmin from './components/CarrerasModalidadesAdmin';
 
 function App() {
   const styles = {
@@ -92,6 +91,12 @@ function App() {
               <Route path="/facultades/asignar-carreras" element={
                 <ProtectedRoute allowedRoles={['Admin', 'Tecnico']}>
                   <AsignarCarreras />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/carreras-modalidades" element={
+                <ProtectedRoute allowedRoles={['Admin', 'Tecnico']}>
+                  <CarrerasModalidadesAdmin />
                 </ProtectedRoute>
               } />
               

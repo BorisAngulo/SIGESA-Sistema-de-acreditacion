@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, User, ExternalLink, FileText, Download, Edit3, Save, MessageSquare } from 'lucide-react';
-import { downloadDocumento, updateObservacionFase, updateObservacionSubfase } from '../services/api';
+import { downloadDocumento, updateObservacionFase, updateObservacionSubfase, updateUrlFaseRespuesta, updateUrlSubfaseRespuesta } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/ModalDetallesFase.css';
 
@@ -9,6 +9,9 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
   const [editandoObservacion, setEditandoObservacion] = useState(false);
   const [observacionTemp, setObservacionTemp] = useState('');
   const [guardandoObservacion, setGuardandoObservacion] = useState(false);
+  const [editandoUrlRespuesta, setEditandoUrlRespuesta] = useState(false);
+  const [urlRespuestaTemp, setUrlRespuestaTemp] = useState('');
+  const [guardandoUrlRespuesta, setGuardandoUrlRespuesta] = useState(false);
   
   const { user } = useAuth();
 
@@ -99,6 +102,57 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
     }
   };
 
+  // Funciones para manejar URL de respuesta
+  const puedeEditarUrlRespuesta = () => {
+    return user && user.roles && user.roles[0] && user.roles[0].name === 'Coordinador';
+  };
+
+  // Función para verificar si puede ver metadatos
+  const puedeVerMetadatos = () => {
+    return user && user.roles && user.roles[0] && 
+           (user.roles[0].name === 'Admin' || user.roles[0].name === 'Tecnico');
+  };
+
+  const iniciarEdicionUrlRespuesta = () => {
+    // Probar ambas nomenclaturas para compatibilidad
+    const urlActual = tipo === 'fase' 
+      ? (data?.urlFaseRespuesta || data?.url_fase_respuesta)
+      : (data?.urlSubfaseRespuesta || data?.url_subfase_respuesta);
+    setUrlRespuestaTemp(urlActual || '');
+    setEditandoUrlRespuesta(true);
+  };
+
+  const cancelarEdicionUrlRespuesta = () => {
+    setEditandoUrlRespuesta(false);
+    setUrlRespuestaTemp('');
+  };
+
+  const guardarUrlRespuesta = async () => {
+    setGuardandoUrlRespuesta(true);
+    try {
+      if (tipo === 'fase') {
+        await updateUrlFaseRespuesta(data.id, urlRespuestaTemp);
+        // Actualizar ambas nomenclaturas para compatibilidad
+        fase.urlFaseRespuesta = urlRespuestaTemp;
+        fase.url_fase_respuesta = urlRespuestaTemp;
+      } else {
+        await updateUrlSubfaseRespuesta(data.id, urlRespuestaTemp);
+        // Actualizar ambas nomenclaturas para compatibilidad
+        subfase.urlSubfaseRespuesta = urlRespuestaTemp;
+        subfase.url_subfase_respuesta = urlRespuestaTemp;
+      }
+      
+      setEditandoUrlRespuesta(false);
+      setUrlRespuestaTemp('');
+      
+    } catch (error) {
+      console.error('Error al guardar URL de respuesta:', error);
+      alert('Error al guardar la URL de respuesta: ' + error.message);
+    } finally {
+      setGuardandoUrlRespuesta(false);
+    }
+  };
+
   const getTipoDocumentoText = (tipoDocumento) => {
     switch (tipoDocumento) {
       case '01':
@@ -178,22 +232,6 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
                   <span className="info-value-fase">No hay URL configurada</span>
                 )}
               </div>
-
-              {/* Mostrar URL de respuesta dependiendo del tipo */}
-              {((tipo === 'fase' && data?.urlFaseRespuesta) || (tipo === 'subfase' && data?.url_subfase_respuesta)) && (
-                <div className="info-item full-width">
-                  <label>URL de Respuesta:</label>
-                  <a 
-                    href={tipo === 'fase' ? data.urlFaseRespuesta : data.url_subfase_respuesta} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="url-link"
-                  >
-                    <ExternalLink size={16} />
-                    {tipo === 'fase' ? data.urlFaseRespuesta : data.url_subfase_respuesta}
-                  </a>
-                </div>
-              )}
 
               <div className="info-item">
                 <label>Estado:</label>
@@ -285,43 +323,109 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
             </div>
           </div>
 
-          {/* Metadatos */}
-          <div className="detalles-section metadatos-section">
-            <h3 className="section-title metadatos-title">
-              <User size={20} />
-              Metadatos
+          {/* URL de Respuesta */}
+          <div className="detalles-section">
+            <h3 className="section-title">
+              <ExternalLink size={20} />
+              URL de Respuesta
+              {puedeEditarUrlRespuesta() && !editandoUrlRespuesta && (
+                <button 
+                  onClick={iniciarEdicionUrlRespuesta}
+                  className="edit-observacion-btn"
+                  title="Editar URL de respuesta"
+                >
+                  <Edit3 size={16} />
+                </button>
+              )}
             </h3>
-            <div className="info-grid metadatos-grid">
-              <div className="info-item">
-                <label>ID:</label>
-                <span className="info-value">{data?.id}</span>
-              </div>
-              
-              {tipo === 'fase' && (
-                <div className="info-item">
-                  <label>Carrera-Modalidad ID:</label>
-                  <span className="info-value">{data?.carreraModalidadId}</span>
+            
+            <div className="observacion-container">
+              {editandoUrlRespuesta ? (
+                <div className="observacion-edit">
+                  <input
+                    type="url"
+                    value={urlRespuestaTemp}
+                    onChange={(e) => setUrlRespuestaTemp(e.target.value)}
+                    placeholder="https://ejemplo.com/respuesta"
+                    className="url-input"
+                  />
+                  <div className="observacion-actions">
+                    <button 
+                      onClick={guardarUrlRespuesta}
+                      disabled={guardandoUrlRespuesta}
+                      className="btn-guardar"
+                    >
+                      <Save size={16} />
+                      {guardandoUrlRespuesta ? 'Guardando...' : 'Guardar'}
+                    </button>
+                    <button 
+                      onClick={cancelarEdicionUrlRespuesta}
+                      className="btn-cancelar"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="observacion-display">
+                  {/* Probar ambas nomenclaturas para compatibilidad */}
+                  {(tipo === 'fase' ? (data?.urlFaseRespuesta || data?.url_fase_respuesta) : (data?.urlSubfaseRespuesta || data?.url_subfase_respuesta)) ? (
+                    <a 
+                      href={tipo === 'fase' ? (data?.urlFaseRespuesta || data?.url_fase_respuesta) : (data?.urlSubfaseRespuesta || data?.url_subfase_respuesta)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="url-link"
+                    >
+                      <ExternalLink size={16} />
+                      {tipo === 'fase' ? (data?.urlFaseRespuesta || data?.url_fase_respuesta) : (data?.urlSubfaseRespuesta || data?.url_subfase_respuesta)}
+                    </a>
+                  ) : (
+                    <p className="observacion-text">No hay URL de respuesta configurada</p>
+                  )}
                 </div>
               )}
-              
-              {tipo === 'subfase' && (
-                <div className="info-item">
-                  <label>Fase ID:</label>
-                  <span className="info-value">{data?.faseId}</span>
-                </div>
-              )}
-              
-              <div className="info-item">
-                <label>Creado:</label>
-                <span className="info-value">{formatDate(data?.createdAt)}</span>
-              </div>
-              
-              <div className="info-item">
-                <label>Actualizado:</label>
-                <span className="info-value">{formatDate(data?.updatedAt)}</span>
-              </div>
             </div>
           </div>
+
+          {/* Metadatos - Solo visible para Admin y Técnico */}
+          {puedeVerMetadatos() && (
+            <div className="detalles-section metadatos-section">
+              <h3 className="section-title metadatos-title">
+                <User size={20} />
+                Metadatos
+              </h3>
+              <div className="info-grid metadatos-grid">
+                <div className="info-item">
+                  <label>ID:</label>
+                  <span className="info-value">{data?.id}</span>
+                </div>
+                
+                {tipo === 'fase' && (
+                  <div className="info-item">
+                    <label>Carrera-Modalidad ID:</label>
+                    <span className="info-value">{data?.carreraModalidadId}</span>
+                  </div>
+                )}
+                
+                {tipo === 'subfase' && (
+                  <div className="info-item">
+                    <label>Fase ID:</label>
+                    <span className="info-value">{data?.faseId}</span>
+                  </div>
+                )}
+                
+                <div className="info-item">
+                  <label>Creado:</label>
+                  <span className="info-value">{formatDate(data?.createdAt)}</span>
+                </div>
+                
+                <div className="info-item">
+                  <label>Actualizado:</label>
+                  <span className="info-value">{formatDate(data?.updatedAt)}</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Documentos asociados */}
           <div className="detalles-section">
