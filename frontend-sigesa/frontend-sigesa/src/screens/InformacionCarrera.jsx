@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { showCarrera } from '../services/api';
+import { showCarrera, getModalidades } from '../services/api';
 import "../styles/InformacionCarrera.css";
 
 export default function InformacionCarrera() {
@@ -11,25 +11,30 @@ export default function InformacionCarrera() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [vistaActiva, setVistaActiva] = useState('ARCU-SUR');
+  const [modalidades, setModalidades] = useState([]);
 
   useEffect(() => {
-    if (location.state?.carrera) {
-      setCarrera(location.state.carrera);
-      setLoading(false);
-    } else {
-      const fetchCarrera = async () => {
-        try {
+    const loadData = async () => {
+      try {
+        const modalidadesData = await getModalidades();
+        setModalidades(modalidadesData || []);
+
+        if (location.state?.carrera) {
+          setCarrera(location.state.carrera);
+          setLoading(false);
+        } else {
           setLoading(true);
           const data = await showCarrera(carreraId);
           setCarrera(data);
-        } catch (err) {
-          setError(err.message || 'Error al cargar la carrera');
-        } finally {
           setLoading(false);
         }
-      };
-      fetchCarrera();
-    }
+      } catch (err) {
+        setError(err.message || 'Error al cargar la carrera');
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, [carreraId, location.state]);
 
   const handleVolver = () => {
@@ -38,6 +43,77 @@ export default function InformacionCarrera() {
 
   const cambiarVista = (vista) => {
     setVistaActiva(vista);
+  };
+
+  const handleVerFases = () => {
+    if (!carrera || !carreraId) {
+      console.error('❌ Datos incompletos para navegar:', {
+        carrera,
+        carreraId
+      });
+      alert('Error: No se pudo cargar la información de la carrera');
+      return;
+    }
+
+    let modalidadData = null;
+    let modalidadSlug = '';
+    
+    if (vistaActiva === 'ARCU-SUR') {
+      modalidadData = modalidades.find(m => 
+        m.id === 1 || 
+        (m.nombre && m.nombre.toLowerCase().includes('arcu')) ||
+        (m.nombre && m.nombre.toLowerCase().includes('mercosur'))
+      ) || modalidades[0];
+      modalidadSlug = 'arco-sur';
+    } else {
+      modalidadData = modalidades.find(m => 
+        m.id === 2 || 
+        (m.nombre && m.nombre.toLowerCase().includes('ceub')) ||
+        (m.nombre && m.nombre.toLowerCase().includes('bolivia'))
+      ) || modalidades[1] || modalidades[0];
+      modalidadSlug = 'ceub';
+    }
+
+    if (!modalidadData) {
+      console.error('❌ No se encontró información de modalidad para:', vistaActiva);
+      console.error('❌ Modalidades disponibles:', modalidades);
+      alert('Error: No se pudo cargar la información de modalidad');
+      return;
+    }
+
+    console.log('🔍 Modalidad seleccionada:', {
+      vistaActiva,
+      modalidadData,
+      modalidadSlug
+    });
+
+    const carreraIdNumerico = parseInt(carreraId);
+    const modalidadIdNumerico = parseInt(modalidadData.id);
+
+    navigate(`/fases/${carreraIdNumerico}/${modalidadIdNumerico}`, {
+      state: {
+        modalidad: modalidadSlug,
+        modalidadId: modalidadIdNumerico,
+        facultadId: parseInt(carrera.facultad_id || carrera.id_facultad || 0),
+        carreraId: carreraIdNumerico,
+        facultadNombre: carrera.facultad_nombre || carrera.nombre_facultad || 'Facultad',
+        carreraNombre: carrera.nombre_carrera || carrera.nombre || carrera.name,
+        modalidadData: modalidadData,
+        vistaActiva: vistaActiva,
+        carrera: carrera,
+        origen: 'InformacionCarrera'
+      }
+    });
+
+    console.log('✅ Navegando a fases con datos completos:', {
+      modalidad: modalidadSlug,
+      modalidadId: modalidadIdNumerico,
+      carreraId: carreraIdNumerico,
+      facultadNombre: carrera.facultad_nombre || carrera.nombre_facultad,
+      carreraNombre: carrera.nombre_carrera || carrera.nombre,
+      vistaActiva: vistaActiva,
+      ruta: `/fases/${carreraIdNumerico}/${modalidadIdNumerico}`
+    });
   };
 
   const contenidoARCUSUR = () => (
@@ -216,7 +292,6 @@ export default function InformacionCarrera() {
       <div className="page-header">
         <div className="header-background"></div>
         <div className="header-content">
-          <h2 className="facultad-titulo">Facultad de {carrera.facultad}</h2>
           <h3 className="nombre-carrera">{carrera.nombre_carrera}</h3>
         </div>
       </div>
@@ -256,7 +331,7 @@ export default function InformacionCarrera() {
             </div>
             <button 
               className="btn-ver-fases"
-              onClick={() => navigate(`/fases/${carreraId}`, { state: { carrera, vistaActiva } })}
+              onClick={handleVerFases}
             >
               <span>Ver Fases</span>
               <span className="btn-arrow">→</span>
