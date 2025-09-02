@@ -70,9 +70,9 @@ const CarrerasModalidadesAdmin = () => {
         carreraId: carreraModalidad.carrera_id,
         modalidadId: carreraModalidad.modalidad_id,
         carreraModalidadId: carreraModalidad.id, // Pasar el ID de la carrera-modalidad existente
-        carreraNombre: carreraModalidad.carrera?.nombre_carrera,
-        facultadNombre: carreraModalidad.facultad?.nombre_facultad,
-        modalidadNombre: carreraModalidad.modalidad?.nombre_modalidad,
+        carreraNombre: carreraModalidad.carrera?.nombre,
+        facultadNombre: carreraModalidad.carrera?.facultad?.nombre,
+        modalidadNombre: carreraModalidad.modalidad?.nombre,
         fromCarrerasModalidadesAdmin: true // Flag para indicar el origen
       } 
     });
@@ -136,7 +136,7 @@ const CarrerasModalidadesAdmin = () => {
       fechaInicio: fechaInicio?.toISOString(),
       fechaFin: fechaFin?.toISOString(),
       estado: estado,
-      carreraNombre: carreraModalidad.carrera?.nombre_carrera
+      carreraNombre: carreraModalidad.carrera?.nombre
     });
 
     // Si el estado es true, está aprobado
@@ -191,21 +191,21 @@ const CarrerasModalidadesAdmin = () => {
 
   // Obtener listas únicas para filtros
   const facultadesUnicas = [...new Set(carrerasModalidadesArray
-    .filter(cm => cm.facultad?.nombre_facultad)
-    .map(cm => cm.facultad.nombre_facultad))];
+    .filter(cm => cm.carrera?.facultad?.nombre)
+    .map(cm => cm.carrera.facultad.nombre))];
   const modalidadesUnicas = [...new Set(carrerasModalidadesArray
-    .filter(cm => cm.modalidad?.nombre_modalidad)
-    .map(cm => cm.modalidad.nombre_modalidad))];
+    .filter(cm => cm.modalidad?.nombre)
+    .map(cm => cm.modalidad.nombre))];
 
   // Filtrar datos
   const carrerasModalidadesFiltradas = carrerasModalidadesArray.filter(cm => {
     const matchesSearch = 
-      (cm.carrera?.nombre_carrera || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (cm.facultad?.nombre_facultad || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (cm.modalidad?.nombre_modalidad || '').toLowerCase().includes(searchTerm.toLowerCase());
+      (cm.carrera?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (cm.carrera?.facultad?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (cm.modalidad?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesFacultad = !selectedFacultad || cm.facultad?.nombre_facultad === selectedFacultad;
-    const matchesModalidad = !selectedModalidad || cm.modalidad?.nombre_modalidad === selectedModalidad;
+    const matchesFacultad = !selectedFacultad || cm.carrera?.facultad?.nombre === selectedFacultad;
+    const matchesModalidad = !selectedModalidad || cm.modalidad?.nombre === selectedModalidad;
 
     return matchesSearch && matchesFacultad && matchesModalidad;
   });
@@ -298,12 +298,12 @@ const CarrerasModalidadesAdmin = () => {
               <div className="card-main-info" onClick={() => handleCarreraModalidadClick(cm)}>
                 <div className="card-title">
                   <Building2 size={20} />
-                  <span className="facultad-name">{cm.facultad?.nombre_facultad || 'Sin facultad'}</span>
+                  <span className="facultad-name">{cm.carrera?.facultad?.nombre || 'Sin facultad'}</span>
                   <span className="separator">→</span>
-                  <span className="carrera-name">{cm.carrera?.nombre_carrera || 'Sin carrera'}</span>
+                  <span className="carrera-name">{cm.carrera?.nombre || 'Sin carrera'}</span>
                 </div>
                 <div className="card-subtitle">
-                  <span className="modalidad-name">{cm.modalidad?.nombre_modalidad || 'Sin modalidad'}</span>
+                  <span className="modalidad-name">{cm.modalidad?.nombre || 'Sin modalidad'}</span>
                   {getEstadoBadge(cm.estado_modalidad, cm)}
                 </div>
               </div>
@@ -311,11 +311,11 @@ const CarrerasModalidadesAdmin = () => {
               <div className="card-stats">
                 <div className="stat-item">
                   <FileText size={16} />
-                  <span>{cm.total_fases || 0} fases</span>
+                  <span>{cm.fases?.length || 0} fases</span>
                 </div>
                 <div className="stat-item">
                   <Users size={16} />
-                  <span>{cm.total_subfases || 0} subfases</span>
+                  <span>{cm.fases?.reduce((total, fase) => total + (fase.subfases?.length || 0), 0) || 0} subfases</span>
                 </div>
                 <div className="expand-icon" onClick={(e) => {
                   e.stopPropagation();
@@ -341,15 +341,15 @@ const CarrerasModalidadesAdmin = () => {
                     </div>
                     <div className="info-item">
                       <label>Facultad:</label>
-                      <span>{cm.facultad.nombre_facultad} ({cm.facultad.codigo_facultad})</span>
+                      <span>{cm.carrera?.facultad?.nombre} ({cm.carrera?.facultad?.codigo_facultad})</span>
                     </div>
                     <div className="info-item">
                       <label>Carrera:</label>
-                      <span>{cm.carrera.nombre_carrera} ({cm.carrera.codigo_carrera})</span>
+                      <span>{cm.carrera?.nombre} ({cm.carrera?.codigo_carrera})</span>
                     </div>
                     <div className="info-item">
                       <label>Modalidad:</label>
-                      <span>{cm.modalidad.nombre_modalidad}</span>
+                      <span>{cm.modalidad.nombre}</span>
                     </div>
                   </div>
                 </div>
@@ -390,15 +390,15 @@ const CarrerasModalidadesAdmin = () => {
                           <div className="fase-header">
                             <span className="fase-name">{fase.nombre}</span>
                             <span className="subfases-count">
-                              {fase.subfases_count} subfases
+                              {fase.subfases?.length || 0} subfases
                             </span>
                             {getEstadoBadge(fase.estado_fase)}
                           </div>
-                          {fase.descripcion && (
-                            <p className="fase-descripcion">{fase.descripcion}</p>
+                          {fase.descripcion_fase && (
+                            <p className="fase-descripcion">{fase.descripcion_fase}</p>
                           )}
                           <div className="fase-fechas">
-                            <span>{formatFecha(fase.fecha_inicio)} - {formatFecha(fase.fecha_fin)}</span>
+                            <span>{formatFecha(fase.fecha_inicio_fase)} - {formatFecha(fase.fecha_fin_fase)}</span>
                           </div>
                           
                           {fase.subfases && fase.subfases.length > 0 && (
@@ -409,11 +409,11 @@ const CarrerasModalidadesAdmin = () => {
                                     <span className="subfase-name">{subfase.nombre}</span>
                                     {getEstadoBadge(subfase.estado_subfase)}
                                   </div>
-                                  {subfase.descripcion && (
-                                    <p className="subfase-descripcion">{subfase.descripcion}</p>
+                                  {subfase.descripcion_subfase && (
+                                    <p className="subfase-descripcion">{subfase.descripcion_subfase}</p>
                                   )}
                                   <div className="subfase-fechas">
-                                    <span>{formatFecha(subfase.fecha_inicio)} - {formatFecha(subfase.fecha_fin)}</span>
+                                    <span>{formatFecha(subfase.fecha_inicio_subfase)} - {formatFecha(subfase.fecha_fin_subfase)}</span>
                                   </div>
                                 </div>
                               ))}

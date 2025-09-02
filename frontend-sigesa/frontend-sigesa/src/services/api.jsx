@@ -613,6 +613,38 @@ export const createCarreraModalidad = async (data) => {
   }
 };
 
+// Función para finalizar acreditación (actualizar carrera-modalidad con fechas de aprobación y certificado)
+export const finalizarAcreditacion = async (carreraModalidadId, formData) => {
+  try {
+    console.log(`🔄 Finalizando acreditación para carrera-modalidad ID: ${carreraModalidadId}`);
+    
+    const token = getAuthToken();
+    const headers = {
+      ...(token && { 'Authorization': `Bearer ${token}` })
+      // No incluir Content-Type para FormData, el navegador lo establecerá automáticamente
+    };
+    
+    const res = await fetch(`${API_URL}/acreditacion-carreras/${carreraModalidadId}`, {
+      method: "POST", // Cambiado a POST para manejar FormData con _method
+      headers: headers,
+      body: formData,
+    });
+    
+    const response = await res.json();
+    
+    if (res.ok && (response.exito || response.success)) {
+      console.log('✅ Acreditación finalizada exitosamente:', response);
+      return response.datos || response.data;
+    } else {
+      console.error('❌ Error al finalizar acreditación:', response);
+      throw new Error(response.mensaje || response.message || response.error || 'Error al finalizar acreditación');
+    }
+  } catch (error) {
+    console.error('💥 Error al finalizar acreditación:', error);
+    throw error;
+  }
+};
+
 // Obtener todas las carreras-modalidades con detalles completos
 export const getCarrerasModalidadesDetallesCompletos = async () => {
   try {

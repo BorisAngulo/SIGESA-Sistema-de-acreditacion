@@ -11,6 +11,7 @@ import {
   getCarreraModalidadActiva,
   getCarreraModalidadPorId,
   createCarreraModalidad,
+  finalizarAcreditacion,
   getModalidades,
   getDocumentos,
   createDocumento,
@@ -27,6 +28,7 @@ import ModalAgregarFase from '../components/ModalAgregarFase';
 import ModalConfirmacionFase from '../components/ModalConfirmacionFase'; 
 import ModalEscogerDocumento from '../components/ModalEscogerDocumento';
 import ModalDetallesFase from '../components/ModalDetallesFase';
+import FinalizarAcreditacionModal from '../components/FinalizarAcreditacionModal';
 import '../styles/FasesScreen.css';
 
 const FasesScreen = () => {
@@ -58,6 +60,9 @@ const FasesScreen = () => {
   // Estado para controlar si el botón "Finalizar Acreditación" está habilitado
   const [botonFinalizarHabilitado, setBotonFinalizarHabilitado] = useState(false);
   const [verificandoEstadoProceso, setVerificandoEstadoProceso] = useState(false);
+  
+  // Estado para el modal de finalizar acreditación
+  const [showFinalizarModal, setShowFinalizarModal] = useState(false);
   
   const [subfases, setSubfases] = useState({});
   const [loadingSubfases, setLoadingSubfases] = useState({});
@@ -300,6 +305,15 @@ const FasesScreen = () => {
 
   // Función independiente para verificar el estado del proceso
   const verificarEstadoProceso = useCallback(async () => {
+    console.log('🔍 VERIFICANDO ESTADO DEL PROCESO');
+    console.log('  - fasesData?.carreraId:', fasesData?.carreraId);
+    console.log('  - fasesData?.modalidadId:', fasesData?.modalidadId);
+    console.log('  - fasesData?.fromCarrerasModalidadesAdmin:', fasesData?.fromCarrerasModalidadesAdmin);
+    console.log('  - fasesData?.fecha_ini_proceso:', fasesData?.fecha_ini_proceso);
+    console.log('  - fasesData?.fecha_fin_proceso:', fasesData?.fecha_fin_proceso);
+    console.log('  - fasesData?.id:', fasesData?.id);
+    console.log('  - fasesData?.carreraModalidadId:', fasesData?.carreraModalidadId);
+    
     if (!fasesData?.carreraId || !fasesData?.modalidadId) {
       console.log('⏳ Datos incompletos para verificar estado del proceso');
       setBotonFinalizarHabilitado(false);
@@ -308,12 +322,18 @@ const FasesScreen = () => {
 
     try {
       setVerificandoEstadoProceso(true);
+      console.log('🔄 Iniciando verificación...');
 
       let procesoActivo = false;
+      let carreraModalidadInfo = null;
 
       // Si viene desde CarrerasModalidadesAdmin, usar las fechas específicas del registro seleccionado
       if (fasesData.fromCarrerasModalidadesAdmin) {
-        if (fasesData.fecha_ini_proceso && fasesData.fecha_fin_proceso) {
+        // Primero verificar si ya está finalizada (estado_modalidad = true)
+        if (fasesData.estado_modalidad === true) {
+          console.log('🚫 Proceso ya finalizado - estado_modalidad es true');
+          procesoActivo = false;
+        } else if (fasesData.fecha_ini_proceso && fasesData.fecha_fin_proceso) {
           // Usar las fechas específicas del registro seleccionado
           const fechaActual = new Date();
           const fechaInicio = new Date(fasesData.fecha_ini_proceso);
@@ -331,28 +351,33 @@ const FasesScreen = () => {
           console.log('🔍 Consultando carrera-modalidad específica por ID:', fasesData.carreraModalidadId);
           try {
             const registroEspecifico = await getCarreraModalidadPorId(fasesData.carreraModalidadId);
+            carreraModalidadInfo = registroEspecifico;
             
-            if (registroEspecifico && registroEspecifico.fecha_ini_proceso && registroEspecifico.fecha_fin_proceso) {
-              const fechaActual = new Date();
-              const fechaInicio = new Date(registroEspecifico.fecha_ini_proceso);
-              const fechaFin = new Date(registroEspecifico.fecha_fin_proceso);
-              
-              const fechaActualSoloFecha = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate());
-              const fechaInicioSoloFecha = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDate());
-              const fechaFinSoloFecha = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDate());
-              
-              procesoActivo = fechaActualSoloFecha >= fechaInicioSoloFecha && fechaActualSoloFecha <= fechaFinSoloFecha;
-            } else {
-              console.log('No se pudo obtener el registro específico por ID o no tiene fechas válidas');
-              console.log('  - Registro encontrado:', !!registroEspecifico);
-              if (registroEspecifico) {
-                console.log('  - Tiene fecha_ini_proceso:', !!registroEspecifico.fecha_ini_proceso);
-                console.log('  - Tiene fecha_fin_proceso:', !!registroEspecifico.fecha_fin_proceso);
+            if (registroEspecifico) {
+              // Verificar si ya está finalizada
+              if (registroEspecifico.estado_modalidad === true) {
+                console.log('🚫 Proceso ya finalizado - estado_modalidad es true');
+                procesoActivo = false;
+              } else if (registroEspecifico.fecha_ini_proceso && registroEspecifico.fecha_fin_proceso) {
+                const fechaActual = new Date();
+                const fechaInicio = new Date(registroEspecifico.fecha_ini_proceso);
+                const fechaFin = new Date(registroEspecifico.fecha_fin_proceso);
+                
+                const fechaActualSoloFecha = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate());
+                const fechaInicioSoloFecha = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDate());
+                const fechaFinSoloFecha = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDate());
+                
+                procesoActivo = fechaActualSoloFecha >= fechaInicioSoloFecha && fechaActualSoloFecha <= fechaFinSoloFecha;
+              } else {
+                console.log('No tiene fechas válidas');
+                procesoActivo = false;
               }
+            } else {
+              console.log('No se pudo obtener el registro específico por ID');
               procesoActivo = false;
             }
           } catch (error) {
-            console.error(' Error al consultar carrera-modalidad específica por ID:', error);
+            console.error('❌ Error al consultar carrera-modalidad específica por ID:', error);
             procesoActivo = false;
           }
         } else {
@@ -360,25 +385,58 @@ const FasesScreen = () => {
         }
       } else {
         // Si viene desde ModalidadesScreen, buscar carrera-modalidad activa (comportamiento original)
+        // Convertir IDs a números para asegurar compatibilidad
+        const carreraIdNumero = parseInt(fasesData.carreraId);
+        const modalidadIdNumero = parseInt(fasesData.modalidadId);
+        
         const carreraModalidadActiva = await getCarreraModalidadActiva(
-          fasesData.carreraId, 
-          fasesData.modalidadId
+          carreraIdNumero, 
+          modalidadIdNumero
         );
         
-        procesoActivo = !!carreraModalidadActiva;
+        carreraModalidadInfo = carreraModalidadActiva;
+        
+        // Verificar si ya está finalizada
+        if (carreraModalidadActiva && carreraModalidadActiva.estado_modalidad === true) {
+          console.log('🚫 Proceso ya finalizado - estado_modalidad es true');
+          procesoActivo = false;
+        } else {
+          procesoActivo = !!carreraModalidadActiva;
+        }
+        
         console.log('  - Carrera-modalidad activa encontrada:', carreraModalidadActiva);
         console.log('  - ¿Proceso activo?:', procesoActivo);
+        
+        // ✅ ACTUALIZAR fasesData con el ID encontrado
+        if (carreraModalidadActiva && carreraModalidadActiva.id) {
+          console.log('💾 Actualizando fasesData con carreraModalidadId:', carreraModalidadActiva.id);
+          setFasesData(prev => ({
+            ...prev,
+            carreraModalidadId: carreraModalidadActiva.id
+          }));
+        }
+      }
+
+      // Log adicional para debugging
+      if (carreraModalidadInfo) {
+        console.log('📋 Información de carrera-modalidad:', {
+          id: carreraModalidadInfo.id,
+          estado_modalidad: carreraModalidadInfo.estado_modalidad,
+          fecha_ini_proceso: carreraModalidadInfo.fecha_ini_proceso,
+          fecha_fin_proceso: carreraModalidadInfo.fecha_fin_proceso
+        });
       }
 
       setBotonFinalizarHabilitado(procesoActivo);
-      console.log('Estado del proceso verificado:', procesoActivo ? 'ACTIVO' : 'INACTIVO');
-      console.log('botonFinalizarHabilitado establecido a:', procesoActivo);
+      console.log('🔧 Estado del proceso verificado:', procesoActivo ? 'ACTIVO' : 'INACTIVO');
+      console.log('🔧 botonFinalizarHabilitado establecido a:', procesoActivo);
 
     } catch (error) {
-      console.error('Error al verificar estado del proceso:', error);
+      console.error('❌ Error al verificar estado del proceso:', error);
       setBotonFinalizarHabilitado(false);
     } finally {
       setVerificandoEstadoProceso(false);
+      console.log('✅ Verificación completada');
     }
   }, [fasesData?.carreraId, fasesData?.modalidadId, fasesData?.carreraModalidadId, fasesData?.fromCarrerasModalidadesAdmin, fasesData?.fecha_ini_proceso, fasesData?.fecha_fin_proceso]);
 
@@ -617,11 +675,13 @@ const FasesScreen = () => {
     console.log('  - fasesData?.fromCarrerasModalidadesAdmin:', fasesData?.fromCarrerasModalidadesAdmin);
     console.log('  - fasesData?.fecha_ini_proceso:', fasesData?.fecha_ini_proceso);
     console.log('  - fasesData?.fecha_fin_proceso:', fasesData?.fecha_fin_proceso);
+    console.log('  - botonFinalizarHabilitado actual:', botonFinalizarHabilitado);
     
     if (fasesData?.carreraId && fasesData?.modalidadId) {
+      console.log('✅ Ejecutando verificarEstadoProceso...');
       verificarEstadoProceso();
     } else {
-      console.log('No se ejecuta verificarEstadoProceso - datos incompletos');
+      console.log('❌ No se ejecuta verificarEstadoProceso - datos incompletos');
     }
   }, [verificarEstadoProceso, fasesData?.carreraId, fasesData?.modalidadId, fasesData?.fromCarrerasModalidadesAdmin, fasesData?.fecha_ini_proceso, fasesData?.fecha_fin_proceso]);
 
@@ -873,7 +933,111 @@ const FasesScreen = () => {
   };
 
   const handleFinalizarAcreditacion = () => {
-    console.log('Finalizar acreditación para:', fasesData);
+    console.log('🚀 BOTÓN FINALIZAR PRESIONADO');
+    console.log('  - botonFinalizarHabilitado:', botonFinalizarHabilitado);
+    console.log('  - verificandoEstadoProceso:', verificandoEstadoProceso);
+    console.log('  - fasesData:', fasesData);
+    console.log('  - showFinalizarModal antes:', showFinalizarModal);
+    
+    if (!botonFinalizarHabilitado) {
+      console.log('❌ Botón bloqueado - proceso no activo');
+      alert('El proceso de acreditación no está activo en este momento. Verifique las fechas del proceso.');
+      return;
+    }
+    
+    console.log('✅ Abriendo modal de finalización');
+    setShowFinalizarModal(true);
+    console.log('📝 setShowFinalizarModal(true) ejecutado');
+    
+    // Verificar después de un pequeño delay
+    setTimeout(() => {
+      console.log('🔍 showFinalizarModal después del setState:', showFinalizarModal);
+    }, 100);
+  };
+
+  const handleSubmitFinalizacion = async (formData) => {
+    try {
+      console.log('Iniciando finalización de acreditación...');
+      console.log('Datos de finalización recibidos:', {
+        fecha_ini_aprobacion: formData.get('fecha_ini_aprobacion'),
+        fecha_fin_aprobacion: formData.get('fecha_fin_aprobacion'),
+        certificado: formData.get('certificado')?.name || 'Sin archivo'
+      });
+      
+      console.log('🔍 Verificando ID para finalización:');
+      console.log('  - fasesData?.id:', fasesData?.id);
+      console.log('  - fasesData?.carreraModalidadId:', fasesData?.carreraModalidadId);
+      console.log('  - fasesData.modalidadId:', fasesData?.modalidadId);
+      console.log('  - fasesData.carreraId:', fasesData?.carreraId);
+      console.log('  - fasesData completo:', JSON.stringify(fasesData, null, 2));
+      
+      // Usar carreraModalidadId como primera opción, luego id como fallback
+      let idParaFinalizar = fasesData?.carreraModalidadId || fasesData?.id;
+      
+      console.log('🎯 ID directo encontrado:', idParaFinalizar);
+      
+      // Si no tenemos ID directo, intentar buscar la carrera-modalidad activa
+      if (!idParaFinalizar) {
+        console.log('❓ No hay ID directo, buscando carrera-modalidad activa...');
+        
+        // Convertir IDs a números para asegurar compatibilidad
+        const carreraIdNumero = parseInt(fasesData.carreraId);
+        const modalidadIdNumero = parseInt(fasesData.modalidadId);
+        
+        console.log('🔄 Buscando con IDs convertidos:', { carreraId: carreraIdNumero, modalidadId: modalidadIdNumero });
+        
+        try {
+          const carreraModalidadActiva = await getCarreraModalidadActiva(
+            carreraIdNumero, 
+            modalidadIdNumero
+          );
+          
+          if (carreraModalidadActiva) {
+            idParaFinalizar = carreraModalidadActiva.id;
+            console.log('✅ ID encontrado desde carrera-modalidad activa:', idParaFinalizar);
+          } else {
+            // Si no hay activa, buscar cualquier carrera-modalidad específica
+            console.log('🔍 No hay activa, buscando carrera-modalidad específica...');
+            const carreraModalidadEspecifica = await getCarreraModalidadEspecifica(
+              carreraIdNumero, 
+              modalidadIdNumero
+            );
+            
+            if (carreraModalidadEspecifica) {
+              idParaFinalizar = carreraModalidadEspecifica.id;
+              console.log('✅ ID encontrado desde carrera-modalidad específica:', idParaFinalizar);
+            }
+          }
+        } catch (searchError) {
+          console.error('❌ Error al buscar carrera-modalidad:', searchError);
+        }
+      }
+      
+      if (!idParaFinalizar) {
+        console.error('❌ No se encontró el ID de la carrera-modalidad');
+        throw new Error('No se encontró el ID de la carrera-modalidad');
+      }
+      
+      console.log('✅ Usando ID para finalización:', idParaFinalizar);
+      
+      // Llamar a la API para finalizar la acreditación
+      const resultado = await finalizarAcreditacion(idParaFinalizar, formData);
+      
+      console.log('✅ Acreditación finalizada exitosamente:', resultado);
+      
+      // Cerrar el modal
+      setShowFinalizarModal(false);
+      
+      // Recargar la página para reflejar los cambios
+      window.location.reload();
+      
+      // Mostrar mensaje de éxito
+      alert('🎉 Acreditación finalizada exitosamente. Se han guardado las fechas de aprobación y el certificado.');
+      
+    } catch (error) {
+      console.error('❌ Error al finalizar acreditación:', error);
+      throw error; // Re-lanzar el error para que el modal lo maneje
+    }
   };
 
   const handleAgregarSubfase = (faseId) => {
@@ -1521,6 +1685,13 @@ const FasesScreen = () => {
         carreraNombre={fasesData?.carreraNombre || 'Carrera no especificada'}
         modalidadNombre={fasesData?.modalidadData?.nombre || 'Modalidad no especificada'}
         loading={dateProcessLoading}
+      />
+
+      <FinalizarAcreditacionModal
+        show={showFinalizarModal}
+        onClose={() => setShowFinalizarModal(false)}
+        onConfirm={handleSubmitFinalizacion}
+        carreraModalidadData={fasesData}
       />
     </div>
   );

@@ -28,7 +28,7 @@ class CreateCarreraModalidadesTable extends Migration
 
             $table->dateTime('fecha_ini_aprobacion')->nullable();
             $table->dateTime('fecha_fin_aprobacion')->nullable();
-            $table->string('certificado')->nullable();
+            $table->longText('certificado')->nullable(); 
             $table->timestamps();
         });
     }

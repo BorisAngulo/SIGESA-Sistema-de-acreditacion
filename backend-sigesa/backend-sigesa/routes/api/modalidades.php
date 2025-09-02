@@ -82,6 +82,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('acreditacion-carreras/{acreditacion_carrera}', [CarreraModalidadController::class, 'update'])
         ->name('acreditacion-carreras.patch');
     
+    // Actualizar acreditación (POST con _method=PUT para FormData)
+    Route::post('acreditacion-carreras/{acreditacion_carrera}', [CarreraModalidadController::class, 'update'])
+        ->name('acreditacion-carreras.update-post');
+    
     // Eliminar acreditación
     Route::delete('acreditacion-carreras/{acreditacion_carrera}', [CarreraModalidadController::class, 'destroy'])
         ->name('acreditacion-carreras.destroy');
