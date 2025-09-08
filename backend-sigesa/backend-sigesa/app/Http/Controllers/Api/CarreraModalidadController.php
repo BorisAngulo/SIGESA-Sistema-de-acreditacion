@@ -226,7 +226,9 @@ class CarreraModalidadController extends BaseApiController
         try {
             $carreraModalidad = CarreraModalidad::where('carrera_id', $carrera_id)
                 ->where('modalidad_id', $modalidad_id)
-                ->where('estado_modalidad', true)
+                ->where('estado_modalidad', false)
+                ->where('fecha_ini_proceso', '<=', now()) // Ya iniciada
+                ->where('fecha_fin_proceso', '>=', now()) // No terminada
                 ->with(['carrera', 'modalidad'])
                 ->first();
 

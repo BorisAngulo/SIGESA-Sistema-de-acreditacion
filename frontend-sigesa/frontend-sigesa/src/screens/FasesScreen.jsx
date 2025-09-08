@@ -1029,7 +1029,7 @@ const FasesScreen = () => {
       setShowFinalizarModal(false);
       
       // Recargar la página para reflejar los cambios
-      window.location.reload();
+      window.location();
       
       // Mostrar mensaje de éxito
       alert('🎉 Acreditación finalizada exitosamente. Se han guardado las fechas de aprobación y el certificado.');

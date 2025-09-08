@@ -35,7 +35,7 @@ class DocumentoController extends BaseApiController
      *                 @OA\Property(property="nombre_documento", type="string", example="Manual de Procedimientos"),
      *                 @OA\Property(property="descripcion_documento", type="string", example="Descripción del documento"),
      *                 @OA\Property(property="archivo_documento", type="file", description="Archivo a subir"),
-     *                 @OA\Property(property="tipo_documento", type="string", enum={"01", "02"}, example="01"),
+     *                 @OA\Property(property="tipo_documento", type="string", enum={"01", "02", "03"}, example="01"),
      *                 @OA\Property(property="tipo_asociacion", type="string", enum={"fase", "subfase"}, example="fase"),
      *                 @OA\Property(property="fase_id", type="integer", example=1, description="ID de la fase (requerido si tipo_asociacion es 'fase')"),
      *                 @OA\Property(property="subfase_id", type="integer", example=1, description="ID de la subfase (requerido si tipo_asociacion es 'subfase')"),
@@ -95,7 +95,7 @@ class DocumentoController extends BaseApiController
                 'nombre_documento' => 'required|string|max:255',
                 'descripcion_documento' => 'nullable|string|max:1000',
                 'archivo_documento' => 'required|file|max:20480|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,jpg,jpeg,png,gif,zip,rar', // Max 20MB
-                'tipo_documento' => 'nullable|string|in:01,02', // '01' para específicos, '02' para generales
+                'tipo_documento' => 'nullable|string|in:01,02,03', // '01' para específicos, '02' para generales, '03' para globales
                 'id_usuario_updated' => 'nullable|integer',
             ]);
 
@@ -120,7 +120,7 @@ class DocumentoController extends BaseApiController
                 'tipo_mime' => $tipoMime,
                 'contenido_archivo' => $contenidoArchivo,
                 'tamano_archivo' => $tamanoArchivo,
-                'tipo_documento' => $validated['tipo_documento'] ?? '02', // Por defecto general
+                'tipo_documento' => $validated['tipo_documento'] ?? '03', // Por defecto global para documentos sin asociación
                 'id_usuario_updated_documento' => $validated['id_usuario_updated'] ?? null,
             ]);
 

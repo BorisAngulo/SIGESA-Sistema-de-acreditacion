@@ -1490,6 +1490,40 @@ export const createDocumento = async (documentoData) => {
   }
 };
 
+// Crear documento global (sin asociación a fase o subfase)
+export const createDocumentoGlobal = async (documentoData) => {
+  try {
+    const formData = new FormData();
+    formData.append('nombre_documento', documentoData.nombre);
+    formData.append('descripcion_documento', documentoData.descripcion || '');
+    formData.append('tipo_documento', '03'); // Tipo 03 para documentos globales
+    
+    if (documentoData.archivo) {
+      formData.append('archivo_documento', documentoData.archivo);
+    }
+
+    const token = getAuthToken();
+    const res = await fetch(`${API_URL}/documentos`, {
+      method: "POST",
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+        // No incluir Content-Type para FormData, el navegador lo maneja automáticamente
+      },
+      body: formData,
+    });
+    
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || `Error ${res.status}: ${res.statusText}`);
+    }
+    
+    return await res.json();
+  } catch (error) {
+    console.error('Error al crear documento global:', error);
+    throw error;
+  }
+};
+
 // Asociar documento existente a una fase
 export const asociarDocumentoAFase = async (faseId, documentoId) => {
   try {

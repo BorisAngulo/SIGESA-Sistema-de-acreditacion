@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getAllDocumentos } from '../services/api';
+import { getAllDocumentos, createDocumentoGlobal } from '../services/api';
 import ModalAsociacionesDocumento from '../components/ModalAsociacionesDocumento';
-import { FileText, Search, Eye, Calendar, User, Hash } from 'lucide-react';
+import ModalSubirDocumentoGlobal from '../components/ModalSubirDocumentoGlobal';
+import { FileText, Search, Eye, Calendar, User, Hash, Plus } from 'lucide-react';
 import '../styles/DocumentosScreen.css';
 
 const DocumentosScreen = () => {
@@ -13,6 +14,8 @@ const DocumentosScreen = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDocumento, setSelectedDocumento] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Verificar si el usuario tiene permisos
   const tienePermiso = hasRole('Admin') || hasRole('Tecnico');
@@ -47,6 +50,8 @@ const DocumentosScreen = () => {
         return 'Específico';
       case '02':
         return 'General';
+      case '03':
+        return 'Global';
       default:
         return 'Desconocido';
     }
@@ -54,7 +59,20 @@ const DocumentosScreen = () => {
 
   const getTipoDocumentoBadge = (tipoDocumento) => {
     const texto = getTipoDocumentoText(tipoDocumento);
-    const className = tipoDocumento === '01' ? 'badge-especifico' : 'badge-general';
+    let className = 'badge-general'; // Por defecto
+    
+    switch (tipoDocumento) {
+      case '01':
+        className = 'badge-especifico';
+        break;
+      case '02':
+        className = 'badge-general';
+        break;
+      case '03':
+        className = 'badge-global';
+        break;
+    }
+    
     return <span className={`tipo-documento-badge ${className}`}>{texto}</span>;
   };
 
@@ -103,6 +121,27 @@ const DocumentosScreen = () => {
   const handleVerAsociaciones = (documento) => {
     setSelectedDocumento(documento);
     setIsModalOpen(true);
+  };
+
+  const handleUploadDocumento = async (documentData) => {
+    try {
+      setIsUploading(true);
+      const result = await createDocumentoGlobal(documentData);
+      
+      if (result && result.exito) {
+        console.log('Documento subido exitosamente:', result);
+        // Recargar la lista de documentos
+        await cargarDocumentos();
+        setShowUploadModal(false);
+      } else {
+        throw new Error(result?.error || 'Error al subir el documento');
+      }
+    } catch (error) {
+      console.error('Error al subir documento:', error);
+      throw error;
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const filteredDocumentos = documentos.filter(doc =>
@@ -156,8 +195,23 @@ const DocumentosScreen = () => {
     <div className="documentos-screen">
       <div className="documentos-container">
         <div className="documentos-header">
-          <h1>Gestión de Documentos</h1>
-          <p>Lista completa de documentos del sistema y sus asociaciones</p>
+          <div className="documentos-title-section">
+            <h1>Gestión de Documentos</h1>
+            <p>Lista completa de documentos del sistema y sus asociaciones</p>
+          </div>
+          
+          {tienePermiso && (
+            <div className="documentos-actions">
+              <button
+                onClick={() => setShowUploadModal(true)}
+                className="btn-subir-documento"
+                disabled={isUploading}
+              >
+                <Plus size={20} />
+                Subir Documento
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Barra de búsqueda */}
@@ -187,6 +241,10 @@ const DocumentosScreen = () => {
           <div className="stat-card">
             <h3>Generales</h3>
             <p>{documentos.filter(doc => doc.tipo_documento === '02').length}</p>
+          </div>
+          <div className="stat-card">
+            <h3>Globales</h3>
+            <p>{documentos.filter(doc => doc.tipo_documento === '03').length}</p>
           </div>
           <div className="stat-card">
             <h3>Resultados</h3>
@@ -294,6 +352,18 @@ const DocumentosScreen = () => {
           documento={selectedDocumento}
         />
       )}
+
+      {/* Modal de subir documento global */}
+      <ModalSubirDocumentoGlobal
+        isOpen={showUploadModal}
+        onClose={() => {
+          if (!isUploading) {
+            setShowUploadModal(false);
+          }
+        }}
+        onUpload={handleUploadDocumento}
+        isUploading={isUploading}
+      />
     </div>
   );
 };
