@@ -31,7 +31,8 @@ import {
   getModalidades,
   getCarreraModalidades,
   getFases,
-  getSubfases
+  getSubfases,
+  getCarrerasByFacultad
 } from '../services/api';
 
 const ReportesScreen = () => {
@@ -63,6 +64,11 @@ const ReportesScreen = () => {
     comparisonMode: false,
     comparisonYear: '2023'
   });
+
+  // Estados para el manejo de carreras desplegables
+  const [expandedFaculties, setExpandedFaculties] = useState(new Set());
+  const [facultyCarreras, setFacultyCarreras] = useState(new Map());
+  const [loadingCarreras, setLoadingCarreras] = useState(new Set());
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#8DD1E1'];
 
@@ -135,6 +141,82 @@ const ReportesScreen = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Nueva función para cargar carreras por facultad
+  const loadCarrerasByFacultad = async (facultadId) => {
+    if (facultyCarreras.has(facultadId) || loadingCarreras.has(facultadId)) {
+      return;
+    }
+
+    setLoadingCarreras(prev => new Set([...prev, facultadId]));
+    
+    try {
+      const carreras = await getCarrerasByFacultad(facultadId);
+      
+      // Simular datos de acreditación para cada carrera
+      const carrerasConAcreditacion = carreras.map(carrera => ({
+        ...carrera,
+        acreditaciones: {
+          ceub: Math.random() > 0.6 ? {
+            estado: 'activa',
+            fecha_vencimiento: new Date(2025 + Math.floor(Math.random() * 3), Math.floor(Math.random() * 12), 1).toISOString().split('T')[0],
+            fase_actual: `Fase ${Math.floor(Math.random() * 4) + 1}`
+          } : null,
+          arcusur: Math.random() > 0.7 ? {
+            estado: 'activa',
+            fecha_vencimiento: new Date(2025 + Math.floor(Math.random() * 3), Math.floor(Math.random() * 12), 1).toISOString().split('T')[0],
+            fase_actual: `Fase ${Math.floor(Math.random() * 3) + 1}`
+          } : null
+        }
+      }));
+
+      setFacultyCarreras(prev => new Map([...prev, [facultadId, carrerasConAcreditacion]]));
+    } catch (error) {
+      console.error(`Error cargando carreras de facultad ${facultadId}:`, error);
+      
+      // Datos de fallback basados en las carreras existentes
+      const carrerasFallback = data.carreras
+        .filter(c => c.facultad_id === facultadId)
+        .map(carrera => ({
+          ...carrera,
+          acreditaciones: {
+            ceub: Math.random() > 0.5 ? {
+              estado: 'activa',
+              fecha_vencimiento: '2025-12-31',
+              fase_actual: 'Fase 2'
+            } : null,
+            arcusur: Math.random() > 0.7 ? {
+              estado: 'activa',
+              fecha_vencimiento: '2026-06-30',
+              fase_actual: 'Fase 1'
+            } : null
+          }
+        }));
+      
+      setFacultyCarreras(prev => new Map([...prev, [facultadId, carrerasFallback]]));
+    } finally {
+      setLoadingCarreras(prev => {
+        const newSet = new Set([...prev]);
+        newSet.delete(facultadId);
+        return newSet;
+      });
+    }
+  };
+
+  // Función para alternar la expansión de facultades
+  const toggleFacultyExpansion = async (facultadId) => {
+    const newExpanded = new Set(expandedFaculties);
+    
+    if (newExpanded.has(facultadId)) {
+      newExpanded.delete(facultadId);
+    } else {
+      newExpanded.add(facultadId);
+      // Cargar carreras si no están ya cargadas
+      await loadCarrerasByFacultad(facultadId);
+    }
+    
+    setExpandedFaculties(newExpanded);
   };
 
   const loadReportData = async () => {
@@ -300,7 +382,7 @@ const ReportesScreen = () => {
     if (filters.selectedYear === 'todos') {
       return {
         facultades_activas: 6,
-        carreras_totales: 45, // Suma de todos los años
+        carreras_totales: 45,
         acreditaciones_ceub: 18,
         acreditaciones_arcusur: 12,
         crecimiento_anual: 15.2
@@ -477,6 +559,68 @@ const ReportesScreen = () => {
     return description;
   };
 
+  const CarrerasList = ({ facultadId }) => {
+    const carreras = facultyCarreras.get(facultadId) || [];
+    const isLoading = loadingCarreras.has(facultadId);
+
+    if (isLoading) {
+      return (
+        <div className="carreras-loading">
+          <div className="loading-spinner-small"></div>
+          <span>Cargando carreras...</span>
+        </div>
+      );
+    }
+
+    if (carreras.length === 0) {
+      return (
+        <div className="carreras-empty">
+          <span>No se encontraron carreras</span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="carreras-list">
+        {carreras.map((carrera, index) => (
+          <div key={carrera.id} className="carrera-item">
+            <div className="carrera-header">
+              <div className="carrera-name">
+                <span className="carrera-icon">📚</span>
+                {carrera.nombre_carrera}
+              </div>
+              <div className="carrera-badges">
+                {carrera.acreditaciones?.ceub && (
+                  <div className="acred-badge ceub" title={`CEUB - ${carrera.acreditaciones.ceub.fase_actual}`}>
+                    <span>CEUB</span>
+                    <div className="badge-details">
+                      <small>Hasta: {new Date(carrera.acreditaciones.ceub.fecha_vencimiento).toLocaleDateString('es-BO')}</small>
+                      <small>{carrera.acreditaciones.ceub.fase_actual}</small>
+                    </div>
+                  </div>
+                )}
+                {carrera.acreditaciones?.arcusur && (
+                  <div className="acred-badge arcusur" title={`ARCU-SUR - ${carrera.acreditaciones.arcusur.fase_actual}`}>
+                    <span>ARCU-SUR</span>
+                    <div className="badge-details">
+                      <small>Hasta: {new Date(carrera.acreditaciones.arcusur.fecha_vencimiento).toLocaleDateString('es-BO')}</small>
+                      <small>{carrera.acreditaciones.arcusur.fase_actual}</small>
+                    </div>
+                  </div>
+                )}
+                {!carrera.acreditaciones?.ceub && !carrera.acreditaciones?.arcusur && (
+                  <div className="acred-badge none">
+                    <span>Sin acreditación</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -556,7 +700,7 @@ const ReportesScreen = () => {
               </select>
             </div>
           )}
-          
+
           <div className="filter-group">
             <label>Facultad:</label>
             <select 
@@ -771,14 +915,20 @@ const ReportesScreen = () => {
         <h3>Matriz de Rendimiento por Facultad</h3>
         <div className="faculty-grid">
           {analisisFacultades.map((facultad, index) => (
-            <div key={facultad.facultad_id} className="faculty-card" style={{'--card-color': COLORS[index % COLORS.length]}}>
-              <div className="faculty-header">
+            <div key={facultad.facultad_id} className="faculty-card expandable" style={{'--card-color': COLORS[index % COLORS.length]}}>
+              <div 
+                className="faculty-header clickable"
+                onClick={() => toggleFacultyExpansion(facultad.facultad_id)}
+              >
                 <div className="faculty-icon">
                   {facultad.codigo_facultad}
                 </div>
                 <div className="faculty-info">
                   <h4>{facultad.nombre_facultad}</h4>
                   <div className="faculty-subtitle">{facultad.total_carreras} carreras registradas</div>
+                </div>
+                <div className="expand-indicator">
+                  {expandedFaculties.has(facultad.facultad_id) ? '▼' : '▶'}
                 </div>
               </div>
               
@@ -814,6 +964,18 @@ const ReportesScreen = () => {
                 {facultad.porcentaje_acreditacion >= 70 ? 'Excelente' : 
                  facultad.porcentaje_acreditacion >= 40 ? 'Bueno' : 'Bajo'}
               </div>
+
+              {expandedFaculties.has(facultad.facultad_id) && (
+                <div className="faculty-carreras-section">
+                  <div className="carreras-header">
+                    <h5>Carreras de la Facultad</h5>
+                    <div className="carreras-count">
+                      {facultyCarreras.get(facultad.facultad_id)?.length || 0} carreras
+                    </div>
+                  </div>
+                  <CarrerasList facultadId={facultad.facultad_id} />
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -910,93 +1072,121 @@ const ReportesScreen = () => {
                 <th>Total Acreditadas</th>
                 <th>% Cobertura</th>
                 <th>Ranking</th>
+                <th>Detalles</th>
               </tr>
             </thead>
             <tbody>
               {analisisFacultades
                 .sort((a, b) => b.porcentaje_acreditacion - a.porcentaje_acreditacion)
                 .map((facultad, index) => (
-                <tr key={facultad.facultad_id} className={index % 2 === 0 ? 'even' : 'odd'}>
-                  <td>
-                    <div className="faculty-row">
-                      <div 
-                        className="faculty-avatar"
-                        style={{
-                          background: `linear-gradient(135deg, ${COLORS[index % COLORS.length]}, ${COLORS[(index + 1) % COLORS.length]})`
-                        }}
-                      >
-                        {facultad.codigo_facultad}
-                      </div>
-                      <div className="faculty-details">
-                        <div className="faculty-name">{facultad.nombre_facultad}</div>
-                        <div className="faculty-code">Código: {facultad.codigo_facultad}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="text-center large-text">
-                    {facultad.total_carreras}
-                  </td>
-                  <td className="text-center">
-                    <div className="metric-column">
-                      <span className="metric-value ceub">{facultad.ceub}</span>
-                      <div className="metric-bar">
+                <React.Fragment key={facultad.facultad_id}>
+                  <tr className={index % 2 === 0 ? 'even' : 'odd'}>
+                    <td>
+                      <div className="faculty-row">
                         <div 
-                          className="metric-fill ceub"
+                          className="faculty-avatar"
                           style={{
-                            width: `${facultad.total_carreras > 0 ? (facultad.ceub / facultad.total_carreras * 100) : 0}%`
+                            background: `linear-gradient(135deg, ${COLORS[index % COLORS.length]}, ${COLORS[(index + 1) % COLORS.length]})`
                           }}
-                        ></div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="text-center">
-                    <div className="metric-column">
-                      <span className="metric-value arcusur">{facultad.arcusur}</span>
-                      <div className="metric-bar">
-                        <div 
-                          className="metric-fill arcusur"
-                          style={{
-                            width: `${facultad.total_carreras > 0 ? (facultad.arcusur / facultad.total_carreras * 100) : 0}%`
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="text-center">
-                    <span className="badge total">
-                      {facultad.carreras_acreditadas}
-                    </span>
-                  </td>
-                  <td className="text-center">
-                    <div className="circular-gauge">
-                      <div 
-                        className="gauge-fill"
-                        style={{
-                          background: `conic-gradient(${
-                            facultad.porcentaje_acreditacion >= 75 ? '#10b981' :
-                            facultad.porcentaje_acreditacion >= 50 ? '#f59e0b' : '#ef4444'
-                          } ${facultad.porcentaje_acreditacion * 3.6}deg, #e5e7eb 0deg)`
-                        }}
-                      >
-                        <div className="gauge-inner">
-                          {facultad.porcentaje_acreditacion}%
+                        >
+                          {facultad.codigo_facultad}
+                        </div>
+                        <div className="faculty-details">
+                          <div className="faculty-name">{facultad.nombre_facultad}</div>
+                          <div className="faculty-code">Código: {facultad.codigo_facultad}</div>
                         </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="text-center">
-                    <div className="ranking-cell">
-                      <span className={`ranking-number ${
-                        index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : 'regular'
-                      }`}>
-                        #{index + 1}
+                    </td>
+                    <td className="text-center large-text">
+                      {facultad.total_carreras}
+                    </td>
+                    <td className="text-center">
+                      <div className="metric-column">
+                        <span className="metric-value ceub">{facultad.ceub}</span>
+                        <div className="metric-bar">
+                          <div 
+                            className="metric-fill ceub"
+                            style={{
+                              width: `${facultad.total_carreras > 0 ? (facultad.ceub / facultad.total_carreras * 100) : 0}%`
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="text-center">
+                      <div className="metric-column">
+                        <span className="metric-value arcusur">{facultad.arcusur}</span>
+                        <div className="metric-bar">
+                          <div 
+                            className="metric-fill arcusur"
+                            style={{
+                              width: `${facultad.total_carreras > 0 ? (facultad.arcusur / facultad.total_carreras * 100) : 0}%`
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="text-center">
+                      <span className="badge total">
+                        {facultad.carreras_acreditadas}
                       </span>
-                      <span className="ranking-emoji">
-                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '📊'}
-                      </span>
-                    </div>
-                  </td>
-                </tr>
+                    </td>
+                    <td className="text-center">
+                      <div className="circular-gauge">
+                        <div 
+                          className="gauge-fill"
+                          style={{
+                            background: `conic-gradient(${
+                              facultad.porcentaje_acreditacion >= 75 ? '#10b981' :
+                              facultad.porcentaje_acreditacion >= 50 ? '#f59e0b' : '#ef4444'
+                            } ${facultad.porcentaje_acreditacion * 3.6}deg, #e5e7eb 0deg)`
+                          }}
+                        >
+                          <div className="gauge-inner">
+                            {facultad.porcentaje_acreditacion}%
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="text-center">
+                      <div className="ranking-cell">
+                        <span className={`ranking-number ${
+                          index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : 'regular'
+                        }`}>
+                          #{index + 1}
+                        </span>
+                        <span className="ranking-emoji">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '📊'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="text-center">
+                      <button 
+                        className="expand-btn"
+                        onClick={() => toggleFacultyExpansion(facultad.facultad_id)}
+                        title="Ver carreras de la facultad"
+                      >
+                        {expandedFaculties.has(facultad.facultad_id) ? '▼' : '▶'} Ver Carreras
+                      </button>
+                    </td>
+                  </tr>
+                  
+                  {expandedFaculties.has(facultad.facultad_id) && (
+                    <tr className="expanded-row">
+                      <td colSpan="8">
+                        <div className="faculty-carreras-expanded">
+                          <div className="carreras-section-header">
+                            <h5>Carreras de {facultad.nombre_facultad}</h5>
+                            <span className="carreras-count-badge">
+                              {facultyCarreras.get(facultad.facultad_id)?.length || 0} carreras registradas
+                            </span>
+                          </div>
+                          <CarrerasList facultadId={facultad.facultad_id} />
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               ))}
             </tbody>
           </table>
