@@ -1,13 +1,13 @@
 .header-container {
-  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #2563eb 100%); /* Gradiente azul vibrante */
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #2563eb 100%); 
   color: white;
   text-align: center;
   padding: 0.5rem 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3); /* Sombra más prominente con color del header */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Borde sutil */
+  box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3); 
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
 }
 
 .header-left {
@@ -26,42 +26,41 @@
 }
 
 .header-link {
-  color: #ffffff; /* Blanco puro para mejor contraste */
+  color: #ffffff; 
   text-decoration: none;
   font-weight: 500;
   padding: 0.4rem 0.8rem;
-  border-radius: 8px; /* Aumentado para suavizar */
-  transition: all 0.3s ease; /* Transición más suave */
+  border-radius: 8px; 
+  transition: all 0.3s ease; 
   font-size: 13px;
-  border: 1px solid transparent; /* Borde transparente por defecto */
+  border: 1px solid transparent; 
 }
 
 .header-link:hover {
-  background: rgba(255, 255, 255, 0.15); /* Fondo blanco semi-transparente */
+  background: rgba(255, 255, 255, 0.15); 
   color: #ffffff;
-  transform: translateY(-1px); /* Efecto de elevación */
+  transform: translateY(-1px); 
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .header-link.active {
-  background: #ffffff; /* Fondo blanco sólido */
-  color: #1e3a8a; /* Color del header original */
+  background: #ffffff; 
+  color: #1e3a8a;
   font-weight: bold;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Estilos del menú de usuario */
 .user-menu {
   position: relative;
   margin-left: 15px;
 }
 
 .user-menu-toggle {
-  background: rgba(255, 255, 255, 0.1); /* Fondo blanco semi-transparente */
-  border: 1px solid rgba(255, 255, 255, 0.3); /* Borde blanco semi-transparente */
-  color: #ffffff; /* Texto blanco puro */
+  background: rgba(255, 255, 255, 0.1); 
+  border: 1px solid rgba(255, 255, 255, 0.3); 
+  color: #ffffff; 
   padding: 6px 12px;
-  border-radius: 8px; /* Aumentado para consistencia */
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -69,28 +68,28 @@
   font-size: 12px;
   transition: all 0.3s ease;
   min-width: 140px;
-  backdrop-filter: blur(10px); /* Efecto de desenfoque */
+  backdrop-filter: blur(10px); 
 }
 
 .user-menu-toggle:hover {
-  background: rgba(255, 255, 255, 0.2); /* Más opacidad al hover */
+  background: rgba(255, 255, 255, 0.2);
   border-color: #ffffff;
   color: #ffffff;
-  transform: translateY(-2px); /* Efecto de elevación más pronunciado */
+  transform: translateY(-2px); 
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .user-name-navbar {
   font-weight: 600;
   font-size: 13px;
-  color: #ffffff; /* Blanco puro */
+  color: #ffffff;
 }
 
 .user-role {
   font-size: 10px;
   opacity: 0.9;
   margin-top: 1px;
-  color: #f1f5f9; /* Blanco ligeramente más suave */
+  color: #f1f5f9;
 }
 
 .user-dropdown {
@@ -98,13 +97,13 @@
   top: 100%;
   right: 0;
   background: white;
-  border-radius: 12px; /* Más redondeado */
-  box-shadow: 0 12px 40px rgba(30, 58, 138, 0.2); /* Sombra con color del header */
+  border-radius: 12px; 
+  box-shadow: 0 12px 40px rgba(30, 58, 138, 0.2); 
   padding: 12px;
   min-width: 200px;
   margin-top: 8px;
   z-index: 1000;
-  animation: slideDown 0.3s ease-out; /* Animación más lenta */
+  animation: slideDown 0.3s ease-out; 
   border: 1px solid rgba(30, 58, 138, 0.1);
 }
 
@@ -124,14 +123,14 @@
 }
 
 .user-full-name {
-  color: #1e293b; /* Color más profundo */
+  color: #1e293b; 
   font-weight: 600;
   font-size: 14px;
   margin: 0 0 4px 0;
 }
 
 .user-email {
-  color: #64748b; /* Color más suave */
+  color: #64748b; 
   font-size: 12px;
   margin: 0;
 }
@@ -145,7 +144,7 @@
 .dropdown-item {
   background: none;
   border: none;
-  color: #374151; /* Color más definido */
+  color: #374151; 
   padding: 8px 12px;
   text-align: left;
   width: 100%;
@@ -156,8 +155,8 @@
 }
 
 .dropdown-item:hover {
-  background-color: #f1f5f9; /* Fondo más suave */
-  transform: translateX(2px); /* Efecto sutil de movimiento */
+  background-color: #f1f5f9; 
+  transform: translateX(2px); 
 }
 
 .dropdown-item.logout {
@@ -169,7 +168,6 @@
   color: #b91c1c;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .header-container {
     flex-direction: column;
@@ -201,11 +199,11 @@
 .modalidades-toggle {
   background: none;
   border: none;
-  color: #ffffff; /* Blanco puro */
+  color: #ffffff; 
   text-decoration: none;
   font-weight: 500;
   padding: 0.4rem 0.8rem;
-  border-radius: 8px; /* Aumentado para consistencia */
+  border-radius: 8px; 
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -216,7 +214,7 @@
 }
 
 .modalidades-toggle:hover {
-  background: rgba(255, 255, 255, 0.15); /* Mismo estilo que header-link */
+  background: rgba(255, 255, 255, 0.15); 
   color: #ffffff;
   transform: translateY(-1px);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -237,8 +235,8 @@
   left: 0;
   background: white;
   border: 1px solid rgba(30, 58, 138, 0.1);
-  border-radius: 12px; /* Más redondeado */
-  box-shadow: 0 12px 40px rgba(30, 58, 138, 0.2); /* Sombra con color del header */
+  border-radius: 12px; 
+  box-shadow: 0 12px 40px rgba(30, 58, 138, 0.2); 
   min-width: 180px;
   z-index: 1000;
   overflow: hidden;
@@ -255,7 +253,7 @@
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
   border-bottom: 8px solid white;
-  filter: drop-shadow(0 -2px 4px rgba(30, 58, 138, 0.1)); /* Sombra en la flecha */
+  filter: drop-shadow(0 -2px 4px rgba(30, 58, 138, 0.1));
 }
 
 .modalidades-dropdown-menu .dropdown-item {
@@ -265,7 +263,7 @@
   background: none;
   border: none;
   text-align: left;
-  color: #374151; /* Color más definido */
+  color: #374151; 
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s ease;
@@ -277,9 +275,9 @@
 }
 
 .modalidades-dropdown-menu .dropdown-item:hover {
-  background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%); /* Gradiente sutil */
-  color: #1e3a8a; /* Color del header */
-  transform: translateX(4px); /* Efecto de movimiento */
+  background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%); 
+  color: #1e3a8a; 
+  transform: translateX(4px); 
 }
 
 .modalidades-dropdown-menu .dropdown-item:active {
