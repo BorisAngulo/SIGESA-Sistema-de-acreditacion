@@ -1028,11 +1028,11 @@ const FasesScreen = () => {
       // Cerrar el modal
       setShowFinalizarModal(false);
       
-      // Recargar la página para reflejar los cambios
-      window.location();
-      
       // Mostrar mensaje de éxito
       alert('🎉 Acreditación finalizada exitosamente. Se han guardado las fechas de aprobación y el certificado.');
+      
+      // Redirigir a CarrerasModalidadesAdmin
+      navigate('/carrera-modalidades-admin');
       
     } catch (error) {
       console.error('❌ Error al finalizar acreditación:', error);
@@ -1683,7 +1683,7 @@ const FasesScreen = () => {
         onClose={handleCloseDateProcessModal}
         onConfirm={handleConfirmDateProcess}
         carreraNombre={fasesData?.carreraNombre || 'Carrera no especificada'}
-        modalidadNombre={fasesData?.modalidadData?.nombre || 'Modalidad no especificada'}
+        modalidadNombre={fasesData?.modalidadData?.nombre_modalidad || 'Modalidad no especificada'}
         loading={dateProcessLoading}
       />
 

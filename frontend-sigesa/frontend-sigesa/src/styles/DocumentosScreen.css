@@ -233,25 +233,50 @@
 
 .documento-actions {
   flex-shrink: 0;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
-.btn-ver-asociaciones {
+.btn-ver-asociaciones,
+.btn-descargar-documento {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: #3b82f6;
-  color: white;
   border: none;
   border-radius: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  text-decoration: none;
 }
 
-.btn-ver-asociaciones:hover {
+.btn-ver-asociaciones:disabled,
+.btn-descargar-documento:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-ver-asociaciones {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-ver-asociaciones:hover:not(:disabled) {
   background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.btn-descargar-documento {
+  background: #10b981;
+  color: white;
+}
+
+.btn-descargar-documento:hover:not(:disabled) {
+  background: #059669;
   transform: translateY(-1px);
 }
 
@@ -394,8 +419,14 @@
     gap: 0.5rem;
   }
 
-  .btn-ver-asociaciones {
-    align-self: flex-start;
+  .documento-actions {
+    align-self: stretch;
+  }
+
+  .btn-ver-asociaciones,
+  .btn-descargar-documento {
+    flex: 1;
+    justify-content: center;
   }
 }
 

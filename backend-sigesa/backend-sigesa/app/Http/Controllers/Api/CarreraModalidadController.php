@@ -26,8 +26,8 @@ class CarreraModalidadController extends BaseApiController
                 'modalidad_id' => 'required|exists:modalidades,id',
                 'estado_modalidad' => 'boolean',
                 'estado_acreditacion' => 'boolean',
-                'fecha_ini_proceso' => 'nullable|date',
-                'fecha_fin_proceso' => 'nullable|date',
+                'fecha_ini_proceso' => 'required|date',
+                'fecha_fin_proceso' => 'required|date',
                 'fecha_ini_aprobacion' => 'nullable|date',
                 'fecha_fin_aprobacion' => 'nullable|date',
                 'certificado' => 'nullable|string',
@@ -77,6 +77,7 @@ class CarreraModalidadController extends BaseApiController
             \Log::info('📦 Datos recibidos en request->all():', $request->all());
             \Log::info('📅 Input específico fecha_ini_aprobacion:', ['fecha_ini_aprobacion' => $request->input('fecha_ini_aprobacion')]);
             \Log::info('📦 Input específico fecha_fin_aprobacion:', ['fecha_fin_aprobacion' => $request->input('fecha_fin_aprobacion')]);
+            \Log::info('🏆 Input específico puntaje_acreditacion:', ['puntaje_acreditacion' => $request->input('puntaje_acreditacion')]);
             \Log::info('📎 ¿Tiene archivo certificado?:', ['hasFile' => $request->hasFile('certificado')]);
             \Log::info('📎 Files en request:', $request->files->all());
             \Log::info('📎 Content-Type:', ['content_type' => $request->header('Content-Type')]);
@@ -103,7 +104,11 @@ class CarreraModalidadController extends BaseApiController
                 'id_usuario_updated_carrera_modalidad' => 'nullable|integer',
                 'fecha_ini_aprobacion' => 'nullable|date',
                 'fecha_fin_aprobacion' => 'nullable|date',
-                'certificado' => 'nullable|file|mimes:png,jpg,jpeg,pdf|max:10240'
+                'certificado' => 'nullable|file|mimes:png,jpg,jpeg,pdf|max:10240',
+                'certificado_nombre_original' => 'nullable|string',
+                'certificado_mime_type' => 'nullable|string',
+                'certificado_extension' => 'nullable|string',
+                'puntaje_acreditacion' => 'nullable|numeric|min:0|max:100'
             ]);
 
             \Log::info('✅ Validación exitosa:', $validated);
@@ -120,9 +125,17 @@ class CarreraModalidadController extends BaseApiController
                 $base64 = base64_encode($fileContent);
                 $validated['certificado'] = $base64;
                 
+                // Guardar información del archivo original
+                $validated['certificado_nombre_original'] = $file->getClientOriginalName();
+                $validated['certificado_mime_type'] = $file->getMimeType();
+                $validated['certificado_extension'] = $file->getClientOriginalExtension();
+                
                 \Log::info('📎 Certificado procesado:', [
                     'fileName' => $fileName,
                     'filePath' => $filePath,
+                    'originalName' => $file->getClientOriginalName(),
+                    'mimeType' => $file->getMimeType(),
+                    'extension' => $file->getClientOriginalExtension(),
                     'size' => strlen($base64)
                 ]);
             }
@@ -145,7 +158,8 @@ class CarreraModalidadController extends BaseApiController
                 'estado_modalidad_despues' => $carreraModalidad->estado_modalidad,
                 'estado_acreditacion_despues' => $carreraModalidad->estado_acreditacion,
                 'fecha_ini_aprobacion' => $carreraModalidad->fecha_ini_aprobacion,
-                'fecha_fin_aprobacion' => $carreraModalidad->fecha_fin_aprobacion
+                'fecha_fin_aprobacion' => $carreraModalidad->fecha_fin_aprobacion,
+                'puntaje_acreditacion' => $carreraModalidad->puntaje_acreditacion
             ]);
 
             return $this->successResponse(
@@ -352,6 +366,58 @@ class CarreraModalidadController extends BaseApiController
                 'Carreras-modalidades con detalles completos obtenidas exitosamente'
             );
 
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * Descargar certificado de acreditación de carrera-modalidad
+     */
+    public function descargarCertificado($id)
+    {
+        try {
+            $carreraModalidad = CarreraModalidad::with(['carrera', 'modalidad'])->find($id);
+
+            if (!$carreraModalidad) {
+                throw ApiException::notFound('carrera-modalidad', $id);
+            }
+
+            if (!$carreraModalidad->certificado) {
+                throw new ApiException('Esta carrera-modalidad no tiene certificado disponible', 404);
+            }
+
+            // Decodificar el certificado desde base64
+            $certificadoData = base64_decode($carreraModalidad->certificado);
+            
+            if (!$certificadoData) {
+                throw new ApiException('Error al decodificar el certificado', 500);
+            }
+
+            // Generar nombre del archivo usando información original si está disponible
+            $nombreCarrera = str_replace(' ', '_', $carreraModalidad->carrera->nombre_carrera);
+            $nombreModalidad = str_replace(' ', '_', $carreraModalidad->modalidad->nombre_modalidad);
+            
+            // Usar extensión original si está disponible, sino usar .pdf por defecto
+            $extension = $carreraModalidad->certificado_extension ?: 'pdf';
+            $nombreArchivo = "certificado_{$nombreCarrera}_{$nombreModalidad}.{$extension}";
+            
+            // Usar tipo MIME original si está disponible, sino usar application/pdf por defecto
+            $mimeType = $carreraModalidad->certificado_mime_type ?: 'application/pdf';
+
+            // Configurar headers para descarga
+            $headers = [
+                'Content-Type' => $mimeType,
+                'Content-Length' => strlen($certificadoData),
+                'Content-Disposition' => 'attachment; filename="' . $nombreArchivo . '"',
+                'Cache-Control' => 'public, max-age=3600',
+                'Pragma' => 'public',
+            ];
+
+            return response($certificadoData, 200, $headers);
+
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
         } catch (\Exception $e) {
             return $this->handleGeneralException($e);
         }

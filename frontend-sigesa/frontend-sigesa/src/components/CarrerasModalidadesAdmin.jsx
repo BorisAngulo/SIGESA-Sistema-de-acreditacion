@@ -12,9 +12,17 @@ import {
   Users,
   CheckCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Download,
+  Upload,
+  Award
 } from 'lucide-react';
-import { getCarrerasModalidadesDetallesCompletos } from '../services/api';
+import { 
+  getCarrerasModalidadesDetallesCompletos, 
+  subirCertificadoCarreraModalidad, 
+  descargarCertificadoCarreraModalidad 
+} from '../services/api';
+import ModalSubirCertificado from './ModalSubirCertificado';
 import './CarrerasModalidadesAdmin.css';
 
 const CarrerasModalidadesAdmin = () => {
@@ -26,6 +34,11 @@ const CarrerasModalidadesAdmin = () => {
   const [selectedFacultad, setSelectedFacultad] = useState('');
   const [selectedModalidad, setSelectedModalidad] = useState('');
   const [expandedItems, setExpandedItems] = useState(new Set());
+  
+  // Estados para modal de certificado
+  const [showCertificadoModal, setShowCertificadoModal] = useState(false);
+  const [selectedCarreraModalidad, setSelectedCarreraModalidad] = useState(null);
+  const [downloadingCertificados, setDownloadingCertificados] = useState(new Set());
 
   useEffect(() => {
     cargarCarrerasModalidades();
@@ -76,6 +89,57 @@ const CarrerasModalidadesAdmin = () => {
         fromCarrerasModalidadesAdmin: true // Flag para indicar el origen
       } 
     });
+  };
+
+  // Funciones para manejo de certificados
+  const handleSubirCertificado = (carreraModalidad) => {
+    setSelectedCarreraModalidad(carreraModalidad);
+    setShowCertificadoModal(true);
+  };
+
+  const handleDescargarCertificado = async (carreraModalidad) => {
+    try {
+      console.log('Descargando certificado para:', carreraModalidad);
+      
+      setDownloadingCertificados(prev => new Set(prev).add(carreraModalidad.id));
+      
+      descargarCertificadoCarreraModalidad(
+        carreraModalidad.id, 
+        carreraModalidad.carrera.nombre, 
+        carreraModalidad.modalidad.nombre
+      );
+    } catch (error) {
+      console.error('Error al descargar certificado:', error);
+      alert('Error al descargar el certificado: ' + (error.message || 'Error desconocido'));
+    } finally {
+      setDownloadingCertificados(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(carreraModalidad.id);
+        return newSet;
+      });
+    }
+  };
+
+  const handleUploadCertificado = async (certificadoFile) => {
+    try {
+      console.log('Subiendo certificado para:', selectedCarreraModalidad);
+      
+      await subirCertificadoCarreraModalidad(selectedCarreraModalidad.id, certificadoFile);
+      
+      alert('Certificado subido exitosamente');
+      
+      // Recargar datos para mostrar el nuevo certificado
+      await cargarCarrerasModalidades();
+      
+    } catch (error) {
+      console.error('Error al subir certificado:', error);
+      throw error; // Re-lanzar para que el modal lo maneje
+    }
+  };
+
+  const handleCloseCertificadoModal = () => {
+    setShowCertificadoModal(false);
+    setSelectedCarreraModalidad(null);
   };
 
   const getEstadoBadge = (estado, carreraModalidad = null) => {
@@ -317,6 +381,37 @@ const CarrerasModalidadesAdmin = () => {
                   <Users size={16} />
                   <span>{cm.fases?.reduce((total, fase) => total + (fase.subfases?.length || 0), 0) || 0} subfases</span>
                 </div>
+                
+                {/* Botones de certificado */}
+                <div className="certificado-actions">
+                  {cm.certificado ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDescargarCertificado(cm);
+                      }}
+                      className="btn-descargar-certificado"
+                      title="Descargar certificado"
+                      disabled={downloadingCertificados.has(cm.id)}
+                    >
+                      <Award size={16} />
+                      {downloadingCertificados.has(cm.id) ? 'Descargando...' : 'Certificado'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSubirCertificado(cm);
+                      }}
+                      className="btn-subir-certificado"
+                      title="Subir certificado"
+                    >
+                      <Upload size={16} />
+                      Subir Certificado
+                    </button>
+                  )}
+                </div>
+                
                 <div className="expand-icon" onClick={(e) => {
                   e.stopPropagation();
                   toggleExpanded(cm.id);
@@ -446,6 +541,14 @@ const CarrerasModalidadesAdmin = () => {
           <p>Intenta ajustar los filtros o términos de búsqueda</p>
         </div>
       )}
+
+      {/* Modal para subir certificado */}
+      <ModalSubirCertificado
+        isOpen={showCertificadoModal}
+        onClose={handleCloseCertificadoModal}
+        onUpload={handleUploadCertificado}
+        carreraModalidad={selectedCarreraModalidad}
+      />
     </div>
   );
 };

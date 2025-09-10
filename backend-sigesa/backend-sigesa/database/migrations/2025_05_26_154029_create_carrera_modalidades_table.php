@@ -29,6 +29,10 @@ class CreateCarreraModalidadesTable extends Migration
             $table->dateTime('fecha_ini_aprobacion')->nullable();
             $table->dateTime('fecha_fin_aprobacion')->nullable();
             $table->longText('certificado')->nullable(); 
+            $table->string('certificado_nombre_original')->nullable()->after('certificado');
+            $table->string('certificado_mime_type')->nullable()->after('certificado_nombre_original');
+            $table->string('certificado_extension')->nullable()->after('certificado_mime_type');
+            $table->decimal('puntaje_acreditacion',5,2)->nullable();
             $table->timestamps();
         });
     }

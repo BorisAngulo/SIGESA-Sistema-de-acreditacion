@@ -5,7 +5,8 @@ const FinalizarAcreditacionModal = ({ show, onClose, onConfirm, carreraModalidad
   const [formData, setFormData] = useState({
     fecha_ini_aprobacion: '',
     fecha_fin_aprobacion: '',
-    certificado: null
+    certificado: null,
+    puntaje_acreditacion: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -93,6 +94,14 @@ const FinalizarAcreditacionModal = ({ show, onClose, onConfirm, carreraModalidad
       }
     }
     
+    // Validar puntaje si se proporciona (opcional)
+    if (formData.puntaje_acreditacion && formData.puntaje_acreditacion !== '') {
+      const puntaje = parseFloat(formData.puntaje_acreditacion);
+      if (isNaN(puntaje) || puntaje < 0 || puntaje > 100) {
+        newErrors.puntaje_acreditacion = 'El puntaje debe ser un número entre 0 y 100';
+      }
+    }
+    
     console.log('❌ Errores encontrados:', newErrors);
     console.log('✅ ¿Formulario válido?:', Object.keys(newErrors).length === 0);
     
@@ -111,6 +120,12 @@ const FinalizarAcreditacionModal = ({ show, onClose, onConfirm, carreraModalidad
       formDataToSend.append('_method', 'PUT'); // Simular método PUT
       formDataToSend.append('fecha_ini_aprobacion', formData.fecha_ini_aprobacion);
       formDataToSend.append('fecha_fin_aprobacion', formData.fecha_fin_aprobacion);
+      
+      // Solo agregar puntaje si se proporciona
+      if (formData.puntaje_acreditacion && formData.puntaje_acreditacion !== '') {
+        console.log('🏆 Agregando puntaje:', formData.puntaje_acreditacion);
+        formDataToSend.append('puntaje_acreditacion', formData.puntaje_acreditacion);
+      }
       
       // Solo agregar certificado si existe
       if (formData.certificado) {
@@ -136,7 +151,8 @@ const FinalizarAcreditacionModal = ({ show, onClose, onConfirm, carreraModalidad
     setFormData({
       fecha_ini_aprobacion: '',
       fecha_fin_aprobacion: '',
-      certificado: null
+      certificado: null,
+      puntaje_acreditacion: ''
     });
     setErrors({});
     onClose();
@@ -158,7 +174,7 @@ const FinalizarAcreditacionModal = ({ show, onClose, onConfirm, carreraModalidad
           <div className="carrera-info">
             <h4>📋 Información de la Acreditación</h4>
             <p><strong>Carrera:</strong> {carreraModalidadData?.carreraNombre || 'N/A'}</p>
-            <p><strong>Modalidad:</strong> {carreraModalidadData?.modalidadNombre || 'N/A'}</p>
+            <p><strong>Modalidad:</strong> {carreraModalidadData?.modalidad || 'N/A'}</p>
             <p><strong>Facultad:</strong> {carreraModalidadData?.facultadNombre || 'N/A'}</p>
           </div>
           
@@ -197,6 +213,31 @@ const FinalizarAcreditacionModal = ({ show, onClose, onConfirm, carreraModalidad
               {errors.fecha_fin_aprobacion && (
                 <span className="error-message">{errors.fecha_fin_aprobacion}</span>
               )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="puntaje_acreditacion">
+                🏆 Puntaje de Acreditación (Opcional)
+              </label>
+              <input
+                type="number"
+                id="puntaje_acreditacion"
+                name="puntaje_acreditacion"
+                value={formData.puntaje_acreditacion}
+                onChange={handleInputChange}
+                disabled={loading}
+                className={errors.puntaje_acreditacion ? 'error' : ''}
+                min="0"
+                max="100"
+                step="0.01"
+                placeholder="Ingrese puntaje (0-100)"
+              />
+              {errors.puntaje_acreditacion && (
+                <span className="error-message">{errors.puntaje_acreditacion}</span>
+              )}
+              <small style={{ color: '#6c757d', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>
+                Puntaje obtenido en la acreditación (0-100). Este campo es opcional.
+              </small>
             </div>
 
             <div className="form-group">

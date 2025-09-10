@@ -53,6 +53,10 @@ Route::get('carreras/{carrera}/modalidades/{modalidad}/verificar', [CarreraModal
 Route::get('carrera-modalidad/detalles-completos', [CarreraModalidadController::class, 'getDetallesCompletos'])
     ->name('carrera-modalidad.detalles-completos');
 
+// Descargar certificado de acreditación (público)
+Route::get('acreditacion-carreras/{acreditacion_carrera}/certificado/descargar', [CarreraModalidadController::class, 'descargarCertificado'])
+    ->name('acreditacion-carreras.certificado.descargar');
+
 // === RUTAS PROTEGIDAS (REQUIEREN AUTENTICACIÓN) ===
 // Operaciones de escritura que requieren usuario autenticado
 Route::middleware(['auth:sanctum'])->group(function () {

@@ -1,0 +1,303 @@
+/* Modal Subir Certificado */
+.modal-subir-certificado {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modal-subir-certificado .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-subir-certificado .modal-header h2 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.modal-subir-certificado .close-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  transition: color 0.2s ease;
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
+.modal-subir-certificado .close-button:hover {
+  color: #374151;
+  background: #f3f4f6;
+}
+
+.modal-subir-certificado .close-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-subir-certificado .modal-content {
+  padding: 1.5rem;
+}
+
+/* Información de la carrera */
+.carrera-info {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.carrera-info h3 {
+  margin: 0 0 0.5rem 0;
+  color: #374151;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.carrera-info p {
+  margin: 0.25rem 0;
+  color: #1f2937;
+}
+
+.facultad-info {
+  color: #6b7280 !important;
+  font-size: 0.875rem !important;
+}
+
+/* Zona de arrastrar y soltar */
+.file-drop-zone {
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  background: #f9fafb;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.file-drop-zone:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.file-drop-zone.drag-over {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  transform: scale(1.02);
+}
+
+.file-drop-zone.has-file {
+  border-color: #10b981;
+  background: #ecfdf5;
+  cursor: default;
+}
+
+.file-drop-zone.has-file:hover {
+  border-color: #10b981;
+  background: #ecfdf5;
+}
+
+/* Prompt de arrastrar */
+.drop-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: #6b7280;
+}
+
+.drop-prompt svg {
+  color: #9ca3af;
+}
+
+.drop-prompt h3 {
+  margin: 0;
+  color: #374151;
+  font-weight: 500;
+}
+
+.drop-prompt p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.file-input-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: #3b82f6;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.file-input-label:hover {
+  background: #2563eb;
+}
+
+/* Vista previa del archivo */
+.file-preview {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #10b981;
+  border-radius: 8px;
+  position: relative;
+}
+
+.file-preview svg {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.file-info {
+  flex: 1;
+  text-align: left;
+}
+
+.file-info h4 {
+  margin: 0 0 0.25rem 0;
+  color: #1f2937;
+  font-size: 1rem;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.file-info p {
+  margin: 0.125rem 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.remove-file-button {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.remove-file-button:hover {
+  background: #dc2626;
+}
+
+.remove-file-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Requisitos de archivo */
+.file-requirements {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+}
+
+.file-requirements svg {
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.file-requirements p {
+  margin: 0;
+  color: #92400e;
+  font-size: 0.875rem;
+}
+
+/* Botones de acción */
+.modal-subir-certificado .modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.modal-subir-certificado .btn-cancel,
+.modal-subir-certificado .btn-upload {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.modal-subir-certificado .btn-cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.modal-subir-certificado .btn-cancel:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.modal-subir-certificado .btn-upload {
+  background: #10b981;
+  color: white;
+}
+
+.modal-subir-certificado .btn-upload:hover:not(:disabled) {
+  background: #059669;
+}
+
+.modal-subir-certificado .btn-upload:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .modal-subir-certificado {
+    width: 95%;
+    margin: 1rem;
+  }
+  
+  .modal-subir-certificado .modal-header,
+  .modal-subir-certificado .modal-content {
+    padding: 1rem;
+  }
+  
+  .modal-subir-certificado .modal-actions {
+    flex-direction: column;
+  }
+  
+  .file-preview {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  
+  .file-info {
+    text-align: center;
+  }
+}

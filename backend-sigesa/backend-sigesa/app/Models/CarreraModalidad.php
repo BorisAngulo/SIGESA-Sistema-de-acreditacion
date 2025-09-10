@@ -22,7 +22,11 @@ class CarreraModalidad extends Model
         'id_usuario_updated_carrera_modalidad',
         'fecha_ini_aprobacion',
         'fecha_fin_aprobacion',
-        'certificado'
+        'certificado',
+        'certificado_nombre_original',
+        'certificado_mime_type',
+        'certificado_extension',
+        'puntaje_acreditacion'
     ];
 
     /**

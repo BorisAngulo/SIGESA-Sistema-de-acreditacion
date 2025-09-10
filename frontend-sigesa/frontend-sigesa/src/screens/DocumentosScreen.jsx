@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getAllDocumentos, createDocumentoGlobal } from '../services/api';
+import { getAllDocumentos, createDocumentoGlobal, downloadDocumento } from '../services/api';
 import ModalAsociacionesDocumento from '../components/ModalAsociacionesDocumento';
 import ModalSubirDocumentoGlobal from '../components/ModalSubirDocumentoGlobal';
-import { FileText, Search, Eye, Calendar, User, Hash, Plus } from 'lucide-react';
+import { FileText, Search, Eye, Calendar, User, Hash, Plus, Download } from 'lucide-react';
 import '../styles/DocumentosScreen.css';
 
 const DocumentosScreen = () => {
@@ -16,19 +16,22 @@ const DocumentosScreen = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [downloadingDocuments, setDownloadingDocuments] = useState(new Set());
 
   // Verificar si el usuario tiene permisos
-  const tienePermiso = hasRole('Admin') || hasRole('Tecnico');
+  const tienePermisoCompleto = hasRole('Admin') || hasRole('Tecnico');
+  const esCoordinador = hasRole('Coordinador');
+  const tieneAcceso = tienePermisoCompleto || esCoordinador;
 
   useEffect(() => {
-    if (!tienePermiso) {
+    if (!tieneAcceso) {
       setError('No tienes permisos para acceder a esta sección');
       setLoading(false);
       return;
     }
 
     cargarDocumentos();
-  }, [tienePermiso]);
+  }, [tieneAcceso]);
 
   const cargarDocumentos = async () => {
     try {
@@ -144,19 +147,45 @@ const DocumentosScreen = () => {
     }
   };
 
-  const filteredDocumentos = documentos.filter(doc =>
+  const handleDescargarDocumento = async (documento) => {
+    try {
+      console.log('Descargando documento:', documento.nombre_documento);
+      
+      // Agregar el documento a la lista de descargas en progreso
+      setDownloadingDocuments(prev => new Set(prev).add(documento.id));
+      
+      await downloadDocumento(documento.id);
+    } catch (error) {
+      console.error('Error al descargar documento:', error);
+      alert('Error al descargar el documento: ' + (error.message || 'Error desconocido'));
+    } finally {
+      // Remover el documento de la lista de descargas en progreso
+      setDownloadingDocuments(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(documento.id);
+        return newSet;
+      });
+    }
+  };
+
+  // Filtrar documentos según el tipo de usuario
+  const documentosFiltradosPorTipo = esCoordinador 
+    ? documentos.filter(doc => doc.tipo_documento === '03') // Solo documentos globales para coordinadores
+    : documentos; // Todos los documentos para Admin y Técnico
+
+  const filteredDocumentos = documentosFiltradosPorTipo.filter(doc =>
     doc.nombre_documento.toLowerCase().includes(searchTerm.toLowerCase()) ||
     doc.descripcion_documento?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     doc.nombre_archivo_original?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (!tienePermiso) {
+  if (!tieneAcceso) {
     return (
       <div className="documentos-screen">
         <div className="documentos-container">
           <div className="error-message">
             <h2>Acceso Denegado</h2>
-            <p>No tienes permisos para acceder a esta sección. Solo usuarios con rol Admin o Técnico pueden ver los documentos.</p>
+            <p>No tienes permisos para acceder a esta sección. Solo usuarios con rol Admin, Técnico o Coordinador pueden ver los documentos.</p>
           </div>
         </div>
       </div>
@@ -196,11 +225,11 @@ const DocumentosScreen = () => {
       <div className="documentos-container">
         <div className="documentos-header">
           <div className="documentos-title-section">
-            <h1>Gestión de Documentos</h1>
-            <p>Lista completa de documentos del sistema y sus asociaciones</p>
+            <h1>{esCoordinador ? 'Documentos Globales' : 'Gestión de Documentos'}</h1>
+            <p>{esCoordinador ? 'Documentos globales disponibles para consulta' : 'Lista completa de documentos del sistema y sus asociaciones'}</p>
           </div>
           
-          {tienePermiso && (
+          {tienePermisoCompleto && (
             <div className="documentos-actions">
               <button
                 onClick={() => setShowUploadModal(true)}
@@ -220,7 +249,7 @@ const DocumentosScreen = () => {
             <Search size={20} className="search-icon" />
             <input
               type="text"
-              placeholder="Buscar documentos por nombre, descripción o archivo..."
+              placeholder={esCoordinador ? "Buscar documentos globales..." : "Buscar documentos por nombre, descripción o archivo..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -231,21 +260,25 @@ const DocumentosScreen = () => {
         {/* Estadísticas */}
         <div className="stats-container">
           <div className="stat-card">
-            <h3>Total Documentos</h3>
-            <p>{documentos.length}</p>
+            <h3>{esCoordinador ? 'Documentos Globales' : 'Total Documentos'}</h3>
+            <p>{esCoordinador ? documentos.filter(doc => doc.tipo_documento === '03').length : documentos.length}</p>
           </div>
-          <div className="stat-card">
-            <h3>Específicos</h3>
-            <p>{documentos.filter(doc => doc.tipo_documento === '01').length}</p>
-          </div>
-          <div className="stat-card">
-            <h3>Generales</h3>
-            <p>{documentos.filter(doc => doc.tipo_documento === '02').length}</p>
-          </div>
-          <div className="stat-card">
-            <h3>Globales</h3>
-            <p>{documentos.filter(doc => doc.tipo_documento === '03').length}</p>
-          </div>
+          {!esCoordinador && (
+            <>
+              <div className="stat-card">
+                <h3>Específicos</h3>
+                <p>{documentos.filter(doc => doc.tipo_documento === '01').length}</p>
+              </div>
+              <div className="stat-card">
+                <h3>Generales</h3>
+                <p>{documentos.filter(doc => doc.tipo_documento === '02').length}</p>
+              </div>
+              <div className="stat-card">
+                <h3>Globales</h3>
+                <p>{documentos.filter(doc => doc.tipo_documento === '03').length}</p>
+              </div>
+            </>
+          )}
           <div className="stat-card">
             <h3>Resultados</h3>
             <p>{filteredDocumentos.length}</p>
@@ -261,7 +294,9 @@ const DocumentosScreen = () => {
               <p>
                 {searchTerm 
                   ? 'Intenta ajustar los términos de búsqueda'
-                  : 'No hay documentos registrados en el sistema'
+                  : esCoordinador 
+                    ? 'No hay documentos globales disponibles'
+                    : 'No hay documentos registrados en el sistema'
                 }
               </p>
             </div>
@@ -281,13 +316,24 @@ const DocumentosScreen = () => {
                     
                     <div className="documento-actions">
                       <button
-                        onClick={() => handleVerAsociaciones(documento)}
-                        className="btn-ver-asociaciones"
-                        title="Ver asociaciones"
+                        onClick={() => handleDescargarDocumento(documento)}
+                        className="btn-descargar-documento"
+                        title="Descargar documento"
+                        disabled={downloadingDocuments.has(documento.id)}
                       >
-                        <Eye size={16} />
-                        Ver Asociaciones
+                        <Download size={16} />
+                        {downloadingDocuments.has(documento.id) ? 'Descargando...' : 'Descargar'}
                       </button>
+                      {!esCoordinador && (
+                        <button
+                          onClick={() => handleVerAsociaciones(documento)}
+                          className="btn-ver-asociaciones"
+                          title="Ver asociaciones"
+                        >
+                          <Eye size={16} />
+                          Ver Asociaciones
+                        </button>
+                      )}
                     </div>
                   </div>
                   
@@ -342,7 +388,7 @@ const DocumentosScreen = () => {
       </div>
 
       {/* Modal de asociaciones */}
-      {selectedDocumento && (
+      {!esCoordinador && selectedDocumento && (
         <ModalAsociacionesDocumento
           isOpen={isModalOpen}
           onClose={() => {
@@ -354,16 +400,18 @@ const DocumentosScreen = () => {
       )}
 
       {/* Modal de subir documento global */}
-      <ModalSubirDocumentoGlobal
-        isOpen={showUploadModal}
-        onClose={() => {
-          if (!isUploading) {
-            setShowUploadModal(false);
-          }
-        }}
-        onUpload={handleUploadDocumento}
-        isUploading={isUploading}
-      />
+      {tienePermisoCompleto && (
+        <ModalSubirDocumentoGlobal
+          isOpen={showUploadModal}
+          onClose={() => {
+            if (!isUploading) {
+              setShowUploadModal(false);
+            }
+          }}
+          onUpload={handleUploadDocumento}
+          isUploading={isUploading}
+        />
+      )}
     </div>
   );
 };
