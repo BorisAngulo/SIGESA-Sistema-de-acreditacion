@@ -277,14 +277,6 @@ class CarreraSeeder extends Seeder
                 ],
                 [
                     'facultad_id' => $c18->id,
-                    'codigo_carrera' => '251302',
-                    'nombre_carrera' => 'LICENCIATURA EN CIENCIAS DE LA EDUCACION',
-                    'pagina_carrera' => 'https://educacion.umss.edu.bo',
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ],
-                [
-                    'facultad_id' => $c18->id,
                     'codigo_carrera' => '258301',
                     'nombre_carrera' => 'LICENCIATURA EN CIENCIAS DE LA EDUCACION',
                     'pagina_carrera' => 'https://educacion.umss.edu.bo',
@@ -402,14 +394,6 @@ class CarreraSeeder extends Seeder
                 [
                     'facultad_id' => $c20->id,
                     'codigo_carrera' => '411702',
-                    'nombre_carrera' => 'LICENCIATURA EN INGENIERIA DE SISTEMAS',
-                    'pagina_carrera' => 'https://cs.umss.edu.bo',
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ],
-                [
-                    'facultad_id' => $c20->id,
-                    'codigo_carrera' => '419701',
                     'nombre_carrera' => 'LICENCIATURA EN INGENIERIA DE SISTEMAS',
                     'pagina_carrera' => 'https://cs.umss.edu.bo',
                     'created_at' => now(),

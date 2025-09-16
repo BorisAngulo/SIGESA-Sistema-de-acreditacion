@@ -17,7 +17,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             FacultadSeeder::class,
             CarreraSeeder::class,
-            ModalidadSeeder::class, // Descomenta cuando lo crees
+            ModalidadSeeder::class,
+            AcreditacionesSeeder::class, // Nuevo seeder para acreditaciones
             RoleSeeder::class,
             UserSeeder::class,
         ]);

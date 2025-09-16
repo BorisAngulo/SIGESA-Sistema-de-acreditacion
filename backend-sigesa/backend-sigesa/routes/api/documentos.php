@@ -14,14 +14,16 @@ use App\Http\Controllers\Api\DocumentoController;
 |
 */
 
-// === RUTA PÚBLICA DE DESCARGA ===
-// Esta ruta requiere autenticación pero permite fácil descarga con permisos básicos
+// === RUTAS PÚBLICAS DE DESCARGA ===
+// Estas rutas no requieren autenticación para facilitar la descarga
 
-// Descargar un documento (requiere permiso de descarga)
-Route::middleware(['auth:sanctum', 'permission:documentos.download'])->group(function () {
-    Route::get('documentos/{documento}/descargar', [DocumentoController::class, 'descargar'])
-        ->name('documentos.descargar');
-});
+// Descargar un documento (público)
+Route::get('documentos/{documento}/descargar', [DocumentoController::class, 'descargar'])
+    ->name('documentos.descargar');
+
+// Ver un documento en el navegador (público)
+Route::get('documentos/{documento}/ver', [DocumentoController::class, 'ver'])
+    ->name('documentos.ver');
 
 // === RUTAS PROTEGIDAS CON PERMISOS ESPECÍFICOS ===
 Route::middleware(['auth:sanctum'])->group(function () {

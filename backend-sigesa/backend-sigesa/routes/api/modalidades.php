@@ -53,6 +53,10 @@ Route::get('carreras/{carrera}/modalidades/{modalidad}/verificar', [CarreraModal
 Route::get('carrera-modalidad/detalles-completos', [CarreraModalidadController::class, 'getDetallesCompletos'])
     ->name('carrera-modalidad.detalles-completos');
 
+// Descargar certificado de acreditación (público)
+Route::get('acreditacion-carreras/{acreditacion_carrera}/certificado/descargar', [CarreraModalidadController::class, 'descargarCertificado'])
+    ->name('acreditacion-carreras.certificado.descargar');
+
 // === RUTAS PROTEGIDAS (REQUIEREN AUTENTICACIÓN) ===
 // Operaciones de escritura que requieren usuario autenticado
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -81,6 +85,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->name('acreditacion-carreras.update');
     Route::patch('acreditacion-carreras/{acreditacion_carrera}', [CarreraModalidadController::class, 'update'])
         ->name('acreditacion-carreras.patch');
+    
+    // Actualizar acreditación (POST con _method=PUT para FormData)
+    Route::post('acreditacion-carreras/{acreditacion_carrera}', [CarreraModalidadController::class, 'update'])
+        ->name('acreditacion-carreras.update-post');
     
     // Eliminar acreditación
     Route::delete('acreditacion-carreras/{acreditacion_carrera}', [CarreraModalidadController::class, 'destroy'])

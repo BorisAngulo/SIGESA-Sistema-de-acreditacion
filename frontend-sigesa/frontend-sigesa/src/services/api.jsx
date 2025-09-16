@@ -613,6 +613,38 @@ export const createCarreraModalidad = async (data) => {
   }
 };
 
+// Función para finalizar acreditación (actualizar carrera-modalidad con fechas de aprobación y certificado)
+export const finalizarAcreditacion = async (carreraModalidadId, formData) => {
+  try {
+    console.log(`🔄 Finalizando acreditación para carrera-modalidad ID: ${carreraModalidadId}`);
+    
+    const token = getAuthToken();
+    const headers = {
+      ...(token && { 'Authorization': `Bearer ${token}` })
+      // No incluir Content-Type para FormData, el navegador lo establecerá automáticamente
+    };
+    
+    const res = await fetch(`${API_URL}/acreditacion-carreras/${carreraModalidadId}`, {
+      method: "POST", // Cambiado a POST para manejar FormData con _method
+      headers: headers,
+      body: formData,
+    });
+    
+    const response = await res.json();
+    
+    if (res.ok && (response.exito || response.success)) {
+      console.log('✅ Acreditación finalizada exitosamente:', response);
+      return response.datos || response.data;
+    } else {
+      console.error('❌ Error al finalizar acreditación:', response);
+      throw new Error(response.mensaje || response.message || response.error || 'Error al finalizar acreditación');
+    }
+  } catch (error) {
+    console.error('💥 Error al finalizar acreditación:', error);
+    throw error;
+  }
+};
+
 // Obtener todas las carreras-modalidades con detalles completos
 export const getCarrerasModalidadesDetallesCompletos = async () => {
   try {
@@ -1458,6 +1490,40 @@ export const createDocumento = async (documentoData) => {
   }
 };
 
+// Crear documento global (sin asociación a fase o subfase)
+export const createDocumentoGlobal = async (documentoData) => {
+  try {
+    const formData = new FormData();
+    formData.append('nombre_documento', documentoData.nombre);
+    formData.append('descripcion_documento', documentoData.descripcion || '');
+    formData.append('tipo_documento', '03'); // Tipo 03 para documentos globales
+    
+    if (documentoData.archivo) {
+      formData.append('archivo_documento', documentoData.archivo);
+    }
+
+    const token = getAuthToken();
+    const res = await fetch(`${API_URL}/documentos`, {
+      method: "POST",
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+        // No incluir Content-Type para FormData, el navegador lo maneja automáticamente
+      },
+      body: formData,
+    });
+    
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || `Error ${res.status}: ${res.statusText}`);
+    }
+    
+    return await res.json();
+  } catch (error) {
+    console.error('Error al crear documento global:', error);
+    throw error;
+  }
+};
+
 // Asociar documento existente a una fase
 export const asociarDocumentoAFase = async (faseId, documentoId) => {
   try {
@@ -1586,29 +1652,48 @@ export const getDocumentosBySubfase = async (subfaseId) => {
   }
 };
 
-// Descargar documento (ruta pública)
-export const downloadDocumento = async (documentoId) => {
+// Descargar documento usando window.open (método alternativo)
+export const downloadDocumentoAlternativo = (documentoId) => {
   try {
-    console.log('⬇️ Descargando documento ID:', documentoId);
+    console.log('⬇️ Descargando documento ID (método alternativo):', documentoId);
     
-    // Construir la URL pública para descargar el documento
+    // Abrir en nueva ventana para forzar descarga
     const url = `${API_URL}/documentos/${documentoId}/descargar`;
+    window.open(url, '_blank');
     
-    // Crear enlace temporal para descargar
-    const a = document.createElement('a');
-    a.href = url;
-    a.style.display = 'none';
-    a.target = '_blank';
-    
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    console.log('✅ Descarga iniciada');
+    console.log('✅ Descarga iniciada (ventana nueva)');
     return true;
   } catch (error) {
     console.error('❌ Error al descargar documento:', error);
     throw error;
+  }
+};
+
+// Descargar documento de forma pública (sin autenticación)
+export const downloadDocumento = async (documentoId) => {
+  try {
+    console.log('⬇️ Descargando documento ID:', documentoId);
+    
+    // Usar el mismo método exitoso que funciona para certificados
+    const url = `${API_URL}/documentos/${documentoId}/descargar`;
+    
+    // Crear un enlace temporal para descargar el documento
+    const a = document.createElement('a');
+    a.href = url;
+    a.style.display = 'none';
+    a.target = '_blank'; // Abrir en nueva pestaña como fallback
+    
+    // No forzar nombre específico, dejar que el servidor lo maneje
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    console.log('✅ Descarga de documento iniciada');
+    return true;
+  } catch (error) {
+    console.error('❌ Error al descargar documento, intentando método alternativo:', error);
+    // Si falla, intentar con window.open
+    return downloadDocumentoAlternativo(documentoId);
   }
 };
 
@@ -1658,6 +1743,76 @@ export const getAsociacionesDocumento = async (documentoId) => {
     }
   } catch (error) {
     console.error('Error al obtener asociaciones del documento:', error);
+    throw error;
+  }
+};
+
+// === FUNCIONES DE CERTIFICADOS DE CARRERAS-MODALIDADES ===
+
+// Subir certificado para una carrera-modalidad
+export const subirCertificadoCarreraModalidad = async (carreraModalidadId, certificadoFile) => {
+  try {
+    console.log('📄 Subiendo certificado para carrera-modalidad ID:', carreraModalidadId);
+    
+    const formData = new FormData();
+    formData.append('certificado', certificadoFile);
+    formData.append('_method', 'PUT'); // Laravel method spoofing para PUT request
+
+    const response = await fetch(`${API_URL}/acreditacion-carreras/${carreraModalidadId}`, {
+      method: 'POST', // Usando POST con _method=PUT debido a FormData
+      headers: {
+        'Authorization': `Bearer ${getAuthToken()}`,
+        // No agregar Content-Type para FormData, el navegador lo maneja automáticamente
+      },
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    if (result.exito) {
+      console.log('✅ Certificado subido exitosamente');
+      return result.datos;
+    } else {
+      throw new Error(result.error || 'Error al subir certificado');
+    }
+  } catch (error) {
+    console.error('❌ Error al subir certificado:', error);
+    throw error;
+  }
+};
+
+// Descargar certificado de una carrera-modalidad
+export const descargarCertificadoCarreraModalidad = (carreraModalidadId, nombreCarrera, nombreModalidad) => {
+  try {
+    console.log('⬇️ Descargando certificado para carrera-modalidad ID:', carreraModalidadId);
+    
+    // Crear un enlace temporal para descargar el certificado
+    const url = `${API_URL}/acreditacion-carreras/${carreraModalidadId}/certificado/descargar`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.style.display = 'none';
+    // No especificar extensión, el backend enviará el nombre correcto con Content-Disposition
+    a.download = `certificado_${nombreCarrera}_${nombreModalidad}`;
+    a.target = '_blank';
+    
+    // Agregar token de autorización como parámetro de consulta
+    const token = getAuthToken();
+    if (token) {
+      a.href += `?token=${token}`;
+    }
+    
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    console.log('✅ Descarga de certificado iniciada');
+    return true;
+  } catch (error) {
+    console.error('❌ Error al descargar certificado:', error);
     throw error;
   }
 };

@@ -1,0 +1,315 @@
+/* Modal de Finalizar Acreditación */
+.finalizar-acreditacion-modal {
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.finalizar-acreditacion-modal .modal-header {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.finalizar-acreditacion-modal .modal-header h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.finalizar-acreditacion-modal .close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.8rem;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.finalizar-acreditacion-modal .close-button:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.finalizar-acreditacion-modal .close-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.finalizar-acreditacion-modal .modal-body {
+  padding: 2rem;
+}
+
+.carrera-info {
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.carrera-info h4 {
+  margin: 0 0 1rem 0;
+  color: #495057;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.carrera-info p {
+  margin: 0.5rem 0;
+  color: #6c757d;
+  font-size: 0.95rem;
+}
+
+.carrera-info p strong {
+  color: #495057;
+  font-weight: 600;
+}
+
+.finalizar-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.finalizar-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #495057;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.finalizar-form input[type="date"] {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.finalizar-form input[type="date"]:focus {
+  outline: none;
+  border-color: #28a745;
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.finalizar-form input[type="date"].error {
+  border-color: #dc3545;
+}
+
+.finalizar-form input[type="date"].error:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.finalizar-form input[type="date"]:disabled {
+  background-color: #e9ecef;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.finalizar-form input[type="number"] {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.finalizar-form input[type="number"]:focus {
+  outline: none;
+  border-color: #28a745;
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.finalizar-form input[type="number"].error {
+  border-color: #dc3545;
+}
+
+.finalizar-form input[type="number"].error:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.finalizar-form input[type="number"]:disabled {
+  background-color: #e9ecef;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.file-input-wrapper {
+  position: relative;
+}
+
+.finalizar-form input[type="file"] {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px dashed #dee2e6;
+  border-radius: 6px;
+  font-size: 1rem;
+  background-color: #f8f9fa;
+  transition: border-color 0.2s, background-color 0.2s;
+  cursor: pointer;
+}
+
+.finalizar-form input[type="file"]:hover:not(:disabled) {
+  border-color: #28a745;
+  background-color: #f1f8f3;
+}
+
+.finalizar-form input[type="file"]:focus {
+  outline: none;
+  border-color: #28a745;
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.finalizar-form input[type="file"].error {
+  border-color: #dc3545;
+  background-color: #fdf2f2;
+}
+
+.finalizar-form input[type="file"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #e9ecef;
+}
+
+.file-info {
+  margin-top: 0.5rem;
+}
+
+.file-info small {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+.selected-file {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  color: #155724;
+  font-size: 0.9rem;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.finalizar-acreditacion-modal .modal-footer {
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #dee2e6;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 0 0 12px 12px;
+}
+
+.finalizar-acreditacion-modal .btn-secondary {
+  padding: 0.75rem 1.5rem;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.finalizar-acreditacion-modal .btn-secondary:hover:not(:disabled) {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+}
+
+.finalizar-acreditacion-modal .btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.finalizar-acreditacion-modal .btn-primary {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.finalizar-acreditacion-modal .btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #218838, #1ea88a);
+  transform: translateY(-1px);
+}
+
+.finalizar-acreditacion-modal .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.finalizar-acreditacion-modal .loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .finalizar-acreditacion-modal {
+    width: 95%;
+    margin: 1rem;
+  }
+  
+  .finalizar-acreditacion-modal .modal-header,
+  .finalizar-acreditacion-modal .modal-body,
+  .finalizar-acreditacion-modal .modal-footer {
+    padding: 1rem;
+  }
+  
+  .carrera-info {
+    padding: 1rem;
+  }
+  
+  .finalizar-acreditacion-modal .modal-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .finalizar-acreditacion-modal .btn-secondary,
+  .finalizar-acreditacion-modal .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+}

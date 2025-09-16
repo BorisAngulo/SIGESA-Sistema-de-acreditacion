@@ -35,7 +35,7 @@ class DocumentoController extends BaseApiController
      *                 @OA\Property(property="nombre_documento", type="string", example="Manual de Procedimientos"),
      *                 @OA\Property(property="descripcion_documento", type="string", example="Descripción del documento"),
      *                 @OA\Property(property="archivo_documento", type="file", description="Archivo a subir"),
-     *                 @OA\Property(property="tipo_documento", type="string", enum={"01", "02"}, example="01"),
+     *                 @OA\Property(property="tipo_documento", type="string", enum={"01", "02", "03"}, example="01"),
      *                 @OA\Property(property="tipo_asociacion", type="string", enum={"fase", "subfase"}, example="fase"),
      *                 @OA\Property(property="fase_id", type="integer", example=1, description="ID de la fase (requerido si tipo_asociacion es 'fase')"),
      *                 @OA\Property(property="subfase_id", type="integer", example=1, description="ID de la subfase (requerido si tipo_asociacion es 'subfase')"),
@@ -95,7 +95,7 @@ class DocumentoController extends BaseApiController
                 'nombre_documento' => 'required|string|max:255',
                 'descripcion_documento' => 'nullable|string|max:1000',
                 'archivo_documento' => 'required|file|max:20480|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,jpg,jpeg,png,gif,zip,rar', // Max 20MB
-                'tipo_documento' => 'nullable|string|in:01,02', // '01' para específicos, '02' para generales
+                'tipo_documento' => 'nullable|string|in:01,02,03', // '01' para específicos, '02' para generales, '03' para globales
                 'id_usuario_updated' => 'nullable|integer',
             ]);
 
@@ -120,7 +120,7 @@ class DocumentoController extends BaseApiController
                 'tipo_mime' => $tipoMime,
                 'contenido_archivo' => $contenidoArchivo,
                 'tamano_archivo' => $tamanoArchivo,
-                'tipo_documento' => $validated['tipo_documento'] ?? '02', // Por defecto general
+                'tipo_documento' => $validated['tipo_documento'] ?? '03', // Por defecto global para documentos sin asociación
                 'id_usuario_updated_documento' => $validated['id_usuario_updated'] ?? null,
             ]);
 
@@ -560,16 +560,44 @@ class DocumentoController extends BaseApiController
                 throw new ApiException('Error al recuperar el contenido del archivo', 500);
             }
 
+            // Determinar el tipo MIME más específico
+            $tipoMime = $documento->tipo_mime;
+            $extension = strtolower(pathinfo($documento->nombre_archivo_original, PATHINFO_EXTENSION));
+            
+            // Mapear extensiones a tipos MIME específicos para visualización
+            $mimeMap = [
+                'pdf' => 'application/pdf',
+                'jpg' => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'png' => 'image/png',
+                'gif' => 'image/gif',
+                'txt' => 'text/plain; charset=utf-8',
+                'doc' => 'application/msword',
+                'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'xls' => 'application/vnd.ms-excel',
+                'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ];
+
+            $contentType = $mimeMap[$extension] ?? $tipoMime ?? 'application/octet-stream';
+
             // Configurar headers para visualización en el navegador (inline)
             $headers = [
-                'Content-Type' => $documento->tipo_mime ?: 'application/pdf',
-                'Content-Length' => $documento->tamano_archivo,
-                'Content-Disposition' => 'inline',  // Sin filename para evitar sugerencia de descarga
+                'Content-Type' => $contentType,
+                'Content-Length' => strlen($contenidoArchivo),
+                // No incluir Content-Disposition para permitir visualización inline por defecto
                 'Cache-Control' => 'public, max-age=3600',
                 'Pragma' => 'public',
                 'X-Content-Type-Options' => 'nosniff',
-                'X-Frame-Options' => 'SAMEORIGIN',  // Permitir iframe si es necesario
+                'X-Frame-Options' => 'SAMEORIGIN',
+                'Access-Control-Allow-Origin' => '*',
+                'Access-Control-Allow-Methods' => 'GET',
+                'Access-Control-Allow-Headers' => 'Content-Type',
             ];
+
+            // Solo para PDFs e imágenes, forzar inline explícitamente
+            if (in_array($extension, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'txt'])) {
+                $headers['Content-Disposition'] = 'inline';
+            }
 
             return response($contenidoArchivo, 200, $headers);
 
@@ -609,6 +637,8 @@ class DocumentoController extends BaseApiController
     public function descargar($id)
     {
         try {
+            Log::info('Solicitud de descarga de documento', ['documento_id' => $id, 'ip' => request()->ip()]);
+            
             $documento = Documento::find($id);
 
             if (!$documento) {
@@ -626,20 +656,39 @@ class DocumentoController extends BaseApiController
                 throw new ApiException('Error al recuperar el contenido del archivo', 500);
             }
 
-            // Configurar headers para la descarga
+            // Log de descarga exitosa
+            Log::info('Descarga de documento exitosa', [
+                'documento_id' => $id,
+                'nombre_archivo' => $documento->nombre_archivo_original,
+                'tamano_real' => strlen($contenidoArchivo),
+                'tamano_bd' => $documento->tamano_archivo,
+                'ip' => request()->ip()
+            ]);
+
+            // Configurar headers para la descarga (usando el tamaño real del contenido decodificado)
             $headers = [
-                'Content-Type' => $documento->tipo_mime,
-                'Content-Length' => $documento->tamano_archivo,
+                'Content-Type' => $documento->tipo_mime ?: 'application/octet-stream',
+                'Content-Length' => strlen($contenidoArchivo), // Usar tamaño real del contenido decodificado
                 'Content-Disposition' => 'attachment; filename="' . $documento->nombre_archivo_original . '"',
-                'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+                'Cache-Control' => 'public, max-age=3600',
                 'Pragma' => 'public',
             ];
 
             return response($contenidoArchivo, 200, $headers);
 
         } catch (ApiException $e) {
+            Log::error('Error en descarga de documento', [
+                'documento_id' => $id,
+                'error' => $e->getMessage(),
+                'ip' => request()->ip()
+            ]);
             return $this->handleApiException($e);
         } catch (\Exception $e) {
+            Log::error('Error general en descarga de documento', [
+                'documento_id' => $id,
+                'error' => $e->getMessage(),
+                'ip' => request()->ip()
+            ]);
             return $this->handleGeneralException($e);
         }
     }

@@ -139,7 +139,7 @@ function App() {
                 </ProtectedRoute>
               } />
               <Route path="/documentos" element={
-                <ProtectedRoute allowedRoles={['Admin', 'Tecnico']}>
+                <ProtectedRoute allowedRoles={['Admin', 'Tecnico', 'Coordinador']}>
                   <DocumentosScreen />
                 </ProtectedRoute>
               } />
