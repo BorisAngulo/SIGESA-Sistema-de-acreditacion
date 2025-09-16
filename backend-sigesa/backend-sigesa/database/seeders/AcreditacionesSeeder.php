@@ -23,56 +23,16 @@ class AcreditacionesSeeder extends Seeder
 
         // Obtener modalidades
         $ceub = Modalidad::where('codigo_modalidad', 'CEUB')->first();
-        $arcusur = Modalidad::where('codigo_modalidad', 'ARCOSUR')->first();
+        $arcusur = Modalidad::where('codigo_modalidad', 'ARCUSUR')->first();
 
-        if (!$modalidadCEUB || !$modalidadARCOSUR) {
-            $this->command->error('❌ No se encontraron las modalidades CEUB y ARCOSUR. Ejecuta ModalidadSeeder primero.');
+        if (!$ceub || !$arcusur) {
+            $this->command->error('❌ No se encontraron las modalidades CEUB y ARCUSUR. Ejecuta ModalidadSeeder primero.');
             return;
         }
 
         // Obtener todas las carreras
             $carreras = Carrera::all();
-        // Obtener algunas carreras específicas para crear acreditaciones de ejemplo
-        $carreras = Carrera::whereIn('codigo_carrera', [
-            '089801', // LIC. Contaduria publica
-            '134111', // LIC. Informatica
-            '411702', // LIC. Sistemas
-            '409701', // LIC. Alimentos
-            '650001', // LIC. Electromecanica
-            '349701', // LIC. Matematica
-            '359201', // LIC. Fisica
-            '399501', // LIC. Biologia
-            '439801', // LIC. ING. Matematica
-            '389701', // LIC. Quimica
-            '231802', // LIC. turismo
-            '319801', // LIC. Mecanica
-            '299701', // LIC. Electrica
-            '309801', // LIC. Industrial
-            '339701', // LIC. ING. Quimica
-            '188301', // LIC. Medicina
-            '718801', // LIC. Agronomica
-            '202002', // LIC. Arquitectura
-            '125091', // LIC. Comercial
-            '258301', // LIC. Ciencias de la educacion
-            '049001', // LIC. Bioquimica y farmacia
-            '179901', // LIC. Odontologia
-            '320902', // LIC. Civil
-            '279901', // LIC. Ciencias juridicas
-            '280101', // LIC. ciencias politicas
-            '122081', // LIC. Diseño graficao y comunicacion visual
-            '109401', // LIC. Administracion de empresas
-            '059801', // LIC. economia
-            '108061', // LIC. trabajo social
-            '190602', // LIC. enfermeria
-            '039503', // LIC. veterinaria
-            '126091', // LIC. financiera
-            '140502', // LIC. comunicacion social
-        ])->get();
 
-        if ($carreras->isEmpty()) {
-            $this->command->error('❌ No se encontraron carreras. Ejecuta CarreraSeeder primero.');
-            return;
-        }
 
         // ========================
         // ACREDITACIONES CEUB
@@ -544,14 +504,14 @@ class AcreditacionesSeeder extends Seeder
         }
 
         // ========================
-        // ACREDITACIONES ARCOSUR
+        // ACREDITACIONES arcusur
         // ========================
 
         // 1. MECANICA
         if ($mecanica) {
             CarreraModalidad::create([
                 'carrera_id' => $mecanica->id,
-                'modalidad_id' => $arcosur->id,
+                'modalidad_id' => $arcusur->id,
                 'estado_modalidad' => true, 
                 'fecha_ini_proceso' => '2019-09-05 08:00:00',
                 'fecha_fin_proceso' => '2025-09-03 17:00:00',
@@ -566,7 +526,7 @@ class AcreditacionesSeeder extends Seeder
         if ($electrica) {
             CarreraModalidad::create([
                 'carrera_id' => $electrica->id,
-                'modalidad_id' => $arcosur->id,
+                'modalidad_id' => $arcusur->id,
                 'estado_modalidad' => true, 
                 'fecha_ini_proceso' => '2019-09-05 08:00:00',
                 'fecha_fin_proceso' => '2025-09-03 17:00:00',
@@ -581,7 +541,7 @@ class AcreditacionesSeeder extends Seeder
         if ($industrial) {
             CarreraModalidad::create([
                 'carrera_id' => $industrial->id,
-                'modalidad_id' => $arcosur->id,
+                'modalidad_id' => $arcusur->id,
                 'estado_modalidad' => true, 
                 'fecha_ini_proceso' => '2019-09-05 08:00:00',
                 'fecha_fin_proceso' => '2025-09-03 17:00:00',
@@ -596,7 +556,7 @@ class AcreditacionesSeeder extends Seeder
         if ($ingQuimica) {
             CarreraModalidad::create([
                 'carrera_id' => $ingQuimica->id,
-                'modalidad_id' => $arcosur->id,
+                'modalidad_id' => $arcusur->id,
                 'estado_modalidad' => true, 
                 'fecha_ini_proceso' => '2019-09-05 08:00:00',
                 'fecha_fin_proceso' => '2025-09-03 17:00:00',
@@ -611,7 +571,7 @@ class AcreditacionesSeeder extends Seeder
         if ($medicina) {
             CarreraModalidad::create([
                 'carrera_id' => $medicina->id,
-                'modalidad_id' => $arcosur->id,
+                'modalidad_id' => $arcusur->id,
                 'estado_modalidad' => true, 
                 'fecha_ini_proceso' => '2019-05-12 08:00:00',
                 'fecha_fin_proceso' => '2025-05-12 17:00:00',
@@ -627,7 +587,7 @@ class AcreditacionesSeeder extends Seeder
         if ($agronomica) {
             CarreraModalidad::create([
                 'carrera_id' => $agronomica->id,
-                'modalidad_id' => $arcosur->id,
+                'modalidad_id' => $arcusur->id,
                 'estado_modalidad' => true, 
                 'fecha_ini_proceso' => '2023-12-11 08:00:00',
                 'fecha_fin_proceso' => '2029-12-11 17:00:00',
@@ -643,7 +603,7 @@ class AcreditacionesSeeder extends Seeder
         if ($arquitectura) {
             CarreraModalidad::create([
                 'carrera_id' => $arquitectura->id,
-                'modalidad_id' => $arcosur->id,
+                'modalidad_id' => $arcusur->id,
                 'estado_modalidad' => true, 
                 'fecha_ini_proceso' => '2023-12-11 08:00:00',
                 'fecha_fin_proceso' => '2029-12-11 17:00:00',
@@ -658,7 +618,7 @@ class AcreditacionesSeeder extends Seeder
         if ($odontologia) {
             CarreraModalidad::create([
                 'carrera_id' => $odontologia->id,
-                'modalidad_id' => $arcosur->id,
+                'modalidad_id' => $arcusur->id,
                 'estado_modalidad' => true, 
                 'fecha_ini_proceso' => '2023-09-18 08:00:00',
                 'fecha_fin_proceso' => '2029-09-18 17:00:00',
@@ -673,7 +633,7 @@ class AcreditacionesSeeder extends Seeder
         if ($civil) {
             CarreraModalidad::create([
                 'carrera_id' => $civil->id,
-                'modalidad_id' => $arcosur->id,
+                'modalidad_id' => $arcusur->id,
                 'estado_modalidad' => true, 
                 'fecha_ini_proceso' => '2023-09-18 08:00:00',
                 'fecha_fin_proceso' => '2029-09-18 17:00:00',
@@ -689,7 +649,7 @@ class AcreditacionesSeeder extends Seeder
         if ($enfermeria) {
             CarreraModalidad::create([
                 'carrera_id' => $enfermeria->id,
-                'modalidad_id' => $arcosur->id,
+                'modalidad_id' => $arcusur->id,
                 'estado_modalidad' => true, 
                 'fecha_ini_proceso' => '2024-10-01 08:00:00',
                 'fecha_fin_proceso' => '2030-10-01 17:00:00',
@@ -705,7 +665,7 @@ class AcreditacionesSeeder extends Seeder
         if ($veterinaria) {
             CarreraModalidad::create([
                 'carrera_id' => $veterinaria->id,
-                'modalidad_id' => $arcosur->id,
+                'modalidad_id' => $arcusur->id,
                 'estado_modalidad' => true, 
                 'fecha_ini_proceso' => '2024-10-01 08:00:00',
                 'fecha_fin_proceso' => '2030-10-01 17:00:00',

@@ -16,6 +16,6 @@ class ModalidadSeeder extends Seeder
     public function run()
     {
         Modalidad::create(['nombre_modalidad' => 'CEUB', 'codigo_modalidad' => "CEUB"]);
-        Modalidad::create(['nombre_modalidad' => 'ARCOSUR', 'codigo_modalidad' => "ARCOSUR"]);
+        Modalidad::create(['nombre_modalidad' => 'ARCUSUR', 'codigo_modalidad' => "ARCUSUR"]);
     }
 }
