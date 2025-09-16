@@ -89,15 +89,15 @@
   align-items: center;
   height: 100vh;
   flex-direction: column;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background-color: #f8fafc !important;
+  color: #333 !important;
 }
 
 .loading-spinner {
-  width: 60px;
-  height: 60px;
-  border: 4px solid rgba(255,255,255,0.3);
-  border-top: 4px solid white;
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #3b82f6; 
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 20px;
@@ -1722,4 +1722,42 @@ input:focus-visible {
 .carrera-item:focus-within {
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.export-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.export-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.export-btn.pdf {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  color: white;
+}
+
+.export-btn.excel {
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  color: white;
+}
+
+.export-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.export-btn:active {
+  transform: translateY(0);
 }
