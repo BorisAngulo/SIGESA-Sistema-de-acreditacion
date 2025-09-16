@@ -52,7 +52,6 @@
 
 /* Indicador de carga para carreras */
 .loading-carreras {
-  background-color: #f8fafc !important;
   color: #7B94AA;
   font-style: italic;
   animation: pulse 2s infinite;
@@ -217,7 +216,6 @@
 }
 
 .loading-container {
-  background-color: #f8fafc !important;
   display: flex;
   align-items: center;
   justify-content: center;

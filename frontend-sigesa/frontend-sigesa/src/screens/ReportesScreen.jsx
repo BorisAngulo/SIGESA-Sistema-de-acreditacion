@@ -35,6 +35,10 @@ import {
   getCarrerasByFacultad
 } from '../services/api';
 
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import * as XLSX from 'xlsx';
+
 const ReportesScreen = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -241,7 +245,7 @@ const ReportesScreen = () => {
         });
         return;
       }
-      
+
       const generatedData = {
         kpis: generateKPIsFromRealData(),
         analisisFacultades: generateFacultadAnalysisFromRealData(),
@@ -559,6 +563,117 @@ const ReportesScreen = () => {
     return description;
   };
 
+    // Funciones de exportación - Añadir antes del return del componente
+
+  // Funciones de exportación - Añadir antes del return del componente
+
+  const exportToPDF = async () => {
+    try {
+      const element = document.querySelector('.dashboard-container');
+      const canvas = await html2canvas(element, {
+        scale: 1.2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 190;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 10;
+
+      // Primera página
+      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Páginas adicionales si es necesario
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      const fileName = `Dashboard_Acreditacion_${filters.selectedYear === 'todos' ? 'Completo' : filters.selectedYear}_${new Date().toLocaleDateString('es-BO').replace(/\//g, '-')}.pdf`;
+      pdf.save(fileName);
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      alert('Error al generar el PDF. Inténtalo nuevamente.');
+    }
+  };
+
+  const exportToExcel = () => {
+    try {
+      const wb = XLSX.utils.book_new();
+      
+      // Hoja 1: KPIs
+      const kpisData = [
+        ['Indicador', 'Valor'],
+        ['Facultades Activas', kpis?.facultades_activas || 0],
+        ['Carreras Totales', kpis?.carreras_totales || 0],
+        ['Acreditaciones CEUB', kpis?.acreditaciones_ceub || 0],
+        ['Acreditaciones ARCU-SUR', kpis?.acreditaciones_arcusur || 0],
+        ['Período de Análisis', filters.selectedYear === 'todos' ? 'Todos los años' : `Año ${filters.selectedYear}`],
+        ['Fecha de Exportación', new Date().toLocaleDateString('es-BO')]
+      ];
+      const wsKPIs = XLSX.utils.aoa_to_sheet(kpisData);
+      XLSX.utils.book_append_sheet(wb, wsKPIs, 'KPIs');
+
+      // Hoja 2: Análisis por Facultad
+      const facultadHeaders = ['Facultad', 'Código', 'Total Carreras', 'Carreras Acreditadas', 'CEUB', 'ARCU-SUR', '% Cobertura'];
+      const facultadData = analisisFacultades.map(f => [
+        f.nombre_facultad,
+        f.codigo_facultad,
+        f.total_carreras,
+        f.carreras_acreditadas,
+        f.ceub,
+        f.arcusur,
+        f.porcentaje_acreditacion + '%'
+      ]);
+      const wsFacultades = XLSX.utils.aoa_to_sheet([facultadHeaders, ...facultadData]);
+      XLSX.utils.book_append_sheet(wb, wsFacultades, 'Análisis Facultades');
+
+      // Hoja 3: Progreso por Modalidad
+      const modalidadHeaders = ['Modalidad', 'Total Carreras', 'Carreras Activas', 'En Proceso', '% Completado'];
+      const modalidadData = progresoModalidades.map(m => [
+        m.nombre_modalidad,
+        m.total_carreras,
+        m.carreras_activas,
+        m.carreras_en_proceso,
+        m.porcentaje_completado + '%'
+      ]);
+      const wsModalidades = XLSX.utils.aoa_to_sheet([modalidadHeaders, ...modalidadData]);
+      XLSX.utils.book_append_sheet(wb, wsModalidades, 'Progreso Modalidades');
+
+      // Hoja 4: Tendencias Temporales
+      const tendenciaHeaders = ['Año', 'Total Carreras', 'CEUB', 'ARCU-SUR'];
+      const tendenciaData = tendenciasTemporales.map(t => [
+        t.año,
+        t.total_carreras,
+        t.ceub,
+        t.arcusur
+      ]);
+      const wsTendencias = XLSX.utils.aoa_to_sheet([tendenciaHeaders, ...tendenciaData]);
+      XLSX.utils.book_append_sheet(wb, wsTendencias, 'Tendencias Temporales');
+
+      // Hoja 5: Estado de Acreditaciones
+      const estadoHeaders = ['Estado', 'Cantidad'];
+      const estadoData = distribucionEstados.map(e => [e.name, e.value]);
+      const wsEstados = XLSX.utils.aoa_to_sheet([estadoHeaders, ...estadoData]);
+      XLSX.utils.book_append_sheet(wb, wsEstados, 'Estado Acreditaciones');
+
+      const fileName = `Dashboard_Acreditacion_${filters.selectedYear === 'todos' ? 'Completo' : filters.selectedYear}_${new Date().toLocaleDateString('es-BO').replace(/\//g, '-')}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+    } catch (error) {
+      console.error('Error al generar Excel:', error);
+      alert('Error al generar el archivo Excel. Inténtalo nuevamente.');
+    }
+  };
+
   const CarrerasList = ({ facultadId }) => {
     const carreras = facultyCarreras.get(facultadId) || [];
     const isLoading = loadingCarreras.has(facultadId);
@@ -743,9 +858,12 @@ const ReportesScreen = () => {
             </select>
           </div>
 
-          <div className="filter-group">
+          <div className="filter-group export-buttons">
             <button onClick={loadAllData} className="update-btn">
-              🔄 Actualizar
+              Actualizar
+            </button>
+            <button onClick={exportToExcel} className="export-btn excel">
+              📊 Descargar Excel
             </button>
           </div>
         </div>
