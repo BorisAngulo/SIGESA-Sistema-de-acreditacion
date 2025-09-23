@@ -23,7 +23,20 @@ class SubFase extends Model
         'url_subfase_respuesta',
         'observacion_subfase',
         'estado_subfase',
-        'id_usuario_updated_subfase'
+        'id_usuario_updated_subfase',
+        'tiene_foda',
+        'tiene_plame'
+    ];
+
+    /**
+     * Los atributos que deben ser convertidos a tipos nativos.
+     */
+    protected $casts = [
+        'estado_subfase' => 'boolean',
+        'tiene_foda' => 'boolean',
+        'tiene_plame' => 'boolean',
+        'fecha_inicio_subfase' => 'date',
+        'fecha_fin_subfase' => 'date',
     ];
 
     /**
@@ -41,5 +54,37 @@ class SubFase extends Model
     {
         return $this->belongsToMany(Documento::class, 'subfase_documentos', 'subfase_id', 'documento_id')
                     ->withTimestamps();
+    }
+
+    /**
+     * Relación con el análisis FODA (uno a uno)
+     */
+    public function fodaAnalisis()
+    {
+        return $this->hasOne(FodaAnalisis::class, 'id_subfase');
+    }
+
+    /**
+     * Relación con análisis PLAME
+     */
+    public function plames()
+    {
+        return $this->hasMany(Plame::class, 'id_subfase');
+    }
+
+    /**
+     * Verificar si la subfase tiene un análisis FODA activo
+     */
+    public function tieneFodaActivo()
+    {
+        return $this->tiene_foda && $this->fodaAnalisis()->exists();
+    }
+
+    /**
+     * Verificar si la subfase tiene análisis PLAME activo
+     */
+    public function tienePlameActivo()
+    {
+        return $this->tiene_plame && $this->plames()->exists();
     }
 }

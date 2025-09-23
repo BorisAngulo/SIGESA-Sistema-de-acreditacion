@@ -205,7 +205,23 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
             <div className="info-grid">
               <div className="info-item">
                 <label>Nombre:</label>
-                <span className="info-value-fase">{data?.nombre || 'Sin nombre'}</span>
+                <div className="info-value-fase-container">
+                  <span className="info-value-fase">{data?.nombre || 'Sin nombre'}</span>
+                  {tipo === 'subfase' && (
+                    <div className="subfase-badges-modal">
+                      {data?.tiene_foda && (
+                        <span className="analysis-badge foda-badge" title="Análisis FODA habilitado">
+                          FODA
+                        </span>
+                      )}
+                      {data?.tiene_plame && (
+                        <span className="analysis-badge plame-badge" title="Matriz PLAME habilitada">
+                          PLAME
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
               
               <div className="info-item full-width">

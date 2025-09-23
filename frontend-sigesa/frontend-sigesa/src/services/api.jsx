@@ -1817,3 +1817,354 @@ export const descargarCertificadoCarreraModalidad = (carreraModalidadId, nombreC
   }
 };
 
+// ===== FUNCIONES DE FODA =====
+
+// Obtener FODA por subfase
+export const getFodaBySubfase = async (subfaseId) => {
+  try {
+    console.log('🔍 Obteniendo FODA para subfase ID:', subfaseId);
+    
+    const res = await fetch(`${API_URL}/foda/subfase/${subfaseId}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    console.log('📊 FODA obtenido:', data);
+    
+    if (data.estado) {
+      return data;
+    } else {
+      throw new Error(data.mensaje || 'Error al obtener FODA');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener FODA:', error);
+    throw error;
+  }
+};
+
+// Crear elemento FODA
+export const crearElementoFoda = async (elementoData) => {
+  try {
+    console.log('💾 Creando elemento FODA:', elementoData);
+    
+    const res = await fetch(`${API_URL}/foda/elementos`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(elementoData),
+    });
+    
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.mensaje || `Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.estado) {
+      console.log('✅ Elemento FODA creado exitosamente');
+      return data.elemento || data;
+    } else {
+      throw new Error(data.mensaje || 'Error al crear elemento FODA');
+    }
+  } catch (error) {
+    console.error('❌ Error al crear elemento FODA:', error);
+    throw error;
+  }
+};
+
+// Actualizar elemento FODA
+export const actualizarElementoFoda = async (elementoId, elementoData) => {
+  try {
+    console.log('✏️ Actualizando elemento FODA:', elementoId, elementoData);
+    
+    const res = await fetch(`${API_URL}/foda/elementos/${elementoId}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(elementoData),
+    });
+    
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.mensaje || `Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.estado) {
+      console.log('✅ Elemento FODA actualizado exitosamente');
+      return data.elemento || data;
+    } else {
+      throw new Error(data.mensaje || 'Error al actualizar elemento FODA');
+    }
+  } catch (error) {
+    console.error('❌ Error al actualizar elemento FODA:', error);
+    throw error;
+  }
+};
+
+// Eliminar elemento FODA
+export const eliminarElementoFoda = async (elementoId) => {
+  try {
+    console.log('�️ Eliminando elemento FODA ID:', elementoId);
+    
+    const res = await fetch(`${API_URL}/foda/elementos/${elementoId}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.mensaje || `Error ${res.status}: ${res.statusText}`);
+    }
+    
+    console.log('✅ Elemento FODA eliminado exitosamente');
+    return true;
+  } catch (error) {
+    console.error('❌ Error al eliminar elemento FODA:', error);
+    throw error;
+  }
+};
+
+// Crear estrategia cruzada FODA
+export const crearEstrategiaCruzada = async (estrategiaData) => {
+  try {
+    console.log('� Creando estrategia cruzada FODA:', estrategiaData);
+    
+    const res = await fetch(`${API_URL}/foda/estrategias-cruzadas`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(estrategiaData),
+    });
+    
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.mensaje || `Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.estado) {
+      console.log('✅ Estrategia cruzada creada exitosamente');
+      return data.datos || data;
+    } else {
+      throw new Error(data.mensaje || 'Error al crear estrategia cruzada');
+    }
+  } catch (error) {
+    console.error('❌ Error al crear estrategia cruzada:', error);
+    throw error;
+  }
+};
+
+// Obtener estrategias cruzadas por análisis FODA
+export const getEstrategiasCruzadas = async (analisisId) => {
+  try {
+    console.log('🔍 Obteniendo estrategias cruzadas para análisis:', analisisId);
+    
+    const res = await fetch(`${API_URL}/foda/analisis/${analisisId}/estrategias-cruzadas`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.estado) {
+      return data.datos || data;
+    } else {
+      throw new Error(data.mensaje || 'Error al obtener estrategias cruzadas');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener estrategias cruzadas:', error);
+    throw error;
+  }
+};
+
+// Obtener tipos de estrategias FODA
+export const getTiposEstrategiasFoda = async () => {
+  try {
+    console.log('🔍 Obteniendo tipos de estrategias FODA');
+    
+    const res = await fetch(`${API_URL}/foda/tipos-estrategias`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.estado) {
+      return data.datos || data;
+    } else {
+      throw new Error(data.mensaje || 'Error al obtener tipos de estrategias');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener tipos de estrategias:', error);
+    throw error;
+  }
+};
+
+// ===== FUNCIONES DE PLAME =====
+
+// Obtener PLAME por subfase
+export const getPlameBySubfase = async (subfaseId) => {
+  try {
+    console.log('🔍 Obteniendo PLAME para subfase ID:', subfaseId);
+    
+    const res = await fetch(`${API_URL}/plame/subfase/${subfaseId}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    console.log('📊 PLAME obtenido:', data);
+    
+    if (data.exito && data.datos) {
+      return data.datos;
+    } else {
+      throw new Error(data.error || 'Error al obtener PLAME');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener PLAME:', error);
+    throw error;
+  }
+};
+
+// Actualizar matriz PLAME
+export const actualizarMatrizPlame = async (plameId, matrizData) => {
+  try {
+    console.log('💾 Actualizando matriz PLAME:', plameId, matrizData);
+    
+    const res = await fetch(`${API_URL}/plame/${plameId}/matriz`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(matrizData),
+    });
+    
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || `Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.exito && data.datos) {
+      console.log('✅ Matriz PLAME actualizada exitosamente');
+      return data.datos;
+    } else {
+      throw new Error(data.error || 'Error al actualizar matriz PLAME');
+    }
+  } catch (error) {
+    console.error('❌ Error al actualizar matriz PLAME:', error);
+    throw error;
+  }
+};
+
+// Obtener estadísticas PLAME
+export const getEstadisticasPlame = async (plameId) => {
+  try {
+    console.log('📊 Obteniendo estadísticas PLAME ID:', plameId);
+    
+    const res = await fetch(`${API_URL}/plame/${plameId}/estadisticas`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.exito && data.datos) {
+      return data.datos;
+    } else {
+      throw new Error(data.error || 'Error al obtener estadísticas PLAME');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener estadísticas PLAME:', error);
+    throw error;
+  }
+};
+
+// Crear PLAME para subfase
+export const crearPlameParaSubfase = async (subfaseId, plameData) => {
+  try {
+    console.log('🆕 Creando PLAME para subfase:', subfaseId, plameData);
+    
+    const res = await fetch(`${API_URL}/plame`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        subfase_id: subfaseId,
+        ...plameData
+      }),
+    });
+    
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || `Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.exito && data.datos) {
+      console.log('✅ PLAME creado exitosamente');
+      return data.datos;
+    } else {
+      throw new Error(data.error || 'Error al crear PLAME');
+    }
+  } catch (error) {
+    console.error('❌ Error al crear PLAME:', error);
+    throw error;
+  }
+};
+
+// Actualizar una relación específica en la matriz PLAME
+export const actualizarRelacionPlame = async (plameId, filaId, columnaId, valor) => {
+  try {
+    console.log('🔄 Actualizando relación PLAME:', { plameId, filaId, columnaId, valor });
+    
+    const res = await fetch(`${API_URL}/plame/${plameId}/relacion`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        fila_id: filaId,
+        columna_id: columnaId,
+        valor: valor
+      }),
+    });
+    
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || `Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.exito && data.datos) {
+      console.log('✅ Relación PLAME actualizada exitosamente');
+      return data.datos;
+    } else {
+      throw new Error(data.error || 'Error al actualizar relación PLAME');
+    }
+  } catch (error) {
+    console.error('❌ Error al actualizar relación PLAME:', error);
+    throw error;
+  }
+};
+

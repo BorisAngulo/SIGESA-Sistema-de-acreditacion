@@ -27,6 +27,8 @@ class CreateSubFasesTable extends Migration
             $table->string('observacion_subfase')->nullable();
             $table->boolean('estado_subfase')->default(false);
             $table->integer('id_usuario_updated_subfase')->nullable();
+            $table->boolean('tiene_foda')->default(false)->after('estado_subfase');
+            $table->boolean('tiene_plame')->default(false)->after('tiene_foda');
             $table->timestamps();
         });
     }

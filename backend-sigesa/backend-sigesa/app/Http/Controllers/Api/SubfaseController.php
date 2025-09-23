@@ -34,6 +34,8 @@ class SubfaseController extends BaseApiController
                 'estado_subfase' => 'nullable|boolean',
                 'id_usuario_updated_subfase' => 'nullable|integer',
                 'observacion_subfase' => 'nullable|string|max:300',
+                'tiene_foda' => 'nullable|boolean',
+                'tiene_plame' => 'nullable|boolean',
             ]);
 
             $subfase = SubFase::create($validated);
@@ -56,7 +58,7 @@ class SubfaseController extends BaseApiController
     public function index()
     {
         try {
-            $subfases = Subfase::all();
+            $subfases = SubFase::all();
             
             if ($subfases->isEmpty()) {
                 return $this->successResponse([], 'No hay subfases registradas', 200);
@@ -71,7 +73,7 @@ class SubfaseController extends BaseApiController
     public function show($id)
     {
         try {
-            $subfase = Subfase::find($id);
+            $subfase = SubFase::find($id);
 
             if (!$subfase) {
                 throw ApiException::notFound('subfase', $id);
@@ -88,7 +90,7 @@ class SubfaseController extends BaseApiController
     public function update(Request $request, $id)
     {
         try {
-            $subfase = Subfase::find($id);
+            $subfase = SubFase::find($id);
 
             if (!$subfase) {
                 throw ApiException::notFound('subfase', $id);
@@ -105,6 +107,8 @@ class SubfaseController extends BaseApiController
                 'estado_subfase' => 'nullable|boolean',
                 'observacion_subfase' => 'nullable|string|max:300',
                 'id_usuario_updated_subfase' => 'nullable|integer',
+                'tiene_foda' => 'nullable|boolean',
+                'tiene_plame' => 'nullable|boolean',
             ]);
 
             $updated = $subfase->update($validated);
@@ -190,7 +194,7 @@ class SubfaseController extends BaseApiController
     public function getByFase($faseId)
     {
         try {
-            $subfases = Subfase::where('fase_id', $faseId)->get();
+            $subfases = SubFase::where('fase_id', $faseId)->get();
 
             if ($subfases->isEmpty()) {
                 return $this->successResponse([], 'No hay subfases para esta fase', 200);
@@ -245,7 +249,7 @@ class SubfaseController extends BaseApiController
     public function getDocumentos($id)
     {
         try {
-            $subfase = Subfase::find($id);
+            $subfase = SubFase::find($id);
 
             if (!$subfase) {
                 throw ApiException::notFound('subfase', $id);

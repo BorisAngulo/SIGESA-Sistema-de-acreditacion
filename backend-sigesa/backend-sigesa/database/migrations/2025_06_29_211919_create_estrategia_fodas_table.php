@@ -16,9 +16,6 @@ class CreateEstrategiaFodasTable extends Migration
         Schema::create('estrategia_fodas', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('id_elemento_foda')
-                ->constrained('elemento_fodas')
-                ->onDelete('cascade');
             $table->string('codigo_estrategia_foda', 2)->unique();
             $table->string('descripcion_estrategia_foda', 300)->nullable();
             $table->string('nombre_estrategia_foda', 50)->unique();

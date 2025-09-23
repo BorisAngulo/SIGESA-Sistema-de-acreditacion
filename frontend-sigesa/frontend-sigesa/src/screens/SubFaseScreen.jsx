@@ -17,6 +17,10 @@ const SubFaseScreen = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [subfaseId, setSubfaseId] = useState(null);
   const [faseData, setFaseData] = useState(null);
+  
+  // Estados para habilitar FODA y PLAME
+  const [habilitarFoda, setHabilitarFoda] = useState(false);
+  const [habilitarPlame, setHabilitarPlame] = useState(false);
 
 
   useEffect(() => {
@@ -24,13 +28,13 @@ const SubFaseScreen = () => {
       const { 
         subfase, 
         faseId, 
-        faseNombre,
-        carreraId,
-        modalidadId,
-        facultadId,
-        carreraNombre,
-        facultadNombre,
-        modalidad
+        faseNombre, 
+        carreraId, 
+        modalidadId, 
+        facultadId, 
+        carreraNombre, 
+        facultadNombre, 
+        modalidad 
       } = location.state;
 
       setFaseData({
@@ -47,20 +51,43 @@ const SubFaseScreen = () => {
       if (subfase) {
         setIsEditing(true);
         setSubfaseId(subfase.id);
-        setTitulo(subfase.nombre_subfase || '');
-        setDescripcion(subfase.descripcion_subfase || '');
-        setFechaInicio(subfase.fecha_inicio_subfase || '');
-        setFechaFin(subfase.fecha_fin_subfase || '');
-        setUrlDrive(subfase.url_subfase || '');
+        
+        // Usar los nombres de campos correctos según la respuesta del backend
+        setTitulo(subfase.nombre || subfase.nombre_subfase || '');
+        setDescripcion(subfase.descripcion || subfase.descripcion_subfase || '');
+        
+        // Formatear fechas para inputs de tipo date (solo YYYY-MM-DD)
+        const formatDate = (dateString) => {
+          if (!dateString) return '';
+          const date = new Date(dateString);
+          return date.toISOString().split('T')[0];
+        };
+        
+        setFechaInicio(formatDate(subfase.fechaInicio || subfase.fecha_inicio_subfase));
+        setFechaFin(formatDate(subfase.fechaFin || subfase.fecha_fin_subfase));
+        setUrlDrive(subfase.urlDrive || subfase.url_subfase || '');
+        
+        // Cargar configuraciones de FODA y PLAME si existen
+        setHabilitarFoda(Boolean(subfase.tiene_foda));
+        setHabilitarPlame(Boolean(subfase.tiene_plame));
         
         console.log('📝 Modo edición activado para subfase:', subfase);
+        console.log('📅 Fechas cargadas:', {
+          inicio: formatDate(subfase.fechaInicio || subfase.fecha_inicio_subfase),
+          fin: formatDate(subfase.fechaFin || subfase.fecha_fin_subfase)
+        });
+        console.log('📋 Datos cargados:', {
+          titulo: subfase.nombre || subfase.nombre_subfase,
+          descripcion: subfase.descripcion || subfase.descripcion_subfase,
+          urlDrive: subfase.urlDrive || subfase.url_subfase,
+          foda: subfase.tiene_foda,
+          plame: subfase.tiene_plame
+        });
       } else {
         console.log('➕ Modo creación activado');
       }
     }
-  }, [location.state]);
-
-  const validateForm = () => {
+  }, [location.state]);  const validateForm = () => {
     const newErrors = {};
     
     if (!titulo.trim()) {
@@ -107,7 +134,9 @@ const SubFaseScreen = () => {
         fecha_inicio_subfase: fechaInicio,
         fecha_fin_subfase: fechaFin,
         url_subfase: urlDrive || null,
-        fase_id: faseData.faseId
+        fase_id: faseData.faseId,
+        tiene_foda: habilitarFoda,
+        tiene_plame: habilitarPlame
       };
 
       console.log('📤 Enviando datos de subfase:', subfaseData);
@@ -263,37 +292,59 @@ const SubFaseScreen = () => {
               <div className="subfase-section-icon-wrapper subfase-section-icon-purple">
                 <FileText className="subfase-section-icon subfase-icon-purple" />
               </div>
-              Matriz y Análisis FODA
+              Herramientas de Análisis (Opcional)
             </h2>
             
-            <div className="subfase-grid-cols-1 subfase-grid-md-2">
-              <button
-                type="button"
-                onClick={() => window.open('https://plame.sunedu.gob.pe', '_blank')}
-                className="subfase-matrix-button subfase-matrix-button-blue"
-              >
-                <div className="subfase-matrix-content">
-                  <div className="subfase-matrix-icon-container subfase-matrix-icon-blue">
-                    <FileText className="subfase-matrix-icon subfase-icon-blue" />
+            <div className="subfase-analysis-options">
+              <div className="subfase-checkbox-group">
+                <label className="subfase-checkbox-item">
+                  <input
+                    type="checkbox"
+                    checked={habilitarFoda}
+                    onChange={(e) => setHabilitarFoda(e.target.checked)}
+                    className="subfase-checkbox"
+                  />
+                  <div className="subfase-checkbox-content">
+                    <div className="subfase-checkbox-icon-container subfase-checkbox-icon-green">
+                      <FileText className="subfase-checkbox-icon" />
+                    </div>
+                    <div className="subfase-checkbox-text">
+                      <h3 className="subfase-checkbox-title">Análisis FODA</h3>
+                      <p className="subfase-checkbox-description">
+                        Habilitar matriz de Fortalezas, Oportunidades, Debilidades y Amenazas
+                      </p>
+                    </div>
                   </div>
-                  <h3 className="subfase-matrix-title">Matriz PLAME</h3>
-                  <p className="subfase-matrix-description">Complete la matriz PLAME</p>
-                </div>
-              </button>
+                </label>
 
-              <button
-                type="button"
-                className="subfase-matrix-button subfase-matrix-button-green"
-                onClick={() => alert('Función FODA próximamente')}
-              >
-                <div className="subfase-matrix-content">
-                  <div className="subfase-matrix-icon-container subfase-matrix-icon-green">
-                    <FileText className="subfase-matrix-icon subfase-icon-green" />
+                <label className="subfase-checkbox-item">
+                  <input
+                    type="checkbox"
+                    checked={habilitarPlame}
+                    onChange={(e) => setHabilitarPlame(e.target.checked)}
+                    className="subfase-checkbox"
+                  />
+                  <div className="subfase-checkbox-content">
+                    <div className="subfase-checkbox-icon-container subfase-checkbox-icon-blue">
+                      <FileText className="subfase-checkbox-icon" />
+                    </div>
+                    <div className="subfase-checkbox-text">
+                      <h3 className="subfase-checkbox-title">Matriz PLAME</h3>
+                      <p className="subfase-checkbox-description">
+                        Habilitar matriz de Planificación, Análisis y Mejora Educativa
+                      </p>
+                    </div>
                   </div>
-                  <h3 className="subfase-matrix-title">Análisis FODA</h3>
-                  <p className="subfase-matrix-description">Fortalezas, Oportunidades, Debilidades, Amenazas</p>
+                </label>
+              </div>
+
+              {(habilitarFoda || habilitarPlame) && (
+                <div className="subfase-analysis-info">
+                  <p className="subfase-info-text">
+                    ℹ️ Las herramientas seleccionadas estarán disponibles después de crear la subfase
+                  </p>
                 </div>
-              </button>
+              )}
             </div>
           </div>
 

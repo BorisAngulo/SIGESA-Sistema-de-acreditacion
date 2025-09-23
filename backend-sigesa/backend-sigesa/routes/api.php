@@ -143,3 +143,5 @@ Route::prefix('debug')->group(function () {
 require __DIR__.'/api/documentos.php';
 require __DIR__.'/api/utilidades.php';
 require __DIR__.'/api/activity-logs.php';
+require __DIR__.'/api/foda.php';
+require __DIR__.'/api/plame.php';

@@ -19,10 +19,11 @@ class CreateElementoFodasTable extends Migration
             $table->foreignId('id_categoria_foda')
                 ->constrained('categoria_fodas')
                 ->onDelete('cascade');
-            $table->foreignId('id_subfase')
-                ->constrained('sub_fases')
+            $table->foreignId('id_foda_analisis')
+                ->constrained('foda_analisis')
                 ->onDelete('cascade');
             $table->string('descripcion_elemento_foda', 300)->nullable();
+            $table->integer('orden')->default(0);
         });
     }
 

@@ -29,6 +29,8 @@ import ModalConfirmacionFase from '../components/ModalConfirmacionFase';
 import ModalEscogerDocumento from '../components/ModalEscogerDocumento';
 import ModalDetallesFase from '../components/ModalDetallesFase';
 import FinalizarAcreditacionModal from '../components/FinalizarAcreditacionModal';
+import FodaModal from '../components/FodaModal';
+import PlameModal from '../components/PlameModal';
 import '../styles/FasesScreen.css';
 
 const FasesScreen = () => {
@@ -73,6 +75,11 @@ const FasesScreen = () => {
     data: null,
     documentos: []
   });
+
+  // Estados para modales FODA y PLAME
+  const [showFodaModal, setShowFodaModal] = useState(false);
+  const [showPlameModal, setShowPlameModal] = useState(false);
+  const [subfaseSeleccionada, setSubfaseSeleccionada] = useState(null);
 
   // Función para verificar si el usuario puede editar/eliminar
   const puedeRealizarAcciones = () => {
@@ -184,6 +191,8 @@ const FasesScreen = () => {
         urlDrive: subfase.url_subfase, // Mapear también a urlDrive para compatibilidad
         estadoSubfase: subfase.estado_subfase,
         faseId: subfase.fase_id,
+        tiene_foda: subfase.tiene_foda || false,
+        tiene_plame: subfase.tiene_plame || false,
         createdAt: subfase.created_at,
         updatedAt: subfase.updated_at,
         progreso: 0, 
@@ -1310,6 +1319,27 @@ const FasesScreen = () => {
     });
   };
 
+  // Funciones para manejar modales FODA y PLAME
+  const handleAbrirFoda = (subfase) => {
+    setSubfaseSeleccionada(subfase);
+    setShowFodaModal(true);
+  };
+
+  const handleCerrarFoda = () => {
+    setShowFodaModal(false);
+    setSubfaseSeleccionada(null);
+  };
+
+  const handleAbrirPlame = (subfase) => {
+    setSubfaseSeleccionada(subfase);
+    setShowPlameModal(true);
+  };
+
+  const handleCerrarPlame = () => {
+    setShowPlameModal(false);
+    setSubfaseSeleccionada(null);
+  };
+
   const getStatusIcon = (completada, progreso) => {
     if (completada || progreso === 100) {
       return (
@@ -1562,13 +1592,27 @@ const FasesScreen = () => {
                           <div className="subfase-numero">{index + 1}.</div>
                           <div className="subfase-content">
                             <div className="subfase-info">
-                              <span 
-                                className="subfase-nombre clickeable"
-                                onClick={() => handleMostrarDetallesSubfase(subfase, fase.id)}
-                                title="Ver detalles de la subfase"
-                              >
-                                {subfase.nombre}
-                              </span>
+                              <div className="subfase-nombre-container">
+                                <span 
+                                  className="subfase-nombre clickeable"
+                                  onClick={() => handleMostrarDetallesSubfase(subfase, fase.id)}
+                                  title="Ver detalles de la subfase"
+                                >
+                                  {subfase.nombre}
+                                </span>
+                                <div className="subfase-badges">
+                                  {subfase.tiene_foda && (
+                                    <span className="analysis-badge foda-badge" title="Análisis FODA habilitado">
+                                      FODA
+                                    </span>
+                                  )}
+                                  {subfase.tiene_plame && (
+                                    <span className="analysis-badge plame-badge" title="Matriz PLAME habilitada">
+                                      PLAME
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                               <span className="subfase-descripcion">{subfase.descripcion}</span>
                               <span className="subfase-fechas">
                                 {subfase.fechaInicio} - {subfase.fechaFin}
@@ -1589,6 +1633,32 @@ const FasesScreen = () => {
                             </div>
                             
                             <div className="subfase-controls">
+                              {subfase.tiene_foda && (
+                                <button 
+                                  className="action-icon foda"
+                                  onClick={() => handleAbrirFoda(subfase)}
+                                  title="Análisis FODA"
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path d="M3 12L9 18L21 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    <path d="M12 2L22 12L12 22L2 12L12 2Z" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                </button>
+                              )}
+                              
+                              {subfase.tiene_plame && (
+                                <button 
+                                  className="action-icon plame"
+                                  onClick={() => handleAbrirPlame(subfase)}
+                                  title="Matriz PLAME"
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path d="M3 3H21V21H3V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    <path d="M9 3V21M15 3V21M3 9H21M3 15H21" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                </button>
+                              )}
+                              
                               <button 
                                 className="action-icon document"
                                 onClick={() => handleAbrirModalDocumento('subfase', subfase.id)}
@@ -1692,6 +1762,18 @@ const FasesScreen = () => {
         onClose={() => setShowFinalizarModal(false)}
         onConfirm={handleSubmitFinalizacion}
         carreraModalidadData={fasesData}
+      />
+
+      <FodaModal
+        isOpen={showFodaModal}
+        onClose={handleCerrarFoda}
+        subfase={subfaseSeleccionada}
+      />
+
+      <PlameModal
+        isOpen={showPlameModal}
+        onClose={handleCerrarPlame}
+        subfase={subfaseSeleccionada}
       />
     </div>
   );

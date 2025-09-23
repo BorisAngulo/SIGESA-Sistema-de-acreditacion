@@ -205,6 +205,26 @@
   transform: scale(1.05);
 }
 
+.action-icon.foda {
+  background-color: #38a169;
+  color: white;
+}
+
+.action-icon.foda:hover {
+  background-color: #2f855a;
+  transform: scale(1.05);
+}
+
+.action-icon.plame {
+  background-color: #805ad5;
+  color: white;
+}
+
+.action-icon.plame:hover {
+  background-color: #6b46c1;
+  transform: scale(1.05);
+}
+
 .fase-progress {
   display: flex;
   align-items: center;
@@ -601,11 +621,48 @@
   gap: 4px;
 }
 
+.subfase-nombre-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
 .subfase-nombre {
   font-weight: 600;
   color: #1f2937;
   font-size: 14px;
   line-height: 1.4;
+}
+
+.subfase-badges {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.analysis-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+  border: 1px solid;
+}
+
+.foda-badge {
+  background-color: #e0f2fe;
+  color: #0277bd;
+  border-color: #81d4fa;
+}
+
+.plame-badge {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+  border-color: #ce93d8;
 }
 
 .subfase-descripcion {
