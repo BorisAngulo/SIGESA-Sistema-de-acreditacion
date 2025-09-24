@@ -117,8 +117,6 @@ const UsuariosScreen = () => {
         <div className="loading-container">
           <div className="loading-content">
             <div className="loading-spinner">
-              <div className="spinner-ring"></div>
-              <div className="spinner-inner"></div>
             </div>
             <h2 className="loading-title">Cargando Usuarios</h2>
             <p className="loading-subtitle">Por favor espera un momento...</p>

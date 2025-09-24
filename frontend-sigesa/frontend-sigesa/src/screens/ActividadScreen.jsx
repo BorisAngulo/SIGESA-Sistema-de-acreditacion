@@ -205,14 +205,14 @@ const ActividadScreen = () => {
 
     if (loading) {
         return (
-            <div className="loading-container">
+            <div className="usuarios-screen">
+                <div className="loading-container">
                 <div className="loading-content">
                     <div className="loading-spinner">
-                        <div className="spinner-ring"></div>
-                        <div className="spinner-inner"></div>
                     </div>
                     <h2 className="loading-title">Cargando Logs de Actividad</h2>
                     <p className="loading-subtitle">Por favor espera un momento...</p>
+                </div>
                 </div>
             </div>
         );
