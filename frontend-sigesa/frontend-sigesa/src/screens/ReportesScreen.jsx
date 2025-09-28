@@ -32,7 +32,13 @@ import {
   getCarreraModalidades,
   getFases,
   getSubfases,
-  getCarrerasByFacultad
+  getCarrerasByFacultad,
+  getReportesKPIs,
+  getReportesAnalisisFacultades,
+  getReportesProgresoModalidades,
+  getReportesTendenciasTemporales,
+  getReportesDistribucionEstados,
+  getReportesCarrerasPorFacultad
 } from '../services/api';
 
 import jsPDF from 'jspdf';
@@ -156,6 +162,17 @@ const ReportesScreen = () => {
     setLoadingCarreras(prev => new Set([...prev, facultadId]));
     
     try {
+      // Intentar usar la nueva API de reportes primero
+      try {
+        console.log(`🎯 Cargando carreras con acreditación para facultad ${facultadId} desde API de reportes`);
+        const carrerasConAcreditacion = await getReportesCarrerasPorFacultad(facultadId);
+        setFacultyCarreras(prev => new Map([...prev, [facultadId, carrerasConAcreditacion]]));
+        return;
+      } catch (apiError) {
+        console.warn(`⚠️ Error en API de reportes para facultad ${facultadId}, usando fallback:`, apiError);
+      }
+
+      // Fallback a la API original
       const carreras = await getCarrerasByFacultad(facultadId);
       
       // Simular datos de acreditación para cada carrera
@@ -226,7 +243,52 @@ const ReportesScreen = () => {
   const loadReportData = async () => {
     try {
       console.log('Cargando datos de reportes con filtros:', filters);
-      console.log('Datos disponibles:', {
+      
+      // Preparar filtros para las APIs
+      const apiFilters = {
+        year: filters.selectedYear,
+        facultad_id: filters.selectedFacultad,
+        modalidad_id: filters.selectedModalidad
+      };
+
+      // Intentar cargar datos reales del backend
+      try {
+        console.log('🚀 Cargando datos reales del backend...');
+        
+        const [
+          kpisData,
+          analisisFacultadesData,
+          progresoModalidadesData,
+          tendenciasTemporalesData,
+          distribucionEstadosData
+        ] = await Promise.all([
+          getReportesKPIs(apiFilters),
+          getReportesAnalisisFacultades(apiFilters),
+          getReportesProgresoModalidades(apiFilters),
+          getReportesTendenciasTemporales(apiFilters),
+          getReportesDistribucionEstados(apiFilters)
+        ]);
+
+        console.log('✅ Datos del backend cargados exitosamente');
+        
+        setReportData({
+          kpis: kpisData,
+          analisisFacultades: analisisFacultadesData,
+          progresoModalidades: progresoModalidadesData,
+          tendenciasTemporales: tendenciasTemporalesData,
+          distribucionEstados: distribucionEstadosData,
+          comparativaAnual: filters.comparisonMode && filters.selectedYear !== 'todos' ? 
+            await generateComparativaAnual() : null
+        });
+        
+        return;
+        
+      } catch (backendError) {
+        console.warn('⚠️ Error al cargar del backend, usando datos de fallback:', backendError);
+      }
+      
+      // Fallback a datos simulados si el backend falla
+      console.log('Datos disponibles para fallback:', {
         facultades: data.facultades.length,
         carreras: data.carreras.length,
         modalidades: data.modalidades.length
@@ -503,6 +565,46 @@ const ReportesScreen = () => {
       { name: 'En Proceso', value: 8 * baseMultiplier, color: '#f59e0b' },
       { name: 'Pausadas', value: 2 * baseMultiplier, color: '#ef4444' }
     ];
+  };
+
+  const generateComparativaAnual = async () => {
+    try {
+      // Obtener datos del año anterior para comparación
+      const yearToCompare = parseInt(filters.selectedYear) - 1;
+      const comparisonFilters = {
+        year: yearToCompare.toString(),
+        facultad_id: filters.selectedFacultad,
+        modalidad_id: filters.selectedModalidad
+      };
+
+      const [currentKPIs, previousKPIs] = await Promise.all([
+        getReportesKPIs({
+          year: filters.selectedYear,
+          facultad_id: filters.selectedFacultad,
+          modalidad_id: filters.selectedModalidad
+        }),
+        getReportesKPIs(comparisonFilters)
+      ]);
+
+      // Calcular crecimientos
+      const ceubGrowth = previousKPIs.acreditaciones_ceub > 0 ? 
+        ((currentKPIs.acreditaciones_ceub - previousKPIs.acreditaciones_ceub) / previousKPIs.acreditaciones_ceub) * 100 : 0;
+      
+      const arcusurGrowth = previousKPIs.acreditaciones_arcusur > 0 ? 
+        ((currentKPIs.acreditaciones_arcusur - previousKPIs.acreditaciones_arcusur) / previousKPIs.acreditaciones_arcusur) * 100 : 0;
+      
+      const totalCarrerasGrowth = previousKPIs.carreras_totales > 0 ? 
+        ((currentKPIs.carreras_totales - previousKPIs.carreras_totales) / previousKPIs.carreras_totales) * 100 : 0;
+
+      return {
+        ceub_growth: Math.round(ceubGrowth * 10) / 10,
+        arcusur_growth: Math.round(arcusurGrowth * 10) / 10,
+        total_growth: Math.round(totalCarrerasGrowth * 10) / 10
+      };
+    } catch (error) {
+      console.error('Error generando comparativa anual:', error);
+      return generateFallbackComparativa();
+    }
   };
 
   const generateFallbackComparativa = () => {

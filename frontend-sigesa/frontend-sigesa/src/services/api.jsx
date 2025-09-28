@@ -2168,3 +2168,203 @@ export const actualizarRelacionPlame = async (plameId, filaId, columnaId, valor)
   }
 };
 
+// ===============================
+// FUNCIONES DE REPORTES
+// ===============================
+
+/**
+ * Obtener KPIs principales del sistema
+ */
+export const getReportesKPIs = async (filters = {}) => {
+  try {
+    console.log('📊 Obteniendo KPIs de reportes', filters);
+    
+    const params = new URLSearchParams();
+    if (filters.year && filters.year !== 'todos') params.append('year', filters.year);
+    if (filters.facultad_id && filters.facultad_id !== 'todas') params.append('facultad_id', filters.facultad_id);
+    if (filters.modalidad_id && filters.modalidad_id !== 'todas') params.append('modalidad_id', filters.modalidad_id);
+    
+    const res = await fetch(`${API_URL}/reportes/kpis?${params.toString()}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.estado) {
+      return data.datos || data;
+    } else {
+      throw new Error(data.mensaje || 'Error al obtener KPIs');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener KPIs:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener análisis por facultades
+ */
+export const getReportesAnalisisFacultades = async (filters = {}) => {
+  try {
+    console.log('🏛️ Obteniendo análisis de facultades', filters);
+    
+    const params = new URLSearchParams();
+    if (filters.year && filters.year !== 'todos') params.append('year', filters.year);
+    if (filters.modalidad_id && filters.modalidad_id !== 'todas') params.append('modalidad_id', filters.modalidad_id);
+    
+    const res = await fetch(`${API_URL}/reportes/facultades/analisis?${params.toString()}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.estado) {
+      return data.datos || data;
+    } else {
+      throw new Error(data.mensaje || 'Error al obtener análisis de facultades');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener análisis de facultades:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener progreso por modalidades
+ */
+export const getReportesProgresoModalidades = async (filters = {}) => {
+  try {
+    console.log('🎯 Obteniendo progreso de modalidades', filters);
+    
+    const params = new URLSearchParams();
+    if (filters.year && filters.year !== 'todos') params.append('year', filters.year);
+    if (filters.facultad_id && filters.facultad_id !== 'todas') params.append('facultad_id', filters.facultad_id);
+    
+    const res = await fetch(`${API_URL}/reportes/modalidades/progreso?${params.toString()}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.estado) {
+      return data.datos || data;
+    } else {
+      throw new Error(data.mensaje || 'Error al obtener progreso de modalidades');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener progreso de modalidades:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener tendencias temporales
+ */
+export const getReportesTendenciasTemporales = async (filters = {}) => {
+  try {
+    console.log('📈 Obteniendo tendencias temporales', filters);
+    
+    const params = new URLSearchParams();
+    if (filters.facultad_id && filters.facultad_id !== 'todas') params.append('facultad_id', filters.facultad_id);
+    if (filters.modalidad_id && filters.modalidad_id !== 'todas') params.append('modalidad_id', filters.modalidad_id);
+    
+    const res = await fetch(`${API_URL}/reportes/tendencias-temporales?${params.toString()}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.estado) {
+      return data.datos || data;
+    } else {
+      throw new Error(data.mensaje || 'Error al obtener tendencias temporales');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener tendencias temporales:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener distribución de estados
+ */
+export const getReportesDistribucionEstados = async (filters = {}) => {
+  try {
+    console.log('📊 Obteniendo distribución de estados', filters);
+    
+    const params = new URLSearchParams();
+    if (filters.year && filters.year !== 'todos') params.append('year', filters.year);
+    if (filters.facultad_id && filters.facultad_id !== 'todas') params.append('facultad_id', filters.facultad_id);
+    if (filters.modalidad_id && filters.modalidad_id !== 'todas') params.append('modalidad_id', filters.modalidad_id);
+    
+    const res = await fetch(`${API_URL}/reportes/estados/distribucion?${params.toString()}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.estado) {
+      return data.datos || data;
+    } else {
+      throw new Error(data.mensaje || 'Error al obtener distribución de estados');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener distribución de estados:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener carreras con acreditación por facultad
+ */
+export const getReportesCarrerasPorFacultad = async (facultadId) => {
+  try {
+    console.log(`📚 Obteniendo carreras de facultad ${facultadId}`);
+    
+    const res = await fetch(`${API_URL}/reportes/facultades/${facultadId}/carreras`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.estado) {
+      return data.datos || data;
+    } else {
+      throw new Error(data.mensaje || 'Error al obtener carreras por facultad');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener carreras por facultad:', error);
+    throw error;
+  }
+};
+

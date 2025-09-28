@@ -145,3 +145,4 @@ require __DIR__.'/api/utilidades.php';
 require __DIR__.'/api/activity-logs.php';
 require __DIR__.'/api/foda.php';
 require __DIR__.'/api/plame.php';
+require __DIR__.'/api/reportes.php';
