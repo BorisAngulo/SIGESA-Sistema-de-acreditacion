@@ -193,14 +193,6 @@ export default function FacultadScreen() {
               className={`faculty-card-horizontal ${opcionesVisibles === f.id ? 'menu-active' : ''}`}
               style={{ background: cardColors[index % cardColors.length] }}
             >
-              <img
-                src={`/logos/${f.codigo_facultad}.png`}
-                alt={f.nombre_facultad}
-                className="faculty-logo"
-                onError={(e) => {
-                  e.target.src = "/logos/default.png";
-                }}
-              />
               <div className="faculty-info">
                 <h3>{f.nombre_facultad}</h3>
                 <ul>

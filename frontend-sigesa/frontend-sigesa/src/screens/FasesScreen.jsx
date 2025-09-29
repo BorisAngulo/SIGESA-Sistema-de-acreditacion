@@ -341,32 +341,9 @@ const FasesScreen = () => {
     }
   };
 
-  const debugModalidades = async () => {
-    try {
-      
-      const modalidades = await getModalidades();
-      console.log('Total modalidades encontradas:', modalidades.length);
-      
-      if (modalidades.length === 0) {
-        console.error('No hay modalidades en la base de datos');
-        return;
-      }
-      
-      console.log('Lista completa de modalidades:');
-      modalidades.forEach((modalidad, index) => {
-        console.log(`${index + 1}. ID: ${modalidad.id}, Nombre: "${modalidad.nombre}", Descripción: "${modalidad.descripcion || 'N/A'}"`);
-      });
-      
-    } catch (error) {
-      console.error(' Error en debug modalidades:', error);
-    }
-  };
-
   // Función optimizada con endpoint consolidado - SIN FALLBACKS
   const continuarCargaFases = useCallback(async (carreraModalidadIdFinal) => {
     try {
-      console.log('🚀 CARGA OPTIMIZADA CON ENDPOINT CONSOLIDADO');
-      console.log('📊 Carrera-modalidad ID:', carreraModalidadIdFinal);
       
       // Una sola llamada para obtener carrera-modalidad, fases y subfases
       const procesoCompleto = await getProcesoCompleto(carreraModalidadIdFinal);
@@ -474,14 +451,6 @@ const FasesScreen = () => {
 
   // Función independiente para verificar el estado del proceso
   const verificarEstadoProceso = useCallback(async () => {
-    console.log('🔍 VERIFICANDO ESTADO DEL PROCESO');
-    console.log('  - fasesData?.carreraId:', fasesData?.carreraId);
-    console.log('  - fasesData?.modalidadId:', fasesData?.modalidadId);
-    console.log('  - fasesData?.fromCarrerasModalidadesAdmin:', fasesData?.fromCarrerasModalidadesAdmin);
-    console.log('  - fasesData?.fecha_ini_proceso:', fasesData?.fecha_ini_proceso);
-    console.log('  - fasesData?.fecha_fin_proceso:', fasesData?.fecha_fin_proceso);
-    console.log('  - fasesData?.id:', fasesData?.id);
-    console.log('  - fasesData?.carreraModalidadId:', fasesData?.carreraModalidadId);
     
     // ✅ OPTIMIZACIÓN: Evitar ejecuciones innecesarias
     const claveVerificacion = `${fasesData?.carreraId}-${fasesData?.modalidadId}-${fasesData?.fromCarrerasModalidadesAdmin}`;
@@ -639,11 +608,6 @@ const FasesScreen = () => {
           console.log('Obteniendo modalidadId para:', modalidad);
           resolvedModalidadId = await getModalidadId(modalidad);
           console.log('modalidadId obtenido:', resolvedModalidadId);
-          
-          if (!resolvedModalidadId) {
-            console.log('No se pudo obtener modalidadId, ejecutando debug...');
-            await debugModalidades();
-          }
         }
         
   
