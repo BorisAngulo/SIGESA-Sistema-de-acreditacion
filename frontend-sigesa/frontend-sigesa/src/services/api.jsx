@@ -592,6 +592,133 @@ export const getCarreraModalidadPorId = async (carreraModalidadId) => {
   }
 };
 
+// Función consolidada para obtener proceso completo: carrera-modalidad, fases y subfases en una sola llamada
+export const getProcesoCompleto = async (carreraModalidadId) => {
+  try {
+    console.log(`🚀 OBTENIENDO PROCESO COMPLETO para carrera-modalidad: ${carreraModalidadId}`);
+    
+    const res = await fetch(`${API_URL}/acreditacion-carreras/${carreraModalidadId}/proceso-completo`, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error HTTP ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    console.log(`✅ Proceso completo obtenido exitosamente:`, data);
+    
+    // Verificar estructura de respuesta del backend SIGESA
+    if (data.exito && data.datos) {
+      const procesoCompleto = data.datos;
+      
+      console.log(`📊 Estadísticas del proceso completo:`, {
+        carrera_modalidad_id: procesoCompleto.carrera_modalidad.id,
+        total_fases: procesoCompleto.total_fases,
+        total_subfases: procesoCompleto.total_subfases,
+        carrera_nombre: procesoCompleto.carrera_modalidad.carrera.nombre_carrera,
+        modalidad_nombre: procesoCompleto.carrera_modalidad.modalidad.nombre_modalidad
+      });
+      
+      return procesoCompleto;
+    } else if (data.data) {
+      console.log('✅ Usando estructura data alternativa');
+      return data.data;
+    } else {
+      console.warn('⚠️ Estructura de respuesta inesperada:', data);
+      return data;
+    }
+    
+  } catch (error) {
+    console.error('💥 Error al obtener proceso completo:', error);
+    throw error;
+  }
+};
+
+// Función consolidada para obtener o crear proceso activo con validaciones inteligentes
+// Incluye soporte para procesos futuros y lógica completa de gestión de procesos
+export const obtenerOCrearProcesoActivo = async (carreraId, modalidadId, fechaInicioProceso = null, fechaFinProceso = null) => {
+  try {
+    console.log('🚀 INICIANDO OBTENER O CREAR PROCESO ACTIVO:', {
+      carrera_id: carreraId,
+      modalidad_id: modalidadId,
+      fecha_ini_proceso: fechaInicioProceso,
+      fecha_fin_proceso: fechaFinProceso
+    });
+
+    const requestBody = {
+      carrera_id: carreraId,
+      modalidad_id: modalidadId
+    };
+
+    // Solo incluir fechas si están definidas
+    if (fechaInicioProceso) {
+      requestBody.fecha_ini_proceso = fechaInicioProceso;
+    }
+    
+    if (fechaFinProceso) {
+      requestBody.fecha_fin_proceso = fechaFinProceso;
+    }
+
+    const res = await fetch(`${API_URL}/acreditacion-carreras/obtener-crear-proceso-activo`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      
+      if (res.status === 409) {
+        // Conflicto de fechas
+        throw new Error(errorData?.error || 'Ya existe un proceso con fechas que se superponen');
+      }
+      
+      if (res.status === 422) {
+        // Errores de validación
+        const validationErrors = errorData?.error || 'Datos de entrada inválidos';
+        throw new Error(`Errores de validación: ${validationErrors}`);
+      }
+      
+      throw new Error(`Error HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    console.log('✅ Respuesta del endpoint consolidado:', data);
+
+    // Verificar estructura de respuesta del backend SIGESA
+    if (data.exito && data.datos) {
+      const resultado = data.datos;
+      
+      console.log(`🎯 Resultado de la operación:`, {
+        accion: resultado.accion,
+        tipo: resultado.tipo,
+        mensaje: resultado.mensaje,
+        carrera_modalidad_id: resultado.carrera_modalidad.id,
+        fecha_ini_proceso: resultado.carrera_modalidad.fecha_ini_proceso,
+        fecha_fin_proceso: resultado.carrera_modalidad.fecha_fin_proceso
+      });
+      
+      return {
+        carrera_modalidad: resultado.carrera_modalidad,
+        accion: resultado.accion,
+        tipo: resultado.tipo,
+        mensaje: resultado.mensaje,
+        // Información adicional para el frontend
+        es_proceso_nuevo: resultado.accion.includes('creado'),
+        es_proceso_futuro: resultado.tipo === 'proceso_futuro'
+      };
+    } else {
+      console.warn('⚠️ Estructura de respuesta inesperada:', data);
+      return data;
+    }
+
+  } catch (error) {
+    console.error('💥 Error en obtenerOCrearProcesoActivo:', error);
+    throw error;
+  }
+};
+
 export const createCarreraModalidad = async (data) => {
   try {
     const res = await fetch(`${API_URL}/acreditacion-carreras`, {
@@ -641,6 +768,72 @@ export const finalizarAcreditacion = async (carreraModalidadId, formData) => {
     }
   } catch (error) {
     console.error('💥 Error al finalizar acreditación:', error);
+    throw error;
+  }
+};
+
+// Función para actualizar las fechas del proceso de acreditación
+export const updateCarreraModalidadFechas = async (carreraModalidadId, fechas) => {
+  try {
+    console.log(`🔄 Actualizando fechas del proceso para carrera-modalidad ID: ${carreraModalidadId}`);
+    console.log('📅 Fechas a actualizar:', fechas);
+    
+    const token = getAuthToken();
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+    
+    // Preparar los datos
+    const datos = {
+      fecha_ini_proceso: fechas.fecha_ini_proceso || fechas.fechaInicio,
+      fecha_fin_proceso: fechas.fecha_fin_proceso || fechas.fechaFin
+    };
+    
+    console.log('📝 Datos preparados para enviar:', datos);
+    
+    const res = await fetch(`${API_URL}/acreditacion-carreras/${carreraModalidadId}/fechas-proceso`, {
+      method: "PUT",
+      headers: headers,
+      body: JSON.stringify(datos),
+    });
+    
+    const response = await res.json();
+    
+    if (res.ok && (response.exito || response.success)) {
+      console.log('✅ Fechas del proceso actualizadas exitosamente:', response);
+      return response.datos || response.data;
+    } else {
+      console.error('❌ Error al actualizar fechas del proceso:', response);
+      throw new Error(response.mensaje || response.message || response.error || 'Error al actualizar las fechas del proceso');
+    }
+  } catch (error) {
+    console.error('💥 Error al actualizar fechas del proceso:', error);
+    throw error;
+  }
+};
+
+// Función para eliminar una carrera-modalidad
+export const eliminarCarreraModalidad = async (carreraModalidadId) => {
+  try {
+    console.log(`🗑️ Eliminando carrera-modalidad ID: ${carreraModalidadId}`);
+    
+    const res = await fetch(`${API_URL}/acreditacion-carreras/${carreraModalidadId}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+    
+    const response = await res.json();
+    
+    if (res.ok && (response.exito || response.success)) {
+      console.log('✅ Carrera-modalidad eliminada exitosamente:', response);
+      return response;
+    } else {
+      console.error('❌ Error al eliminar carrera-modalidad:', response);
+      throw new Error(response.mensaje || response.message || response.error || 'Error al eliminar carrera-modalidad');
+    }
+  } catch (error) {
+    console.error('💥 Error al eliminar carrera-modalidad:', error);
     throw error;
   }
 };
@@ -1582,6 +1775,54 @@ export const asociarDocumentoASubfase = async (subfaseId, documentoId) => {
   }
 };
 
+// Eliminar asociación de documento con fase
+export const eliminarDocumentoDeFase = async (faseId, documentoId) => {
+  try {
+    console.log('🗑️ Eliminando asociación documento-fase - faseId:', faseId, 'documentoId:', documentoId);
+    
+    const res = await fetch(`${API_URL}/fases/${faseId}/documentos/${documentoId}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.message || `Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const response = await res.json();
+    console.log('✅ Asociación documento-fase eliminada exitosamente');
+    return response;
+  } catch (error) {
+    console.error('❌ Error al eliminar asociación documento-fase:', error);
+    throw error;
+  }
+};
+
+// Eliminar asociación de documento con subfase
+export const eliminarDocumentoDeSubfase = async (subfaseId, documentoId) => {
+  try {
+    console.log('🗑️ Eliminando asociación documento-subfase - subfaseId:', subfaseId, 'documentoId:', documentoId);
+    
+    const res = await fetch(`${API_URL}/subfases/${subfaseId}/documentos/${documentoId}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.message || `Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const response = await res.json();
+    console.log('✅ Asociación documento-subfase eliminada exitosamente');
+    return response;
+  } catch (error) {
+    console.error('❌ Error al eliminar asociación documento-subfase:', error);
+    throw error;
+  }
+};
+
 // Obtener documentos de una fase específica
 export const getDocumentosByFase = async (faseId) => {
   try {
@@ -2164,6 +2405,206 @@ export const actualizarRelacionPlame = async (plameId, filaId, columnaId, valor)
     }
   } catch (error) {
     console.error('❌ Error al actualizar relación PLAME:', error);
+    throw error;
+  }
+};
+
+// ===============================
+// FUNCIONES DE REPORTES
+// ===============================
+
+/**
+ * Obtener KPIs principales del sistema
+ */
+export const getReportesKPIs = async (filters = {}) => {
+  try {
+    console.log('📊 Obteniendo KPIs de reportes', filters);
+    
+    const params = new URLSearchParams();
+    if (filters.year && filters.year !== 'todos') params.append('year', filters.year);
+    if (filters.facultad_id && filters.facultad_id !== 'todas') params.append('facultad_id', filters.facultad_id);
+    if (filters.modalidad_id && filters.modalidad_id !== 'todas') params.append('modalidad_id', filters.modalidad_id);
+    
+    const res = await fetch(`${API_URL}/reportes/kpis?${params.toString()}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.estado) {
+      return data.datos || data;
+    } else {
+      throw new Error(data.mensaje || 'Error al obtener KPIs');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener KPIs:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener análisis por facultades
+ */
+export const getReportesAnalisisFacultades = async (filters = {}) => {
+  try {
+    console.log('🏛️ Obteniendo análisis de facultades', filters);
+    
+    const params = new URLSearchParams();
+    if (filters.year && filters.year !== 'todos') params.append('year', filters.year);
+    if (filters.modalidad_id && filters.modalidad_id !== 'todas') params.append('modalidad_id', filters.modalidad_id);
+    
+    const res = await fetch(`${API_URL}/reportes/facultades/analisis?${params.toString()}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.estado) {
+      return data.datos || data;
+    } else {
+      throw new Error(data.mensaje || 'Error al obtener análisis de facultades');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener análisis de facultades:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener progreso por modalidades
+ */
+export const getReportesProgresoModalidades = async (filters = {}) => {
+  try {
+    console.log('🎯 Obteniendo progreso de modalidades', filters);
+    
+    const params = new URLSearchParams();
+    if (filters.year && filters.year !== 'todos') params.append('year', filters.year);
+    if (filters.facultad_id && filters.facultad_id !== 'todas') params.append('facultad_id', filters.facultad_id);
+    
+    const res = await fetch(`${API_URL}/reportes/modalidades/progreso?${params.toString()}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.estado) {
+      return data.datos || data;
+    } else {
+      throw new Error(data.mensaje || 'Error al obtener progreso de modalidades');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener progreso de modalidades:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener tendencias temporales
+ */
+export const getReportesTendenciasTemporales = async (filters = {}) => {
+  try {
+    console.log('📈 Obteniendo tendencias temporales', filters);
+    
+    const params = new URLSearchParams();
+    if (filters.facultad_id && filters.facultad_id !== 'todas') params.append('facultad_id', filters.facultad_id);
+    if (filters.modalidad_id && filters.modalidad_id !== 'todas') params.append('modalidad_id', filters.modalidad_id);
+    
+    const res = await fetch(`${API_URL}/reportes/tendencias-temporales?${params.toString()}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.estado) {
+      return data.datos || data;
+    } else {
+      throw new Error(data.mensaje || 'Error al obtener tendencias temporales');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener tendencias temporales:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener distribución de estados
+ */
+export const getReportesDistribucionEstados = async (filters = {}) => {
+  try {
+    console.log('📊 Obteniendo distribución de estados', filters);
+    
+    const params = new URLSearchParams();
+    if (filters.year && filters.year !== 'todos') params.append('year', filters.year);
+    if (filters.facultad_id && filters.facultad_id !== 'todas') params.append('facultad_id', filters.facultad_id);
+    if (filters.modalidad_id && filters.modalidad_id !== 'todas') params.append('modalidad_id', filters.modalidad_id);
+    
+    const res = await fetch(`${API_URL}/reportes/estados/distribucion?${params.toString()}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.estado) {
+      return data.datos || data;
+    } else {
+      throw new Error(data.mensaje || 'Error al obtener distribución de estados');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener distribución de estados:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener carreras con acreditación por facultad
+ */
+export const getReportesCarrerasPorFacultad = async (facultadId) => {
+  try {
+    console.log(`📚 Obteniendo carreras de facultad ${facultadId}`);
+    
+    const res = await fetch(`${API_URL}/reportes/facultades/${facultadId}/carreras`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.estado) {
+      return data.datos || data;
+    } else {
+      throw new Error(data.mensaje || 'Error al obtener carreras por facultad');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener carreras por facultad:', error);
     throw error;
   }
 };

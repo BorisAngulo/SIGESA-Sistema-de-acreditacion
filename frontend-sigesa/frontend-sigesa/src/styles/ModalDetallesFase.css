@@ -328,6 +328,35 @@
   background: #dbeafe;
 }
 
+.documento-action-btn.delete {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.documento-action-btn.delete:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+.documento-action-btn.delete:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.spinner-small {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #f3f4f6;
+  border-top: 2px solid #9ca3af;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 .no-documentos {
   display: flex;
   flex-direction: column;

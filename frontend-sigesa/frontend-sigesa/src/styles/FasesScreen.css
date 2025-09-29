@@ -912,3 +912,249 @@
     width: 100%;
   }
 }
+
+/* Botón de Editar Fechas */
+.btn-editar-fechas {
+  background: linear-gradient(145deg, #4a90e2, #357abd);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-editar-fechas:hover {
+  background: linear-gradient(145deg, #357abd, #2968a3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-editar-fechas:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-editar-fechas:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Modal de Edición de Fechas */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  padding: 20px;
+}
+
+.edit-dates-modal {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.edit-dates-modal .modal-header {
+  background: linear-gradient(145deg, #4a90e2, #357abd);
+  color: white;
+  padding: 20px 25px;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.edit-dates-modal .modal-header h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.edit-dates-modal .modal-header .close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.edit-dates-modal .modal-header .close-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Formulario de Edición de Fechas */
+.edit-dates-form .modal-body {
+  padding: 25px;
+}
+
+.edit-dates-form .form-group {
+  margin-bottom: 20px;
+}
+
+.edit-dates-form .form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.edit-dates-form .form-group input[type="date"] {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+  background: white;
+}
+
+.edit-dates-form .form-group input[type="date"]:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.edit-dates-form .form-group input[type="date"]:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.edit-dates-form .error-message {
+  background: #fee;
+  color: #c33;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  border: 1px solid #fcc;
+}
+
+.edit-dates-form .current-dates-info {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+  border-left: 4px solid #4a90e2;
+}
+
+.edit-dates-form .current-dates-info h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 16px;
+}
+
+.edit-dates-form .current-dates-info p {
+  margin: 5px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.edit-dates-form .current-dates-info strong {
+  color: #333;
+}
+
+.edit-dates-form .modal-footer {
+  padding: 20px 25px;
+  border-top: 1px solid #e1e5e9;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.edit-dates-form .btn-cancel {
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.edit-dates-form .btn-cancel:hover {
+  background: #5a6268;
+}
+
+.edit-dates-form .btn-cancel:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+}
+
+.edit-dates-form .btn-save {
+  background: linear-gradient(145deg, #28a745, #20924c);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.edit-dates-form .btn-save:hover {
+  background: linear-gradient(145deg, #20924c, #1e7e34);
+  transform: translateY(-1px);
+}
+
+.edit-dates-form .btn-save:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive para editar fechas */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 10px;
+  }
+  
+  .edit-dates-modal {
+    max-width: 100%;
+  }
+  
+  .edit-dates-form .modal-body {
+    padding: 20px;
+  }
+  
+  .edit-dates-form .modal-footer {
+    padding: 15px 20px;
+    flex-direction: column-reverse;
+  }
+  
+  .edit-dates-form .btn-cancel,
+  .edit-dates-form .btn-save {
+    width: 100%;
+  }
+  
+  .btn-editar-fechas {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}

@@ -53,6 +53,15 @@ Route::get('carreras/{carrera}/modalidades/{modalidad}/verificar', [CarreraModal
 Route::get('carrera-modalidad/detalles-completos', [CarreraModalidadController::class, 'getDetallesCompletos'])
     ->name('carrera-modalidad.detalles-completos');
 
+// Obtener proceso completo: carrera-modalidad con todas sus fases y subfases (ENDPOINT CONSOLIDADO)
+Route::get('acreditacion-carreras/{acreditacion_carrera}/proceso-completo', [CarreraModalidadController::class, 'getProcesoCompleto'])
+    ->name('acreditacion-carreras.proceso-completo');
+
+// Obtener o crear proceso activo con validaciones consolidadas (ENDPOINT CONSOLIDADO)
+Route::post('acreditacion-carreras/obtener-crear-proceso-activo', [CarreraModalidadController::class, 'obtenerOCrearProcesoActivo'])
+    ->middleware('auth:sanctum')
+    ->name('acreditacion-carreras.obtener-crear-proceso-activo');
+
 // Descargar certificado de acreditación (público)
 Route::get('acreditacion-carreras/{acreditacion_carrera}/certificado/descargar', [CarreraModalidadController::class, 'descargarCertificado'])
     ->name('acreditacion-carreras.certificado.descargar');
@@ -89,6 +98,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Actualizar acreditación (POST con _method=PUT para FormData)
     Route::post('acreditacion-carreras/{acreditacion_carrera}', [CarreraModalidadController::class, 'update'])
         ->name('acreditacion-carreras.update-post');
+    
+    // Actualizar fechas del proceso de acreditación
+    Route::put('acreditacion-carreras/{acreditacion_carrera}/fechas-proceso', [CarreraModalidadController::class, 'updateFechasProceso'])
+        ->name('acreditacion-carreras.update-fechas-proceso');
+    Route::post('acreditacion-carreras/{acreditacion_carrera}/fechas-proceso', [CarreraModalidadController::class, 'updateFechasProceso'])
+        ->name('acreditacion-carreras.update-fechas-proceso-post');
     
     // Eliminar acreditación
     Route::delete('acreditacion-carreras/{acreditacion_carrera}', [CarreraModalidadController::class, 'destroy'])

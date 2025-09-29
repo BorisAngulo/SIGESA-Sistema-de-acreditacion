@@ -62,6 +62,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('fases/{fase}/documentos', [DocumentoController::class, 'asociarDocumentoAFase'])
         ->middleware(['permission:fases.documentos'])
         ->name('fases.documentos.asociar');
+        
+    Route::delete('fases/{fase}/documentos/{documento}', [DocumentoController::class, 'desasociarDocumentoDeFase'])
+        ->middleware(['permission:fases.documentos'])
+        ->name('fases.documentos.desasociar');
 
     // === DOCUMENTOS POR SUBFASE ===
     Route::get('subfases/{subfase}/documentos', [DocumentoController::class, 'getDocumentosBySubfase'])
@@ -71,4 +75,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('subfases/{subfase}/documentos', [DocumentoController::class, 'asociarDocumentoASubfase'])
         ->middleware(['permission:subfases.documentos'])
         ->name('subfases.documentos.asociar');
+        
+    Route::delete('subfases/{subfase}/documentos/{documento}', [DocumentoController::class, 'desasociarDocumentoDeSubfase'])
+        ->middleware(['permission:subfases.documentos'])
+        ->name('subfases.documentos.desasociar');
 });
