@@ -302,17 +302,30 @@ const ReportesScreen = () => {
     
     console.log('Generando análisis de facultades con:', data.facultades.length, 'facultades');
     
-    return data.facultades.map((facultad, index) => {
-      const carrerasDeFacultad = data.carreras.filter(c => c.facultad_id === facultad.id);
-      const totalCarreras = Math.max(Math.floor(carrerasDeFacultad.length * baseMultiplier), 1);
+    // Filtrar facultades si hay un filtro seleccionado
+    let facultadesAMostrar = data.facultades;
+    if (filters.selectedFacultad !== 'todas') {
+      facultadesAMostrar = data.facultades.filter(f => f.id.toString() === filters.selectedFacultad);
+    }
+    
+    return facultadesAMostrar.map((facultad, index) => {
+      // Filtrar carreras de esta facultad
+      let carrerasDeFacultad = data.carreras.filter(c => c.facultad_id === facultad.id);
       
-      console.log(`Facultad ${facultad.nombre_facultad}: ${carrerasDeFacultad.length} carreras reales`);
+      // Si hay filtro de carrera, solo mostrar esa carrera
+      if (filters.selectedCarrera !== 'todas') {
+        carrerasDeFacultad = carrerasDeFacultad.filter(c => c.id.toString() === filters.selectedCarrera);
+      }
+      
+      const totalCarreras = Math.max(Math.floor(carrerasDeFacultad.length * baseMultiplier), carrerasDeFacultad.length > 0 ? 1 : 0);
+      
+      console.log(`Facultad ${facultad.nombre_facultad}: ${carrerasDeFacultad.length} carreras filtradas`);
       
       const factorRendimiento = [0.7, 0.8, 0.5, 0.75, 0.4, 0.6, 0.65][index % 7]; 
       const ceubSimulado = Math.floor(totalCarreras * factorRendimiento * 0.6);
       const arcusurSimulado = Math.floor(totalCarreras * factorRendimiento * 0.3);
       const carrerasAcreditadas = ceubSimulado + arcusurSimulado;
-      const porcentajeAcreditacion = Math.round((carrerasAcreditadas / totalCarreras) * 100);
+      const porcentajeAcreditacion = totalCarreras > 0 ? Math.round((carrerasAcreditadas / totalCarreras) * 100) : 0;
       
       return {
         facultad_id: facultad.id,
