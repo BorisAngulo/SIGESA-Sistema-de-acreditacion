@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, User, ExternalLink, FileText, Download, Edit3, Save, MessageSquare } from 'lucide-react';
-import { downloadDocumento, updateObservacionFase, updateObservacionSubfase, updateUrlFaseRespuesta, updateUrlSubfaseRespuesta } from '../services/api';
+import { X, Calendar, User, ExternalLink, FileText, Download, Edit3, Save, MessageSquare, Trash2 } from 'lucide-react';
+import { downloadDocumento, updateObservacionFase, updateObservacionSubfase, updateUrlFaseRespuesta, updateUrlSubfaseRespuesta, eliminarDocumentoDeFase, eliminarDocumentoDeSubfase } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/ModalDetallesFase.css';
 
@@ -12,6 +12,7 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
   const [editandoUrlRespuesta, setEditandoUrlRespuesta] = useState(false);
   const [urlRespuestaTemp, setUrlRespuestaTemp] = useState('');
   const [guardandoUrlRespuesta, setGuardandoUrlRespuesta] = useState(false);
+  const [eliminandoDocumentos, setEliminandoDocumentos] = useState(new Set());
   
   const { user } = useAuth();
 
@@ -178,6 +179,50 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
     } catch (error) {
       console.error('❌ Error al descargar documento:', error);
       alert('Error al descargar el documento: ' + error.message);
+    }
+  };
+
+  const handleEliminarDocumento = async (documento) => {
+    const nombreDocumento = documento.nombre_documento || documento.nombre || 'Sin nombre';
+    const tipoElemento = tipo === 'fase' ? 'fase' : 'subfase';
+    
+    // Confirmar eliminación
+    const confirmacion = window.confirm(
+      `¿Está seguro de que desea eliminar la asociación del documento "${nombreDocumento}" con esta ${tipoElemento}?\n\n` +
+      `Esta acción eliminará únicamente la asociación, el documento permanecerá en el sistema.`
+    );
+    
+    if (!confirmacion) return;
+
+    try {
+      // Agregar documento al set de eliminando
+      setEliminandoDocumentos(prev => new Set([...prev, documento.id]));
+      
+      const data = tipo === 'fase' ? fase : subfase;
+      
+      if (tipo === 'fase') {
+        await eliminarDocumentoDeFase(data.id, documento.id);
+      } else {
+        await eliminarDocumentoDeSubfase(data.id, documento.id);
+      }
+      
+      alert(`La asociación del documento "${nombreDocumento}" ha sido eliminada exitosamente.`);
+      
+      // Notificar al componente padre para recargar datos si es necesario
+      if (onClose) {
+        onClose(true); // Pasar true para indicar que hubo cambios
+      }
+      
+    } catch (error) {
+      console.error('❌ Error al eliminar asociación de documento:', error);
+      alert('Error al eliminar la asociación del documento: ' + (error.message || 'Error desconocido'));
+    } finally {
+      // Remover documento del set de eliminando
+      setEliminandoDocumentos(prev => {
+        const newSet = new Set([...prev]);
+        newSet.delete(documento.id);
+        return newSet;
+      });
     }
   };
 
@@ -494,6 +539,19 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
                         title="Descargar documento"
                       >
                         <Download size={16} />
+                      </button>
+                      
+                      <button
+                        className="documento-action-btn delete"
+                        onClick={() => handleEliminarDocumento(documento)}
+                        title={`Eliminar asociación con ${tipo}`}
+                        disabled={eliminandoDocumentos.has(documento.id)}
+                      >
+                        {eliminandoDocumentos.has(documento.id) ? (
+                          <div className="spinner-small" />
+                        ) : (
+                          <Trash2 size={16} />
+                        )}
                       </button>
                     </div>
                   </div>

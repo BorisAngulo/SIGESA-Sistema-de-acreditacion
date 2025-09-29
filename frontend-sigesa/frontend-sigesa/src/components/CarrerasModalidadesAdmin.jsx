@@ -15,12 +15,14 @@ import {
   AlertCircle,
   Download,
   Upload,
-  Award
+  Award,
+  Trash2
 } from 'lucide-react';
 import { 
   getCarrerasModalidadesDetallesCompletos, 
   subirCertificadoCarreraModalidad, 
-  descargarCertificadoCarreraModalidad 
+  descargarCertificadoCarreraModalidad,
+  eliminarCarreraModalidad
 } from '../services/api';
 import ModalSubirCertificado from './ModalSubirCertificado';
 import './CarrerasModalidadesAdmin.css';
@@ -39,6 +41,12 @@ const CarrerasModalidadesAdmin = () => {
   const [showCertificadoModal, setShowCertificadoModal] = useState(false);
   const [selectedCarreraModalidad, setSelectedCarreraModalidad] = useState(null);
   const [downloadingCertificados, setDownloadingCertificados] = useState(new Set());
+
+  // Estados para modal de eliminación
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [carreraModalidadToDelete, setCarreraModalidadToDelete] = useState(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     cargarCarrerasModalidades();
@@ -140,6 +148,44 @@ const CarrerasModalidadesAdmin = () => {
   const handleCloseCertificadoModal = () => {
     setShowCertificadoModal(false);
     setSelectedCarreraModalidad(null);
+  };
+
+  // Funciones para manejo de eliminación
+  const handleShowDeleteModal = (carreraModalidad) => {
+    setCarreraModalidadToDelete(carreraModalidad);
+    setDeleteConfirmText('');
+    setShowDeleteModal(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setCarreraModalidadToDelete(null);
+    setDeleteConfirmText('');
+  };
+
+  const handleDeleteCarreraModalidad = async () => {
+    if (deleteConfirmText !== 'CONFIRMAR' || !carreraModalidadToDelete) {
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      await eliminarCarreraModalidad(carreraModalidadToDelete.id);
+      
+      alert(`Carrera-modalidad eliminada exitosamente: ${carreraModalidadToDelete.carrera?.nombre} - ${carreraModalidadToDelete.modalidad?.nombre}`);
+      
+      // Recargar los datos
+      await cargarCarrerasModalidades();
+      
+      // Cerrar modal
+      handleCloseDeleteModal();
+      
+    } catch (error) {
+      console.error('Error al eliminar carrera-modalidad:', error);
+      alert('Error al eliminar la carrera-modalidad: ' + (error.message || 'Error desconocido'));
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const getEstadoBadge = (estado, carreraModalidad = null) => {
@@ -410,6 +456,19 @@ const CarrerasModalidadesAdmin = () => {
                       Subir Certificado
                     </button>
                   )}
+                  
+                  {/* Botón de eliminar */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleShowDeleteModal(cm);
+                    }}
+                    className="btn-eliminar-carrera-modalidad"
+                    title="Eliminar carrera-modalidad"
+                  >
+                    <Trash2 size={16} />
+                    Eliminar
+                  </button>
                 </div>
                 
                 <div className="expand-icon" onClick={(e) => {
@@ -549,6 +608,66 @@ const CarrerasModalidadesAdmin = () => {
         onUpload={handleUploadCertificado}
         carreraModalidad={selectedCarreraModalidad}
       />
+
+      {/* Modal para confirmar eliminación */}
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={handleCloseDeleteModal}>
+          <div className="modal-content delete-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Confirmar Eliminación</h2>
+              <button className="close-button" onClick={handleCloseDeleteModal}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="warning-icon">
+                <AlertCircle size={48} color="#ef4444" />
+              </div>
+              
+              <p className="warning-text">
+                <strong>¿Estás seguro de que deseas eliminar esta carrera-modalidad?</strong>
+              </p>
+              
+              {carreraModalidadToDelete && (
+                <div className="delete-details">
+                  <p><strong>Carrera:</strong> {carreraModalidadToDelete.carrera?.nombre}</p>
+                  <p><strong>Modalidad:</strong> {carreraModalidadToDelete.modalidad?.nombre}</p>
+                  <p><strong>Facultad:</strong> {carreraModalidadToDelete.facultad?.nombre_facultad}</p>
+                </div>
+              )}
+              
+              <p className="confirmation-instruction">
+                Esta acción no se puede deshacer. Para confirmar, escriba <strong>"CONFIRMAR"</strong> en mayúsculas:
+              </p>
+              
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Escriba CONFIRMAR"
+                className="confirm-input"
+                disabled={isDeleting}
+              />
+            </div>
+            
+            <div className="modal-footer">
+              <button 
+                className="btn-cancel" 
+                onClick={handleCloseDeleteModal}
+                disabled={isDeleting}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="btn-delete" 
+                onClick={handleDeleteCarreraModalidad}
+                disabled={deleteConfirmText !== 'CONFIRMAR' || isDeleting}
+              >
+                {isDeleting ? 'Eliminando...' : 'Eliminar Permanentemente'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

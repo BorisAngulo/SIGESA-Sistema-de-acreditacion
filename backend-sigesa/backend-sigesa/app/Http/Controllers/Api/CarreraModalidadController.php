@@ -180,6 +180,154 @@ class CarreraModalidadController extends BaseApiController
         }
     }
 
+    /**
+     * @OA\Put(
+     *     path="/api/acreditacion-carreras/{id}/fechas-proceso",
+     *     summary="Actualizar fechas del proceso de acreditación",
+     *     description="Actualiza las fechas de inicio y fin del proceso de acreditación de una carrera-modalidad específica",
+     *     tags={"CarreraModalidad"},
+     *     security={{ "sanctum": {} }},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID de la carrera-modalidad",
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Datos de las fechas del proceso",
+     *         @OA\JsonContent(
+     *             required={"fecha_ini_proceso", "fecha_fin_proceso"},
+     *             @OA\Property(property="fecha_ini_proceso", type="string", format="date", example="2024-01-15", description="Fecha de inicio del proceso"),
+     *             @OA\Property(property="fecha_fin_proceso", type="string", format="date", example="2024-12-31", description="Fecha de fin del proceso")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Fechas del proceso actualizadas exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=true),
+     *             @OA\Property(property="estado", type="integer", example=200),
+     *             @OA\Property(property="mensaje", type="string", example="Fechas del proceso actualizadas exitosamente"),
+     *             @OA\Property(property="datos", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Carrera-modalidad no encontrada"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Error de validación"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Sin permisos"
+     *     )
+     * )
+     */
+    public function updateFechasProceso(Request $request, $id)
+    {
+        try {
+            // Verificar permisos
+            if (!auth()->user()->can('carrera_modalidades.update')) {
+                \Log::warning('❌ Usuario sin permisos para actualizar fechas del proceso', [
+                    'user_id' => auth()->id(),
+                    'carrera_modalidad_id' => $id
+                ]);
+                return response()->json([
+                    'exito' => false,
+                    'estado' => 403,
+                    'mensaje' => 'No tienes permisos para actualizar las fechas del proceso',
+                    'error' => 'PERMISSION_DENIED'
+                ], 403);
+            }
+
+            \Log::info('🔄 INICIANDO ACTUALIZACIÓN DE FECHAS DEL PROCESO');
+            \Log::info('👤 Usuario autenticado:', [
+                'id' => auth()->id(),
+                'email' => auth()->user()->email
+            ]);
+            \Log::info('📋 ID recibido:', ['id' => $id]);
+            \Log::info('📦 Datos recibidos:', $request->all());
+            
+            $carreraModalidad = CarreraModalidad::find($id);
+
+            if (!$carreraModalidad) {
+                throw ApiException::notFound('carrera-modalidad', $id);
+            }
+
+            \Log::info('✅ Carrera-modalidad encontrada:', [
+                'id' => $carreraModalidad->id,
+                'fecha_ini_proceso_antes' => $carreraModalidad->fecha_ini_proceso,
+                'fecha_fin_proceso_antes' => $carreraModalidad->fecha_fin_proceso,
+                'carrera' => $carreraModalidad->carrera->nombre ?? 'N/A',
+                'modalidad' => $carreraModalidad->modalidad->nombre ?? 'N/A'
+            ]);
+
+            // Validar los datos recibidos
+            $validated = $request->validate([
+                'fecha_ini_proceso' => 'required|date',
+                'fecha_fin_proceso' => 'required|date|after:fecha_ini_proceso'
+            ], [
+                'fecha_ini_proceso.required' => 'La fecha de inicio del proceso es obligatoria',
+                'fecha_ini_proceso.date' => 'La fecha de inicio debe tener un formato válido',
+                'fecha_fin_proceso.required' => 'La fecha de fin del proceso es obligatoria',
+                'fecha_fin_proceso.date' => 'La fecha de fin debe tener un formato válido',
+                'fecha_fin_proceso.after' => 'La fecha de fin debe ser posterior a la fecha de inicio'
+            ]);
+
+            \Log::info('✅ Validación de fechas exitosa:', $validated);
+
+            // Agregar usuario que realizó la actualización
+            $validated['id_usuario_updated_carrera_modalidad'] = auth()->id();
+            $validated['updated_at'] = now();
+
+            // Actualizar solo las fechas del proceso
+            $carreraModalidad->update($validated);
+
+            \Log::info('✅ Fechas del proceso actualizadas exitosamente:', [
+                'id' => $carreraModalidad->id,
+                'fecha_ini_proceso_despues' => $carreraModalidad->fecha_ini_proceso,
+                'fecha_fin_proceso_despues' => $carreraModalidad->fecha_fin_proceso,
+                'updated_by' => auth()->id(),
+                'updated_at' => $carreraModalidad->updated_at
+            ]);
+
+            return $this->successResponse(
+                [
+                    'id' => $carreraModalidad->id,
+                    'fecha_ini_proceso' => $carreraModalidad->fecha_ini_proceso,
+                    'fecha_fin_proceso' => $carreraModalidad->fecha_fin_proceso,
+                    'carrera' => $carreraModalidad->carrera,
+                    'modalidad' => $carreraModalidad->modalidad,
+                    'updated_at' => $carreraModalidad->updated_at,
+                    'updated_by' => $carreraModalidad->id_usuario_updated_carrera_modalidad
+                ],
+                'Fechas del proceso de acreditación actualizadas exitosamente'
+            );
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('❌ Error de validación en fechas del proceso:', $e->errors());
+            return $this->validationErrorResponse($e);
+        } catch (ApiException $e) {
+            \Log::error('❌ Error de API en fechas del proceso:', [
+                'message' => $e->getMessage(),
+                'code' => $e->getCode()
+            ]);
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            \Log::error('❌ Error general en actualización de fechas del proceso:', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return $this->handleGeneralException($e);
+        }
+    }
+
     public function show($id)
     {
         try {
@@ -366,6 +514,305 @@ class CarreraModalidadController extends BaseApiController
                 'Carreras-modalidades con detalles completos obtenidas exitosamente'
             );
 
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * Endpoint consolidado para obtener o crear proceso activo con validaciones inteligentes
+     * Incluye validación para procesos futuros y lógica completa de gestión de procesos
+     */
+    public function obtenerOCrearProcesoActivo(Request $request)
+    {
+        try {
+            \Log::info('🚀 INICIANDO ENDPOINT CONSOLIDADO - obtenerOCrearProcesoActivo');
+            \Log::info('👤 Usuario autenticado:', [
+                'id' => auth()->id(),
+                'email' => auth()->user()->email
+            ]);
+            \Log::info('📦 Datos recibidos:', $request->all());
+
+            // Validar datos de entrada
+            $validated = $request->validate([
+                'carrera_id' => 'required|exists:carreras,id',
+                'modalidad_id' => 'required|exists:modalidades,id',
+                'fecha_ini_proceso' => 'nullable|date',
+                'fecha_fin_proceso' => 'nullable|date|after:fecha_ini_proceso'
+            ], [
+                'carrera_id.required' => 'El ID de la carrera es obligatorio',
+                'carrera_id.exists' => 'La carrera especificada no existe',
+                'modalidad_id.required' => 'El ID de la modalidad es obligatorio', 
+                'modalidad_id.exists' => 'La modalidad especificada no existe',
+                'fecha_ini_proceso.date' => 'La fecha de inicio debe tener un formato válido',
+                'fecha_fin_proceso.date' => 'La fecha de fin debe tener un formato válido',
+                'fecha_fin_proceso.after' => 'La fecha de fin debe ser posterior a la fecha de inicio'
+            ]);
+
+            $carreraId = $validated['carrera_id'];
+            $modalidadId = $validated['modalidad_id'];
+            $fechaInicioProceso = $validated['fecha_ini_proceso'] ?? now()->format('Y-m-d');
+            $fechaFinProceso = $validated['fecha_fin_proceso'] ?? now()->addMonths(6)->format('Y-m-d');
+            $fechaActual = now();
+
+            \Log::info('📋 Parámetros procesados:', [
+                'carrera_id' => $carreraId,
+                'modalidad_id' => $modalidadId,
+                'fecha_ini_proceso' => $fechaInicioProceso,
+                'fecha_fin_proceso' => $fechaFinProceso,
+                'fecha_actual' => $fechaActual->format('Y-m-d')
+            ]);
+
+            // 1. BUSCAR PROCESO ACTIVO (dentro de rango de fechas actual O proceso futuro)
+            \Log::info('🔍 PASO 1: Buscando proceso activo...');
+            $procesoActivo = CarreraModalidad::where('carrera_id', $carreraId)
+                ->where('modalidad_id', $modalidadId)
+                ->where(function ($query) use ($fechaActual, $fechaInicioProceso, $fechaFinProceso) {
+                    // Proceso activo actual (fecha actual entre inicio y fin)
+                    $query->where(function ($subQuery) use ($fechaActual) {
+                        $subQuery->where('fecha_ini_proceso', '<=', $fechaActual->format('Y-m-d'))
+                                 ->where('fecha_fin_proceso', '>=', $fechaActual->format('Y-m-d'));
+                    })
+                    // NUEVA FUNCIONALIDAD: Proceso futuro (fechas posteriores a la fecha actual)
+                    ->orWhere(function ($subQuery) use ($fechaActual) {
+                        $subQuery->where('fecha_ini_proceso', '>', $fechaActual->format('Y-m-d'));
+                    })
+                    // También considerar procesos que coincidan exactamente con las fechas solicitadas
+                    ->orWhere(function ($subQuery) use ($fechaInicioProceso, $fechaFinProceso) {
+                        $subQuery->where('fecha_ini_proceso', $fechaInicioProceso)
+                                 ->where('fecha_fin_proceso', $fechaFinProceso);
+                    });
+                })
+                ->with(['carrera', 'modalidad'])
+                ->first();
+
+            if ($procesoActivo) {
+                $tipoEncontrado = '';
+                if ($procesoActivo->fecha_ini_proceso <= $fechaActual->format('Y-m-d') && 
+                    $procesoActivo->fecha_fin_proceso >= $fechaActual->format('Y-m-d')) {
+                    $tipoEncontrado = 'ACTIVO_ACTUAL';
+                } elseif ($procesoActivo->fecha_ini_proceso > $fechaActual->format('Y-m-d')) {
+                    $tipoEncontrado = 'PROCESO_FUTURO';
+                } else {
+                    $tipoEncontrado = 'FECHAS_COINCIDENTES';
+                }
+
+                \Log::info('✅ PROCESO ENCONTRADO - Tipo: ' . $tipoEncontrado, [
+                    'id' => $procesoActivo->id,
+                    'fecha_ini_proceso' => $procesoActivo->fecha_ini_proceso,
+                    'fecha_fin_proceso' => $procesoActivo->fecha_fin_proceso,
+                    'estado_modalidad' => $procesoActivo->estado_modalidad,
+                    'carrera' => $procesoActivo->carrera->nombre_carrera,
+                    'modalidad' => $procesoActivo->modalidad->nombre_modalidad
+                ]);
+
+                return $this->successResponse([
+                    'carrera_modalidad' => $procesoActivo,
+                    'accion' => 'encontrado',
+                    'tipo' => strtolower($tipoEncontrado),
+                    'mensaje' => $this->getMensajePorTipo($tipoEncontrado)
+                ], 'Proceso encontrado exitosamente');
+            }
+
+            // 2. BUSCAR CUALQUIER PROCESO EXISTENTE (para validar conflictos)
+            \Log::info('🔍 PASO 2: Buscando proceso existente...');
+            $procesoExistente = CarreraModalidad::where('carrera_id', $carreraId)
+                ->where('modalidad_id', $modalidadId)
+                ->with(['carrera', 'modalidad'])
+                ->first();
+
+            if ($procesoExistente) {
+                \Log::info('⚠️ PROCESO EXISTENTE ENCONTRADO:', [
+                    'id' => $procesoExistente->id,
+                    'fecha_ini_proceso' => $procesoExistente->fecha_ini_proceso,
+                    'fecha_fin_proceso' => $procesoExistente->fecha_fin_proceso,
+                    'estado_modalidad' => $procesoExistente->estado_modalidad
+                ]);
+
+                // Verificar si las nuevas fechas NO se superponen con las existentes
+                $fechaInicioExistente = \Carbon\Carbon::parse($procesoExistente->fecha_ini_proceso);
+                $fechaFinExistente = \Carbon\Carbon::parse($procesoExistente->fecha_fin_proceso);
+                $nuevaFechaInicio = \Carbon\Carbon::parse($fechaInicioProceso);
+                $nuevaFechaFin = \Carbon\Carbon::parse($fechaFinProceso);
+
+                $hayConflicto = !($nuevaFechaFin->lt($fechaInicioExistente) || $nuevaFechaInicio->gt($fechaFinExistente));
+
+                if ($hayConflicto) {
+                    \Log::warning('❌ CONFLICTO DE FECHAS DETECTADO');
+                    return $this->errorResponse(
+                        'Ya existe un proceso para esta carrera-modalidad con fechas que se superponen. ' .
+                        'Proceso existente: ' . $procesoExistente->fecha_ini_proceso . ' al ' . $procesoExistente->fecha_fin_proceso,
+                        409
+                    );
+                } else {
+                    \Log::info('✅ No hay conflicto - creando nuevo proceso para diferente rango de fechas');
+                }
+            }
+
+            // 3. CREAR NUEVO PROCESO
+            \Log::info('🏗️ PASO 3: Creando nuevo proceso...');
+            $nuevoProceso = CarreraModalidad::create([
+                'carrera_id' => $carreraId,
+                'modalidad_id' => $modalidadId,
+                'fecha_ini_proceso' => $fechaInicioProceso,
+                'fecha_fin_proceso' => $fechaFinProceso,
+                'estado_modalidad' => false,
+                'estado_acreditacion' => false,
+                'id_usuario_created_carrera_modalidad' => auth()->id(),
+                'id_usuario_updated_carrera_modalidad' => auth()->id()
+            ]);
+
+            $nuevoProceso->load(['carrera', 'modalidad']);
+
+            $tipoCreacion = $procesoExistente ? 'creado_adicional' : 'creado_primero';
+            $mensajeCreacion = $procesoExistente ? 
+                'Nuevo proceso creado para rango de fechas diferente' : 
+                'Primer proceso creado para esta carrera-modalidad';
+
+            \Log::info('🎉 PROCESO CREADO EXITOSAMENTE:', [
+                'id' => $nuevoProceso->id,
+                'tipo' => $tipoCreacion,
+                'carrera' => $nuevoProceso->carrera->nombre_carrera,
+                'modalidad' => $nuevoProceso->modalidad->nombre_modalidad,
+                'fecha_ini_proceso' => $nuevoProceso->fecha_ini_proceso,
+                'fecha_fin_proceso' => $nuevoProceso->fecha_fin_proceso
+            ]);
+
+            return $this->successResponse([
+                'carrera_modalidad' => $nuevoProceso,
+                'accion' => $tipoCreacion,
+                'tipo' => $tipoCreacion,
+                'mensaje' => $mensajeCreacion
+            ], $mensajeCreacion);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse($e);
+        } catch (\Exception $e) {
+            \Log::error('💥 Error en obtenerOCrearProcesoActivo:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * Método auxiliar para obtener mensajes descriptivos por tipo de proceso
+     */
+    private function getMensajePorTipo($tipo)
+    {
+        $mensajes = [
+            'ACTIVO_ACTUAL' => 'Proceso activo encontrado (dentro del rango de fechas actual)',
+            'PROCESO_FUTURO' => 'Proceso futuro encontrado (fechas posteriores a la fecha actual)',
+            'FECHAS_COINCIDENTES' => 'Proceso encontrado con fechas coincidentes'
+        ];
+
+        return $mensajes[$tipo] ?? 'Proceso encontrado';
+    }
+
+    /**
+     * Obtener proceso completo: carrera-modalidad con todas sus fases y subfases en una sola respuesta
+     * Endpoint consolidado que optimiza el rendimiento reduciendo múltiples llamadas HTTP
+     */
+    public function getProcesoCompleto($id)
+    {
+        try {
+            \Log::info('🚀 OBTENIENDO PROCESO COMPLETO', ['carrera_modalidad_id' => $id]);
+            
+            $carreraModalidad = CarreraModalidad::with([
+                'carrera', 
+                'modalidad',
+                'fases' => function($query) {
+                    $query->orderBy('created_at', 'asc');
+                },
+                'fases.subfases' => function($query) {
+                    $query->orderBy('created_at', 'asc');
+                }
+            ])->find($id);
+
+            if (!$carreraModalidad) {
+                throw ApiException::notFound('carrera-modalidad', $id);
+            }
+
+            // Estructurar la respuesta consolidada
+            $procesoCompleto = [
+                'carrera_modalidad' => [
+                    'id' => $carreraModalidad->id,
+                    'carrera_id' => $carreraModalidad->carrera_id,
+                    'modalidad_id' => $carreraModalidad->modalidad_id,
+                    'estado_modalidad' => $carreraModalidad->estado_modalidad,
+                    'estado_acreditacion' => $carreraModalidad->estado_acreditacion,
+                    'fecha_ini_proceso' => $carreraModalidad->fecha_ini_proceso,
+                    'fecha_fin_proceso' => $carreraModalidad->fecha_fin_proceso,
+                    'fecha_ini_aprobacion' => $carreraModalidad->fecha_ini_aprobacion,
+                    'fecha_fin_aprobacion' => $carreraModalidad->fecha_fin_aprobacion,
+                    'puntaje_acreditacion' => $carreraModalidad->puntaje_acreditacion,
+                    'created_at' => $carreraModalidad->created_at,
+                    'updated_at' => $carreraModalidad->updated_at,
+                    'carrera' => [
+                        'id' => $carreraModalidad->carrera->id,
+                        'nombre_carrera' => $carreraModalidad->carrera->nombre_carrera,
+                        'facultad_id' => $carreraModalidad->carrera->facultad_id,
+                    ],
+                    'modalidad' => [
+                        'id' => $carreraModalidad->modalidad->id,
+                        'nombre_modalidad' => $carreraModalidad->modalidad->nombre_modalidad,
+                    ]
+                ],
+                'fases' => $carreraModalidad->fases->map(function($fase) {
+                    return [
+                        'id' => $fase->id,
+                        'nombre_fase' => $fase->nombre_fase,
+                        'descripcion_fase' => $fase->descripcion_fase,
+                        'fecha_inicio_fase' => $fase->fecha_inicio_fase,
+                        'fecha_fin_fase' => $fase->fecha_fin_fase,
+                        'url_fase' => $fase->url_fase,
+                        'url_fase_respuesta' => $fase->url_fase_respuesta,
+                        'observacion_fase' => $fase->observacion_fase,
+                        'estado_fase' => $fase->estado_fase,
+                        'carrera_modalidad_id' => $fase->carrera_modalidad_id,
+                        'id_usuario_updated_user' => $fase->id_usuario_updated_user,
+                        'created_at' => $fase->created_at,
+                        'updated_at' => $fase->updated_at,
+                        'subfases' => $fase->subfases->map(function($subfase) {
+                            return [
+                                'id' => $subfase->id,
+                                'nombre_subfase' => $subfase->nombre_subfase,
+                                'descripcion_subfase' => $subfase->descripcion_subfase,
+                                'fecha_inicio_subfase' => $subfase->fecha_inicio_subfase,
+                                'fecha_fin_subfase' => $subfase->fecha_fin_subfase,
+                                'url_subfase' => $subfase->url_subfase,
+                                'url_subfase_respuesta' => $subfase->url_subfase_respuesta,
+                                'observacion_subfase' => $subfase->observacion_subfase,
+                                'estado_subfase' => $subfase->estado_subfase,
+                                'fase_id' => $subfase->fase_id,
+                                'tiene_foda' => $subfase->tiene_foda,
+                                'tiene_plame' => $subfase->tiene_plame,
+                                'created_at' => $subfase->created_at,
+                                'updated_at' => $subfase->updated_at,
+                            ];
+                        })
+                    ];
+                }),
+                'total_fases' => $carreraModalidad->fases->count(),
+                'total_subfases' => $carreraModalidad->fases->sum(function($fase) {
+                    return $fase->subfases->count();
+                })
+            ];
+
+            \Log::info('✅ Proceso completo obtenido exitosamente', [
+                'carrera_modalidad_id' => $id,
+                'total_fases' => $procesoCompleto['total_fases'],
+                'total_subfases' => $procesoCompleto['total_subfases']
+            ]);
+
+            return $this->successResponse(
+                $procesoCompleto, 
+                'Proceso completo obtenido exitosamente'
+            );
+
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
         } catch (\Exception $e) {
             return $this->handleGeneralException($e);
         }

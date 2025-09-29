@@ -1044,4 +1044,184 @@ class DocumentoController extends BaseApiController
             return $this->handleGeneralException($e);
         }
     }
+
+    /**
+     * Desasociar un documento de una fase
+     * @OA\Delete(
+     *     path="/api/fases/{faseId}/documentos/{documentoId}",
+     *     tags={"Documento"},
+     *     @OA\Parameter(
+     *         name="faseId",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID de la fase"
+     *     ),
+     *     @OA\Parameter(
+     *         name="documentoId",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID del documento"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Asociación eliminada exitosamente"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Fase, documento o asociación no encontrada"
+     *     )
+     * )
+     */
+    public function desasociarDocumentoDeFase($faseId, $documentoId)
+    {
+        DB::beginTransaction();
+        
+        try {
+            Log::info('Desasociando documento de fase', [
+                'fase_id' => $faseId,
+                'documento_id' => $documentoId
+            ]);
+
+            // Verificar que la fase existe
+            $faseExists = DB::table('fases')->where('id', $faseId)->exists();
+            if (!$faseExists) {
+                throw new ApiException('La fase especificada no existe', 404);
+            }
+
+            // Verificar que el documento existe
+            $documentoExists = Documento::where('id', $documentoId)->exists();
+            if (!$documentoExists) {
+                throw new ApiException('El documento especificado no existe', 404);
+            }
+
+            // Buscar y eliminar la asociación
+            $asociacion = Fase_documento::where('fase_id', $faseId)
+                ->where('documento_id', $documentoId)
+                ->first();
+
+            if (!$asociacion) {
+                throw new ApiException('La asociación entre el documento y la fase no existe', 404);
+            }
+
+            $asociacion->delete();
+
+            DB::commit();
+
+            Log::info('Asociación documento-fase eliminada exitosamente', [
+                'fase_id' => $faseId,
+                'documento_id' => $documentoId
+            ]);
+
+            return $this->successResponse([
+                'fase_id' => $faseId,
+                'documento_id' => $documentoId,
+                'mensaje' => 'Asociación eliminada exitosamente'
+            ], 'Asociación eliminada exitosamente', 200);
+
+        } catch (ApiException $e) {
+            DB::rollBack();
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al desasociar documento de fase', [
+                'fase_id' => $faseId,
+                'documento_id' => $documentoId,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * Desasociar un documento de una subfase
+     * @OA\Delete(
+     *     path="/api/subfases/{subfaseId}/documentos/{documentoId}",
+     *     tags={"Documento"},
+     *     @OA\Parameter(
+     *         name="subfaseId",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID de la subfase"
+     *     ),
+     *     @OA\Parameter(
+     *         name="documentoId",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID del documento"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Asociación eliminada exitosamente"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Subfase, documento o asociación no encontrada"
+     *     )
+     * )
+     */
+    public function desasociarDocumentoDeSubfase($subfaseId, $documentoId)
+    {
+        DB::beginTransaction();
+        
+        try {
+            Log::info('Desasociando documento de subfase', [
+                'subfase_id' => $subfaseId,
+                'documento_id' => $documentoId
+            ]);
+
+            // Verificar que la subfase existe
+            $subfaseExists = DB::table('sub_fases')->where('id', $subfaseId)->exists();
+            if (!$subfaseExists) {
+                throw new ApiException('La subfase especificada no existe', 404);
+            }
+
+            // Verificar que el documento existe
+            $documentoExists = Documento::where('id', $documentoId)->exists();
+            if (!$documentoExists) {
+                throw new ApiException('El documento especificado no existe', 404);
+            }
+
+            // Buscar y eliminar la asociación
+            $asociacion = Subfase_documento::where('subfase_id', $subfaseId)
+                ->where('documento_id', $documentoId)
+                ->first();
+
+            if (!$asociacion) {
+                throw new ApiException('La asociación entre el documento y la subfase no existe', 404);
+            }
+
+            $asociacion->delete();
+
+            DB::commit();
+
+            Log::info('Asociación documento-subfase eliminada exitosamente', [
+                'subfase_id' => $subfaseId,
+                'documento_id' => $documentoId
+            ]);
+
+            return $this->successResponse([
+                'subfase_id' => $subfaseId,
+                'documento_id' => $documentoId,
+                'mensaje' => 'Asociación eliminada exitosamente'
+            ], 'Asociación eliminada exitosamente', 200);
+
+        } catch (ApiException $e) {
+            DB::rollBack();
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al desasociar documento de subfase', [
+                'subfase_id' => $subfaseId,
+                'documento_id' => $documentoId,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return $this->handleGeneralException($e);
+        }
+    }
 }
