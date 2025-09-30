@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/ReportesScreen.css';
 import {
-  LineChart,
   Line,
   XAxis,
   YAxis,
@@ -9,20 +8,11 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  BarChart,
   Bar,
   PieChart,
   Pie,
   Cell,
-  AreaChart,
-  Area,
   ComposedChart,
-  Treemap,
-  Radar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis
 } from 'recharts';
 
 import { 

@@ -49,6 +49,14 @@ Route::get('modalidades/{modalidad}/carreras', [CarreraModalidadController::clas
 Route::get('carreras/{carrera}/modalidades/{modalidad}/verificar', [CarreraModalidadController::class, 'verificarAsociacion'])
     ->name('carreras.modalidades.verificar');
 
+// Obtener historial completo de acreditaciones de una carrera con estado actual
+Route::get('carreras/{carrera}/historial-acreditaciones', [CarreraModalidadController::class, 'getHistorialAcreditaciones'])
+    ->name('carreras.historial-acreditaciones');
+
+// Obtener historial de acreditaciones filtrado por modalidad específica
+Route::get('carreras/{carrera}/historial-acreditaciones/{modalidad}', [CarreraModalidadController::class, 'getHistorialAcreditacionesPorModalidad'])
+    ->name('carreras.historial-acreditaciones.modalidad');
+
 // Obtener todas las carreras-modalidades con detalles completos (facultad, carrera, fases, subfases)
 Route::get('carrera-modalidad/detalles-completos', [CarreraModalidadController::class, 'getDetallesCompletos'])
     ->name('carrera-modalidad.detalles-completos');

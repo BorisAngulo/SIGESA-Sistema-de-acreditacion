@@ -68,7 +68,7 @@
   justify-content: space-between;
   margin: 15px auto; /* Reducido de 30px a 15px */
   padding: 12px 20px; /* Reducido de 25px 30px a 12px 20px */
-  background: #041B2C;
+  background: #072543;
   border-radius: 8px; /* Reducido de 12px a 8px */
   box-shadow: 0 2px 8px rgba(4, 27, 44, 0.15); /* Reducida la sombra */
   max-width: 900px; 
@@ -154,19 +154,6 @@
   z-index: 1000;
 }
 
-.faculty-logo {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  border: 2px solid white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  object-fit: cover;
-  flex-shrink: 0;
-  margin-right: 20px;
-  background-color: white;
-  padding: 5px;
-}
-
 .faculty-info {
   flex: 1;
 }
@@ -176,6 +163,27 @@
   color: white;
   font-size: 1.3em;
   font-weight: 600;
+}
+
+.faculty-title-clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 8px 12px;
+  border-radius: 6px;
+  display: inline-block;
+  border: 2px solid transparent;
+}
+
+.faculty-title-clickable:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.faculty-title-clickable:active {
+  transform: translateY(0);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .faculty-info ul {

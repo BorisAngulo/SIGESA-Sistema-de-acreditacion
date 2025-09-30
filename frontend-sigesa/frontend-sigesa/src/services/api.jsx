@@ -1235,6 +1235,33 @@ export const showCarrera = async (id) => {
   }
 };
 
+// Obtener historial de acreditaciones de una carrera por modalidad específica
+export const getHistorialAcreditacionesPorModalidad = async (carreraId, modalidadId) => {
+  try {
+    console.log(`🎯 Obteniendo historial de acreditaciones - Carrera: ${carreraId}, Modalidad: ${modalidadId}`);
+    
+    const res = await fetch(`${API_URL}/carreras/${carreraId}/historial-acreditaciones/${modalidadId}`, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error HTTP ${res.status}: ${res.statusText}`);
+    }
+    
+    const response = await res.json();
+    
+    if (response.exito && response.datos) {
+      console.log(`✅ Historial obtenido exitosamente:`, response.datos);
+      return response.datos;
+    } else {
+      throw new Error(response?.error || 'Error al obtener historial de acreditaciones');
+    }
+  } catch (err) {
+    console.error(`❌ Error en getHistorialAcreditacionesPorModalidad(${carreraId}, ${modalidadId}):`, err);
+    throw err;
+  }
+};
+
 
 export const getFases = async () => {
   try {

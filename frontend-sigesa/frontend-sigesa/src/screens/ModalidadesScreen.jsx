@@ -21,18 +21,11 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
     const loadData = async () => {
       try {
         
-        console.log('Iniciando carga de datos...');
-        
         const [facultadesData, carrerasData, modalidadesData] = await Promise.all([
           getFacultades(),
           getCarreras(),
           getModalidades()
         ]);
-        
-        console.log('Datos recibidos:');
-        console.log('Facultades:', facultadesData);
-        console.log('Carreras:', carrerasData);
-        console.log('Modalidades:', modalidadesData);
         
         if (!Array.isArray(facultadesData)) {
           console.error('Facultades no es un array:', facultadesData);
@@ -76,21 +69,14 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
   }, [modalidad]);
 
   useEffect(() => {
-    console.log('Actualizando carreras filtradas...');
-    console.log('Facultad seleccionada:', selectedFacultad);
-    console.log('Total carreras:', carreras.length);
     
     if (selectedFacultad && carreras.length > 0) {
       let filtered = carreras.filter(carrera => {
         const facultadId = parseInt(selectedFacultad);
         const carreraFacultadId = parseInt(carrera.facultad_id || carrera.id_facultad);
         
-        console.log(`Comparando: ${carreraFacultadId} === ${facultadId}`, carreraFacultadId === facultadId);
-        
         return carreraFacultadId === facultadId;
       });
-      
-      console.log('Carreras filtradas:', filtered);
       
       setFilteredCarreras(filtered);
       setSelectedCarrera(''); 

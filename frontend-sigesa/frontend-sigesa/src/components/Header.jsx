@@ -244,7 +244,7 @@ const Header = () => {
   };
 
   return (
-    <header className={`header-container ${useImageBackground ? 'header-with-image' : 'header-original'}`}>
+    <header className={`header-container ${useImageBackground ? 'header-with-image subtle-waves' : 'header-original'}`}>
       <div className="header-top">
         <img src={departamento} alt="Logo general" className="header-logo" />
         {/* Botón para alternar entre fondos - solo visible para desarrollo */}

@@ -282,6 +282,24 @@ body {
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
+.status-badge.in-progress {
+  background: linear-gradient(45deg, var(--warning-orange), #FBBF24);
+  color: var(--white);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.status-badge.reaccreditation {
+  background: linear-gradient(45deg, var(--accent-blue), #60A5FA);
+  color: var(--white);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.status-badge.inactive {
+  background: linear-gradient(45deg, var(--neutral-600), var(--neutral-500));
+  color: var(--white);
+  box-shadow: 0 4px 12px rgba(71, 85, 105, 0.3);
+}
+
 .info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -408,6 +426,18 @@ body {
   color: var(--neutral-600);
   font-size: 0.875rem;
   margin: 0;
+}
+
+.timeline-score {
+  display: inline-block;
+  background: linear-gradient(45deg, var(--accent-blue), #60A5FA);
+  color: var(--white);
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .link-section {

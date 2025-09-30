@@ -8,37 +8,39 @@
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Añadida sombra para distinguir mejor */
-}
-
-/* Estilos del header con imagen de fondo */
-.header-container.header-with-image {
-  background-image: url('../assets/navbar-background.avif');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  color: white;
-  text-align: center;
-  padding: 0.5rem 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: relative;
+  z-index: 1000;
 }
 
-/* Overlay semitransparente para mejorar legibilidad del texto */
-.header-container.header-with-image::before {
+/* Añadimos una versión alternativa más sutil */
+.header-container.header-with-image.subtle-waves {
+  background: linear-gradient(91deg, #072543 0%, #7c3aed 80%, #dc2626 100%);
+  position: relative;
+  overflow: visible; /* Asegurar que los dropdowns no se corten */
+}
+
+.header-container.header-with-image.subtle-waves::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(7, 37, 67, 0.7); /* Overlay azul semitransparente */
+  background: 
+    linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%),
+    linear-gradient(-45deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%);
+  background-size: 60px 60px;
+  animation: subtle-shine 6s ease-in-out infinite;
   z-index: 1;
+  overflow: hidden; /* Contener solo los efectos de brillo */
 }
 
-/* Asegurar que el contenido esté por encima del overlay */
+@keyframes subtle-shine {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+/* Asegurar que el contenido esté por encima de las ondas */
 .header-container.header-with-image > * {
   position: relative;
   z-index: 2;
@@ -63,7 +65,7 @@
 
 /* Mantener compatibilidad con estilos existentes para cuando no se use clase específica */
 .header-container {
-  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #2563eb 100%); 
+  background: linear-gradient(135deg, #072543 0%, #1e40af 70%, #2563eb 100%); 
   color: white;
   text-align: center;
   padding: 0.5rem 1rem;
@@ -71,7 +73,9 @@
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3); 
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 1000;
 }
 
 .header-left {
@@ -172,7 +176,7 @@
   padding: 12px;
   min-width: 200px;
   margin-top: 8px;
-  z-index: 1000;
+  z-index: 9999;
   animation: slideDown 0.3s ease-out; 
   border: 1px solid rgba(30, 58, 138, 0.1);
 }
@@ -308,7 +312,7 @@
   border-radius: 12px; 
   box-shadow: 0 12px 40px rgba(30, 58, 138, 0.2); 
   min-width: 180px;
-  z-index: 1000;
+  z-index: 9999;
   overflow: hidden;
   margin-top: 8px;
 }
