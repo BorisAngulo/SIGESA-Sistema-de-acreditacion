@@ -31,15 +31,6 @@ const ModalOpciones = ({
 
   const renderFacultadOptions = () => (
     <>
-      <button 
-        className="dropdown-item view"
-        type="button"
-        onClick={() => handleOptionClick(() => onVerCarreras(facultadId))}
-      >
-        <Eye size={16} />
-        <span>Ver Carreras ({numeroCarreras})</span>
-      </button>
-      
       {canManageCarreras() && (
         <button 
           className="dropdown-item add"
@@ -91,15 +82,6 @@ const ModalOpciones = ({
 
   const renderCarreraOptions = () => (
     <>
-      <button 
-        className="dropdown-item view"
-        type="button"
-        onClick={() => handleOptionClick(() => onVerInformacion(carreraId))}
-      >
-        <Eye size={16} />
-        <span>Ver Información</span>
-      </button>
-      
       {canManageCarreras() && (
         <button 
           className="dropdown-item add"

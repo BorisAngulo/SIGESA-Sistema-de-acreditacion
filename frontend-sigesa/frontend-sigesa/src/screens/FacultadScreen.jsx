@@ -194,7 +194,13 @@ export default function FacultadScreen() {
               style={{ background: cardColors[index % cardColors.length] }}
             >
               <div className="faculty-info">
-                <h3>{f.nombre_facultad}</h3>
+                <h3 
+                  className="faculty-title-clickable"
+                  onClick={() => handleVerCarreras(f.id)}
+                  title="Haz clic para ver las carreras de esta facultad"
+                >
+                  {f.nombre_facultad}
+                </h3>
                 <ul>
                   <li>
                     <strong>Carreras:</strong> {f.numero_carreras}

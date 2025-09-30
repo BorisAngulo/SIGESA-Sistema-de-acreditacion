@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\CarreraModalidad;
+use App\Models\Carrera;
 use App\Exceptions\ApiException;
 /**
  * @OA\Tag(
@@ -868,5 +869,440 @@ class CarreraModalidadController extends BaseApiController
         } catch (\Exception $e) {
             return $this->handleGeneralException($e);
         }
+    }
+
+    /**
+     * Obtener historial completo de acreditaciones de una carrera con estado actual
+     * 
+     * @OA\Get(
+     *     path="/api/carreras/{carrera}/historial-acreditaciones",
+     *     tags={"CarreraModalidad"},
+     *     summary="Obtener historial de acreditaciones de una carrera",
+     *     description="Obtiene todos los datos de una carrera y su historial de acreditaciones con estado actual calculado",
+     *     @OA\Parameter(
+     *         name="carrera",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID de la carrera"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Historial de acreditaciones obtenido exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=true),
+     *             @OA\Property(property="estado", type="integer", example=200),
+     *             @OA\Property(
+     *                 property="datos",
+     *                 type="object",
+     *                 @OA\Property(property="carrera_id", type="integer", example=1),
+     *                 @OA\Property(property="nombre_carrera", type="string", example="Ingeniería de Sistemas"),
+     *                 @OA\Property(property="codigo_carrera", type="string", example="INGSIS"),
+     *                 @OA\Property(property="estado_actual", type="string", example="Acreditada"),
+     *                 @OA\Property(
+     *                     property="historial_acreditaciones",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="modalidad_nombre", type="string", example="ARCOSUR"),
+     *                         @OA\Property(property="fecha_ini_proceso", type="string", example="2022-01-15"),
+     *                         @OA\Property(property="fecha_fin_proceso", type="string", example="2022-12-15"),
+     *                         @OA\Property(property="fecha_ini_aprobacion", type="string", example="2023-01-01"),
+     *                         @OA\Property(property="fecha_fin_aprobacion", type="string", example="2029-01-01"),
+     *                         @OA\Property(property="estado_acreditacion", type="boolean", example=true),
+     *                         @OA\Property(property="puntaje_acreditacion", type="integer", example=85)
+     *                     )
+     *                 )
+     *             ),
+     *             @OA\Property(property="error", type="string", nullable=true, example=null)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Carrera no encontrada"
+     *     )
+     * )
+     */
+    public function getHistorialAcreditaciones($carrera_id)
+    {
+        try {
+            \Log::info('🎯 Obteniendo historial de acreditaciones para carrera: ' . $carrera_id);
+            
+            // Verificar que la carrera existe
+            $carrera = Carrera::find($carrera_id);
+            if (!$carrera) {
+                throw new \Exception('Carrera no encontrada');
+            }
+
+            // Obtener todas las carreras-modalidades de esta carrera
+            $carrerasModalidades = CarreraModalidad::where('carrera_id', $carrera_id)
+                ->with(['modalidad', 'carrera.facultad'])
+                ->orderBy('fecha_ini_proceso', 'desc')
+                ->get();
+
+            // Calcular estado actual
+            $estadoActual = $this->calcularEstadoActual($carrerasModalidades);
+
+            // Formatear historial
+            $historial = $carrerasModalidades->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'modalidad_id' => $item->modalidad_id,
+                    'modalidad_nombre' => $item->modalidad->nombre_modalidad ?? 'N/A',
+                    'estado_modalidad' => $item->estado_modalidad,
+                    'estado_acreditacion' => $item->estado_acreditacion,
+                    'fecha_ini_proceso' => $item->fecha_ini_proceso,
+                    'fecha_fin_proceso' => $item->fecha_fin_proceso,
+                    'fecha_ini_aprobacion' => $item->fecha_ini_aprobacion,
+                    'fecha_fin_aprobacion' => $item->fecha_fin_aprobacion,
+                    'puntaje_acreditacion' => $item->puntaje_acreditacion,
+                    'certificado' => $item->certificado ? true : false,
+                    'created_at' => $item->created_at,
+                    'updated_at' => $item->updated_at
+                ];
+            });
+
+            $respuesta = [
+                'carrera_id' => $carrera->id,
+                'nombre_carrera' => $carrera->nombre_carrera,
+                'codigo_carrera' => $carrera->codigo_carrera,
+                'facultad' => [
+                    'id' => $carrera->facultad->id ?? null,
+                    'nombre' => $carrera->facultad->nombre_facultad ?? 'N/A'
+                ],
+                'estado_actual' => $estadoActual,
+                'historial_acreditaciones' => $historial,
+                'total_acreditaciones' => $historial->count()
+            ];
+
+            return $this->successResponse(
+                $respuesta,
+                'Historial de acreditaciones obtenido exitosamente'
+            );
+
+        } catch (\Exception $e) {
+            \Log::error('❌ Error al obtener historial de acreditaciones: ' . $e->getMessage());
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * Obtener historial de acreditaciones de una carrera filtrado por modalidad específica
+     * 
+     * @OA\Get(
+     *     path="/api/carreras/{carrera}/historial-acreditaciones/{modalidad}",
+     *     tags={"CarreraModalidad"},
+     *     summary="Obtener historial de acreditaciones filtrado por modalidad",
+     *     description="Obtiene el historial de acreditaciones de una carrera para una modalidad específica",
+     *     @OA\Parameter(
+     *         name="carrera",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID de la carrera"
+     *     ),
+     *     @OA\Parameter(
+     *         name="modalidad",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID de la modalidad (1=ARCOSUR, 2=CEUB)"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Historial de acreditaciones por modalidad obtenido exitosamente"
+     *     )
+     * )
+     */
+    public function getHistorialAcreditacionesPorModalidad($carrera_id, $modalidad_id)
+    {
+        try {
+            \Log::info('🎯 Obteniendo historial por modalidad - Carrera: ' . $carrera_id . ' Modalidad: ' . $modalidad_id);
+            
+            // Verificar que la carrera existe
+            $carrera = Carrera::find($carrera_id);
+            if (!$carrera) {
+                throw new \Exception('Carrera no encontrada');
+            }
+
+            // Obtener todas las carreras-modalidades de esta carrera para la modalidad específica
+            $carrerasModalidades = CarreraModalidad::where('carrera_id', $carrera_id)
+                ->where('modalidad_id', $modalidad_id)
+                ->with(['modalidad', 'carrera.facultad'])
+                ->orderBy('fecha_ini_proceso', 'desc')
+                ->get();
+
+            \Log::info('📋 DATOS CRUDOS encontrados:', [
+                'total_registros' => $carrerasModalidades->count(),
+                'datos_completos' => $carrerasModalidades->toArray()
+            ]);
+
+            // VERIFICAR DATOS ESPECÍFICOS
+            if ($carrerasModalidades->isNotEmpty()) {
+                $primer_registro = $carrerasModalidades->first();
+                \Log::info('🔍 ANALISIS DEL PRIMER REGISTRO:', [
+                    'id' => $primer_registro->id,
+                    'modalidad_real' => $primer_registro->modalidad_id,
+                    'modalidad_nombre' => $primer_registro->modalidad->nombre_modalidad ?? 'N/A',
+                    'fecha_ini_aprobacion_raw' => $primer_registro->fecha_ini_aprobacion,
+                    'fecha_fin_aprobacion_raw' => $primer_registro->fecha_fin_aprobacion,
+                    'fecha_ini_proceso_raw' => $primer_registro->fecha_ini_proceso,
+                    'fecha_fin_proceso_raw' => $primer_registro->fecha_fin_proceso,
+                    'estado_modalidad_raw' => $primer_registro->estado_modalidad,
+                    'estado_acreditacion_raw' => $primer_registro->estado_acreditacion,
+                    'fecha_actual_sistema' => now()->format('Y-m-d H:i:s')
+                ]);
+            }
+
+            // Calcular estado actual solo para esta modalidad
+            $estadoActual = $this->calcularEstadoActualPorModalidad($carrerasModalidades);
+
+            // Formatear historial
+            $historial = $carrerasModalidades->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'modalidad_id' => $item->modalidad_id,
+                    'modalidad_nombre' => $item->modalidad->nombre_modalidad ?? 'N/A',
+                    'estado_modalidad' => $item->estado_modalidad,
+                    'estado_acreditacion' => $item->estado_acreditacion,
+                    'fecha_ini_proceso' => $item->fecha_ini_proceso,
+                    'fecha_fin_proceso' => $item->fecha_fin_proceso,
+                    'fecha_ini_aprobacion' => $item->fecha_ini_aprobacion,
+                    'fecha_fin_aprobacion' => $item->fecha_fin_aprobacion,
+                    'puntaje_acreditacion' => $item->puntaje_acreditacion,
+                    'certificado' => $item->certificado ? true : false,
+                    'created_at' => $item->created_at,
+                    'updated_at' => $item->updated_at
+                ];
+            });
+
+            $respuesta = [
+                'carrera_id' => $carrera->id,
+                'modalidad_id' => (int)$modalidad_id,
+                'nombre_carrera' => $carrera->nombre_carrera,
+                'codigo_carrera' => $carrera->codigo_carrera,
+                'facultad' => [
+                    'id' => $carrera->facultad->id ?? null,
+                    'nombre' => $carrera->facultad->nombre_facultad ?? 'N/A'
+                ],
+                'modalidad' => [
+                    'id' => (int)$modalidad_id,
+                    'nombre' => $carrerasModalidades->first()->modalidad->nombre_modalidad ?? 'N/A'
+                ],
+                'estado_actual' => $estadoActual,
+                'historial_acreditaciones' => $historial,
+                'total_acreditaciones' => $historial->count(),
+                'tiene_acreditaciones' => $historial->count() > 0
+            ];
+
+            return $this->successResponse(
+                $respuesta,
+                'Historial de acreditaciones por modalidad obtenido exitosamente'
+            );
+
+        } catch (\Exception $e) {
+            \Log::error('❌ Error al obtener historial por modalidad: ' . $e->getMessage());
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * Calcular el estado actual de una carrera para una modalidad específica
+     */
+    private function calcularEstadoActualPorModalidad($carrerasModalidades)
+    {
+        if ($carrerasModalidades->isEmpty()) {
+            return 'Sin Acreditación';
+        }
+
+        $fechaActual = now();
+        \Log::info('🔍 Calculando estado actual - Fecha actual: ' . $fechaActual->format('Y-m-d'));
+        
+        // Variables para rastrear diferentes estados
+        $tieneAcreditacionVigente = false;
+        $tieneProcesoActivo = false;
+        $tieneAcreditacionVencida = false;
+        $tieneAcreditacionEnPeriodoGracia = false;
+        $ultimaAcreditacion = null;
+        
+        foreach ($carrerasModalidades as $item) {
+            \Log::info("📊 Evaluando acreditación ID {$item->id}:", [
+                'fecha_ini_aprobacion' => $item->fecha_ini_aprobacion,
+                'fecha_fin_aprobacion' => $item->fecha_fin_aprobacion,
+                'fecha_ini_proceso' => $item->fecha_ini_proceso,
+                'fecha_fin_proceso' => $item->fecha_fin_proceso,
+                'estado_modalidad' => $item->estado_modalidad,
+                'estado_acreditacion' => $item->estado_acreditacion
+            ]);
+
+            // Verificar si tiene acreditación vigente (dentro del período de aprobación)
+            if ($item->fecha_ini_aprobacion && $item->fecha_fin_aprobacion) {
+                $fechaIniAprobacion = \Carbon\Carbon::parse($item->fecha_ini_aprobacion);
+                $fechaFinAprobacion = \Carbon\Carbon::parse($item->fecha_fin_aprobacion);
+                
+                if ($fechaActual->between($fechaIniAprobacion, $fechaFinAprobacion)) {
+                    $tieneAcreditacionVigente = true;
+                    $ultimaAcreditacion = $item;
+                    \Log::info("✅ Acreditación vigente encontrada hasta: " . $fechaFinAprobacion->format('Y-m-d'));
+                } elseif ($fechaActual->greaterThan($fechaFinAprobacion)) {
+                    $tieneAcreditacionVencida = true;
+                    
+                    // Verificar si está en período de gracia para reacreditación (2 años después del vencimiento)
+                    $fechaLimiteGracia = $fechaFinAprobacion->copy()->addYears(2);
+                    if ($fechaActual->lessThanOrEqualTo($fechaLimiteGracia)) {
+                        $tieneAcreditacionEnPeriodoGracia = true;
+                        \Log::info("🔄 Acreditación en período de gracia para reacreditación hasta: " . $fechaLimiteGracia->format('Y-m-d'));
+                    }
+                    
+                    \Log::info("⏰ Acreditación vencida desde: " . $fechaFinAprobacion->format('Y-m-d'));
+                }
+            }
+            
+            // Verificar si está en proceso actual
+            if ($item->fecha_ini_proceso && $item->fecha_fin_proceso) {
+                $fechaIniProceso = \Carbon\Carbon::parse($item->fecha_ini_proceso);
+                $fechaFinProceso = \Carbon\Carbon::parse($item->fecha_fin_proceso);
+                
+                \Log::info("🔍 VERIFICANDO PROCESO - ID {$item->id}:", [
+                    'fecha_ini_proceso_original' => $item->fecha_ini_proceso,
+                    'fecha_fin_proceso_original' => $item->fecha_fin_proceso,
+                    'fecha_ini_proceso_parsed' => $fechaIniProceso->format('Y-m-d H:i:s'),
+                    'fecha_fin_proceso_parsed' => $fechaFinProceso->format('Y-m-d H:i:s'),
+                    'fecha_actual' => $fechaActual->format('Y-m-d H:i:s'),
+                    'esta_despues_inicio' => $fechaActual->greaterThanOrEqualTo($fechaIniProceso),
+                    'esta_antes_fin' => $fechaActual->lessThanOrEqualTo($fechaFinProceso),
+                    'between_result' => $fechaActual->between($fechaIniProceso, $fechaFinProceso)
+                ]);
+                
+                if ($fechaActual->between($fechaIniProceso, $fechaFinProceso)) {
+                    $tieneProcesoActivo = true;
+                    \Log::info("🔄 Proceso activo encontrado: " . $fechaIniProceso->format('Y-m-d') . " a " . $fechaFinProceso->format('Y-m-d'));
+                } else {
+                    \Log::info("❌ Proceso NO activo para ID {$item->id}");
+                }
+            }
+        }
+        
+        // Determinar estado final según prioridades
+        $estadoFinal = '';
+        
+        if ($tieneAcreditacionVigente && $tieneProcesoActivo) {
+            $estadoFinal = 'En proceso de Reacreditación';
+            \Log::info("🎯 Estado determinado: En proceso de Reacreditación (tiene acreditación vigente + proceso activo)");
+        } elseif ($tieneAcreditacionVigente) {
+            $estadoFinal = 'Acreditada';
+            \Log::info("🎯 Estado determinado: Acreditada (tiene acreditación vigente sin proceso activo)");
+        } elseif ($tieneProcesoActivo && $tieneAcreditacionVencida) {
+            $estadoFinal = 'En proceso de Reacreditación';
+            \Log::info("🎯 Estado determinado: En proceso de Reacreditación (proceso activo + acreditación vencida)");
+        } elseif ($tieneAcreditacionEnPeriodoGracia) {
+            $estadoFinal = 'En proceso de Reacreditación';
+            \Log::info("🎯 Estado determinado: En proceso de Reacreditación (acreditación vencida en período de gracia)");
+        } elseif ($tieneProcesoActivo) {
+            $estadoFinal = 'En proceso';
+            \Log::info("🎯 Estado determinado: En proceso (solo proceso activo)");
+        } else {
+            $estadoFinal = 'Sin Acreditación';
+            \Log::info("🎯 Estado determinado: Sin Acreditación (no cumple otras condiciones)");
+        }
+        
+        return $estadoFinal;
+    }
+
+    /**
+     * Calcular el estado actual de una carrera (todas las modalidades)
+     */
+    private function calcularEstadoActual($carrerasModalidades)
+    {
+        if ($carrerasModalidades->isEmpty()) {
+            return 'Sin Acreditación';
+        }
+
+        $fechaActual = now();
+        \Log::info('🔍 Calculando estado general - Fecha actual: ' . $fechaActual->format('Y-m-d'));
+        
+        // Variables para rastrear diferentes estados por modalidad
+        $tieneAcreditacionVigente = false;
+        $tieneProcesoActivo = false;
+        $tieneAcreditacionVencida = false;
+        $tieneAcreditacionEnPeriodoGracia = false;
+        $modalidadesEstados = [];
+        
+        foreach ($carrerasModalidades as $item) {
+            $modalidadNombre = $item->modalidad->nombre_modalidad ?? 'N/A';
+            
+            \Log::info("📊 Evaluando acreditación ID {$item->id} - Modalidad: {$modalidadNombre}:", [
+                'fecha_ini_aprobacion' => $item->fecha_ini_aprobacion,
+                'fecha_fin_aprobacion' => $item->fecha_fin_aprobacion,
+                'fecha_ini_proceso' => $item->fecha_ini_proceso,
+                'fecha_fin_proceso' => $item->fecha_fin_proceso,
+                'estado_modalidad' => $item->estado_modalidad,
+                'estado_acreditacion' => $item->estado_acreditacion
+            ]);
+
+            // Verificar si tiene acreditación vigente (dentro del período de aprobación)
+            if ($item->fecha_ini_aprobacion && $item->fecha_fin_aprobacion) {
+                $fechaIniAprobacion = \Carbon\Carbon::parse($item->fecha_ini_aprobacion);
+                $fechaFinAprobacion = \Carbon\Carbon::parse($item->fecha_fin_aprobacion);
+                
+                if ($fechaActual->between($fechaIniAprobacion, $fechaFinAprobacion)) {
+                    $tieneAcreditacionVigente = true;
+                    $modalidadesEstados[$modalidadNombre] = 'acreditada';
+                    \Log::info("✅ Acreditación vigente en {$modalidadNombre} hasta: " . $fechaFinAprobacion->format('Y-m-d'));
+                } elseif ($fechaActual->greaterThan($fechaFinAprobacion)) {
+                    $tieneAcreditacionVencida = true;
+                    
+                    // Verificar si está en período de gracia para reacreditación (2 años después del vencimiento)
+                    $fechaLimiteGracia = $fechaFinAprobacion->copy()->addYears(2);
+                    if ($fechaActual->lessThanOrEqualTo($fechaLimiteGracia)) {
+                        $tieneAcreditacionEnPeriodoGracia = true;
+                        $modalidadesEstados[$modalidadNombre] = 'en_reacreditacion';
+                        \Log::info("🔄 Acreditación en período de gracia en {$modalidadNombre} hasta: " . $fechaLimiteGracia->format('Y-m-d'));
+                    }
+                    
+                    \Log::info("⏰ Acreditación vencida en {$modalidadNombre} desde: " . $fechaFinAprobacion->format('Y-m-d'));
+                }
+            }
+            
+            // Verificar si está en proceso actual
+            if ($item->fecha_ini_proceso && $item->fecha_fin_proceso) {
+                $fechaIniProceso = \Carbon\Carbon::parse($item->fecha_ini_proceso);
+                $fechaFinProceso = \Carbon\Carbon::parse($item->fecha_fin_proceso);
+                
+                if ($fechaActual->between($fechaIniProceso, $fechaFinProceso)) {
+                    $tieneProcesoActivo = true;
+                    if (!isset($modalidadesEstados[$modalidadNombre])) {
+                        $modalidadesEstados[$modalidadNombre] = 'en_proceso';
+                    }
+                    \Log::info("🔄 Proceso activo en {$modalidadNombre}: " . $fechaIniProceso->format('Y-m-d') . " a " . $fechaFinProceso->format('Y-m-d'));
+                }
+            }
+        }
+        
+        // Determinar estado final según prioridades (considerando todas las modalidades)
+        $estadoFinal = '';
+        
+        if ($tieneAcreditacionVigente && $tieneProcesoActivo) {
+            $estadoFinal = 'En proceso de Reacreditación';
+            \Log::info("🎯 Estado general determinado: En proceso de Reacreditación (tiene acreditación vigente + proceso activo)");
+        } elseif ($tieneAcreditacionVigente) {
+            $estadoFinal = 'Acreditada';
+            \Log::info("🎯 Estado general determinado: Acreditada (tiene acreditación vigente sin proceso activo)");
+        } elseif ($tieneProcesoActivo && $tieneAcreditacionVencida) {
+            $estadoFinal = 'En proceso de Reacreditación';
+            \Log::info("🎯 Estado general determinado: En proceso de Reacreditación (proceso activo + acreditación vencida)");
+        } elseif ($tieneAcreditacionEnPeriodoGracia) {
+            $estadoFinal = 'En proceso de Reacreditación';
+            \Log::info("🎯 Estado general determinado: En proceso de Reacreditación (acreditación vencida en período de gracia)");
+        } elseif ($tieneProcesoActivo) {
+            $estadoFinal = 'En proceso';
+            \Log::info("🎯 Estado general determinado: En proceso (solo proceso activo)");
+        } else {
+            $estadoFinal = 'Sin Acreditación';
+            \Log::info("🎯 Estado general determinado: Sin Acreditación (no cumple otras condiciones)");
+        }
+        
+        return $estadoFinal;
     }
 }

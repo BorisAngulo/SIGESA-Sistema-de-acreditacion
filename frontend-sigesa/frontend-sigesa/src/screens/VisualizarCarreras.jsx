@@ -267,7 +267,13 @@ export default function VisualizarCarreras() {
             >
               
               <div className="faculty-info">
-                <h3>{carrera.nombre_carrera}</h3>
+                <h3 
+                  className="faculty-title-clickable"
+                  onClick={() => handleVerInformacion(carrera.id)}
+                  title="Haz clic para ver la información de esta carrera"
+                >
+                  {carrera.nombre_carrera}
+                </h3>
                 <ul>
                   <li><strong>Código:</strong> {carrera.codigo_carrera}</li>
                   {carrera.pagina_carrera && (
