@@ -43,8 +43,28 @@ cd SIGESA-Sistema-de-acreditacion
 ```
 
 ### 2️⃣ **Ejecutar** *(1 comando)*
-```bash
-.\install.bat
+
+**🔥 MÉTODO MÁS FÁCIL - Doble clic:**
+- Encuentra el archivo `setup.bat` en el explorador
+- Haz **doble clic** sobre él
+- ¡Listo!
+
+**💻 Desde PowerShell:**
+```powershell
+.\setup.ps1
+```
+
+**⚫ Desde CMD (Símbolo del Sistema):**
+```cmd
+setup.bat
+```
+
+**🛠️ Manual (si los scripts fallan):**
+```cmd
+copy .env.example .env
+docker-compose -f docker-compose.dev.yml up -d
+docker exec sigesa_backend php artisan migrate --force
+docker exec sigesa_backend php artisan db:seed --force
 ```
 
 ### 3️⃣ **Esperar** *(25-40 minutos)*
