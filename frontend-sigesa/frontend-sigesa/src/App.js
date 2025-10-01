@@ -121,12 +121,12 @@ function App() {
               } />
               
              <Route path="/modalidades/arco-sur" element={
-                <ProtectedRoute allowedRoles={['Admin']}>
+                <ProtectedRoute allowedRoles={['Admin', 'Tecnico']}>
                   <ModalidadesScreen modalidad="arco-sur" />
                 </ProtectedRoute>
               } />
               <Route path="/modalidades/ceub" element={
-                <ProtectedRoute allowedRoles={['Admin']}>
+                <ProtectedRoute allowedRoles={['Admin', 'Tecnico']}>
                   <ModalidadesScreen modalidad="ceub" />
                 </ProtectedRoute>
               } />
