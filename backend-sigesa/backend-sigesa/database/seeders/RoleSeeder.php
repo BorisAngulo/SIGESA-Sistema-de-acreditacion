@@ -50,14 +50,9 @@ class RoleSeeder extends Seeder
             'documentos.asociaciones',
         ];
         foreach ($documentoPerms as $perm) {
-            Permission::firstOrCreate(['name' => $perm])->syncRoles([$adminRole, $tecnicoRole, $coordinadorRole]);
+            $permission = Permission::firstOrCreate(['name' => $perm]);
+            $permission->assignRole([$adminRole, $tecnicoRole, $coordinadorRole]);
         }
-
-        Permission::findByName('documentos.index')->givePermissionTo([$coordinadorRole]);
-        Permission::findByName('documentos.show')->givePermissionTo([$coordinadorRole]);
-        Permission::findByName('documentos.store')->givePermissionTo([$coordinadorRole]);
-        Permission::findByName('documentos.download')->givePermissionTo([$coordinadorRole]);
-        Permission::findByName('documentos.asociaciones')->givePermissionTo([$coordinadorRole]);
 
         // === PERMISOS DE FASES ===
         $fasePerms = [
@@ -70,13 +65,15 @@ class RoleSeeder extends Seeder
             'fases.estado',
         ];
         foreach ($fasePerms as $perm) {
-            Permission::firstOrCreate(['name' => $perm])->syncRoles([$adminRole, $tecnicoRole]);
+            $permission = Permission::firstOrCreate(['name' => $perm]);
+            $permission->assignRole([$adminRole, $tecnicoRole]);
         }
 
-        Permission::findByName('fases.index')->givePermissionTo([$coordinadorRole]);
-        Permission::findByName('fases.show')->givePermissionTo([$coordinadorRole]);
-        Permission::findByName('fases.update')->givePermissionTo([$coordinadorRole]);
-        Permission::findByName('fases.documentos')->givePermissionTo([$coordinadorRole]);
+        // Permisos específicos adicionales para Coordinador en fases
+        $faseCoordinadorPerms = ['fases.index', 'fases.show', 'fases.update', 'fases.documentos'];
+        foreach ($faseCoordinadorPerms as $perm) {
+            Permission::findByName($perm)->assignRole([$coordinadorRole]);
+        }
 
         // === PERMISOS DE SUBFASES ===
         $subfasePerms = [
@@ -86,18 +83,18 @@ class RoleSeeder extends Seeder
             'subfases.update',
             'subfases.destroy',
             'subfases.estado',
+            'subfases.documentos',
         ];
         foreach ($subfasePerms as $perm) {
-            Permission::firstOrCreate(['name' => $perm])->syncRoles([$adminRole, $tecnicoRole]);
+            $permission = Permission::firstOrCreate(['name' => $perm]);
+            $permission->assignRole([$adminRole, $tecnicoRole]);
         }
 
-        // Permisos específicos que también incluyen al Coordinador
-        Permission::firstOrCreate(['name' => 'subfases.documentos'])->syncRoles([$adminRole, $tecnicoRole, $coordinadorRole]);
-
-        // Asignar permisos específicos al Coordinador
-        Permission::findByName('subfases.index')->givePermissionTo([$coordinadorRole]);
-        Permission::findByName('subfases.show')->givePermissionTo([$coordinadorRole]);
-        Permission::findByName('subfases.update')->givePermissionTo([$coordinadorRole]);
+        // Permisos específicos adicionales para Coordinador en subfases
+        $subfaseCoordinadorPerms = ['subfases.index', 'subfases.show', 'subfases.update', 'subfases.documentos'];
+        foreach ($subfaseCoordinadorPerms as $perm) {
+            Permission::findByName($perm)->assignRole([$coordinadorRole]);
+        }
 
         // === PERMISOS DE USUARIOS ===
         $usuarioPerms = [
@@ -110,11 +107,15 @@ class RoleSeeder extends Seeder
             'usuarios.permissions',
         ];
         foreach ($usuarioPerms as $perm) {
-            Permission::firstOrCreate(['name' => $perm])->syncRoles([$adminRole]);
+            $permission = Permission::firstOrCreate(['name' => $perm]);
+            $permission->assignRole([$adminRole]);
         }
-        // Técnicos solo pueden ver usuarios
-        Permission::findByName('usuarios.index')->givePermissionTo([ $tecnicoRole]);
-        Permission::findByName('usuarios.show')->givePermissionTo([ $tecnicoRole]);
+        
+        // Técnicos solo pueden ver usuarios (sin modificar)
+        $usuarioTecnicoPerms = ['usuarios.index', 'usuarios.show'];
+        foreach ($usuarioTecnicoPerms as $perm) {
+            Permission::findByName($perm)->assignRole([$tecnicoRole]);
+        }
 
         // === PERMISOS DE CARRERAS ===
         $carreraPerms = [
@@ -126,11 +127,15 @@ class RoleSeeder extends Seeder
             'carreras.modalidades',
         ];
         foreach ($carreraPerms as $perm) {
-            Permission::firstOrCreate(['name' => $perm])->syncRoles([$adminRole, $tecnicoRole]);
+            $permission = Permission::firstOrCreate(['name' => $perm]);
+            $permission->assignRole([$adminRole, $tecnicoRole]);
         }
-        // Técnicos solo pueden ver carreras
-        Permission::findByName('carreras.index')->givePermissionTo([$coordinadorRole]);
-        Permission::findByName('carreras.show')->givePermissionTo([$coordinadorRole]);
+        
+        // Coordinador solo puede ver carreras (sin modificar)
+        $carreraCoordinadorPerms = ['carreras.index', 'carreras.show'];
+        foreach ($carreraCoordinadorPerms as $perm) {
+            Permission::findByName($perm)->assignRole([$coordinadorRole]);
+        }
 
         // === PERMISOS DE FACULTADES ===
         $facultadPerms = [
@@ -141,11 +146,15 @@ class RoleSeeder extends Seeder
             'facultades.destroy',
         ];
         foreach ($facultadPerms as $perm) {
-            Permission::firstOrCreate(['name' => $perm])->syncRoles([$adminRole, $tecnicoRole]);
+            $permission = Permission::firstOrCreate(['name' => $perm]);
+            $permission->assignRole([$adminRole, $tecnicoRole]);
         }
-        // Técnicos solo pueden ver facultades
-        Permission::findByName('facultades.index')->givePermissionTo([$coordinadorRole]);
-        Permission::findByName('facultades.show')->givePermissionTo([$coordinadorRole]);
+        
+        // Coordinador solo puede ver facultades (sin modificar)
+        $facultadCoordinadorPerms = ['facultades.index', 'facultades.show'];
+        foreach ($facultadCoordinadorPerms as $perm) {
+            Permission::findByName($perm)->assignRole([$coordinadorRole]);
+        }
 
         // === PERMISOS DE MODALIDADES ===
         $modalidadPerms = [
@@ -156,11 +165,15 @@ class RoleSeeder extends Seeder
             'modalidades.destroy',
         ];
         foreach ($modalidadPerms as $perm) {
-            Permission::firstOrCreate(['name' => $perm])->syncRoles([$adminRole, $tecnicoRole]);
+            $permission = Permission::firstOrCreate(['name' => $perm]);
+            $permission->assignRole([$adminRole, $tecnicoRole]);
         }
-        // Técnicos solo pueden ver modalidades
-        Permission::findByName('modalidades.index')->givePermissionTo([$coordinadorRole]);
-        Permission::findByName('modalidades.show')->givePermissionTo([$coordinadorRole]);
+        
+        // Coordinador solo puede ver modalidades (sin modificar)
+        $modalidadCoordinadorPerms = ['modalidades.index', 'modalidades.show'];
+        foreach ($modalidadCoordinadorPerms as $perm) {
+            Permission::findByName($perm)->assignRole([$coordinadorRole]);
+        }
 
         // === PERMISOS DE CARRERA-MODALIDAD ===
         $carreraModalidadPerms = [
@@ -171,7 +184,8 @@ class RoleSeeder extends Seeder
             'carrera_modalidades.destroy',
         ];
         foreach ($carreraModalidadPerms as $perm) {
-            Permission::firstOrCreate(['name' => $perm])->syncRoles([$adminRole, $tecnicoRole]);
+            $permission = Permission::firstOrCreate(['name' => $perm]);
+            $permission->assignRole([$adminRole, $tecnicoRole]);
         }
 
         // === PERMISOS DE ACTIVITY LOGS ===
@@ -181,7 +195,8 @@ class RoleSeeder extends Seeder
             'activity_logs.clear',
         ];
         foreach ($activityLogPerms as $perm) {
-            Permission::firstOrCreate(['name' => $perm])->syncRoles([$adminRole]);
+            $permission = Permission::firstOrCreate(['name' => $perm]);
+            $permission->assignRole([$adminRole]);
         }
 
         // === PERMISOS DE BACKUPS ===
@@ -193,7 +208,8 @@ class RoleSeeder extends Seeder
             'backups.delete',
         ];
         foreach ($backupPerms as $perm) {
-            Permission::firstOrCreate(['name' => $perm])->syncRoles([$adminRole]);
+            $permission = Permission::firstOrCreate(['name' => $perm]);
+            $permission->assignRole([$adminRole]);
         }
 
         // === PERMISOS DE PROCESOS ===
@@ -208,11 +224,15 @@ class RoleSeeder extends Seeder
             'procesos.estado',
         ];
         foreach ($procesoPerms as $perm) {
-            Permission::firstOrCreate(['name' => $perm])->syncRoles([$adminRole, $coordinadorRole]);
+            $permission = Permission::firstOrCreate(['name' => $perm]);
+            $permission->assignRole([$adminRole, $coordinadorRole]);
         }
+        
         // Técnicos solo pueden ver procesos
-        Permission::findByName('procesos.index')->syncRoles([$adminRole, $tecnicoRole, $coordinadorRole]);
-        Permission::findByName('procesos.show')->syncRoles([$adminRole, $tecnicoRole, $coordinadorRole]);
+        $procesoTecnicoPerms = ['procesos.index', 'procesos.show'];
+        foreach ($procesoTecnicoPerms as $perm) {
+            Permission::findByName($perm)->assignRole([$tecnicoRole]);
+        }
 
         // === PERMISOS DE UTILIDADES ===
         $utilidadPerms = [
@@ -222,7 +242,8 @@ class RoleSeeder extends Seeder
             'utilidades.logs',
         ];
         foreach ($utilidadPerms as $perm) {
-            Permission::firstOrCreate(['name' => $perm])->syncRoles([$adminRole]);
+            $permission = Permission::firstOrCreate(['name' => $perm]);
+            $permission->assignRole([$adminRole]);
         }
 
         // === PERMISOS ESPECIALES DE INSTITUCIONES ===
@@ -236,30 +257,24 @@ class RoleSeeder extends Seeder
             'instituciones.facultades',
         ];
         foreach ($institucionPerms as $perm) {
-            Permission::firstOrCreate(['name' => $perm])->syncRoles([$adminRole, $tecnicoRole]);
+            $permission = Permission::firstOrCreate(['name' => $perm]);
+            $permission->assignRole([$adminRole, $tecnicoRole]);
         }
-        // Técnicos solo pueden ver instituciones
-        Permission::findByName('instituciones.index')->syncRoles([$adminRole, $tecnicoRole, $coordinadorRole]);
-        Permission::findByName('instituciones.show')->syncRoles([$adminRole, $tecnicoRole, $coordinadorRole]);
+        
+        // Coordinador solo puede ver instituciones
+        $institucionCoordinadorPerms = ['instituciones.index', 'instituciones.show'];
+        foreach ($institucionCoordinadorPerms as $perm) {
+            Permission::findByName($perm)->assignRole([$coordinadorRole]);
+        }
 
         // === ASIGNAR PERMISOS ADICIONALES POR ROL ===
         
-        // El Admin tiene todos los permisos (ya asignados arriba)
+        // Admin ya tiene todos los permisos asignados arriba mediante assignRole()
         
-        // El Coordinador puede gestionar su institución
-        $coordinadorRole->givePermissionTo([
-            'fases.update',
-            'subfases.update',
-            'documentos.store',
-            'documentos.update',
-        ]);
+        // Coordinador: Permisos específicos para gestión de procesos de acreditación
+        // (Ya asignados arriba de manera limpia)
         
-        // El Técnico puede trabajar con documentos y procesos
-        $tecnicoRole->givePermissionTo([
-            'documentos.store',
-            'documentos.update',
-            'fases.update',
-            'subfases.update',
-        ]);
+        // Técnico: Permisos específicos para soporte técnico
+        // (Ya asignados arriba de manera limpia)
     }
 }
