@@ -1,0 +1,52 @@
+# Archivos y directorios a ignorar en el build de Docker
+node_modules
+npm-debug.log
+Dockerfile*
+docker-compose*
+.dockerignore
+.git
+.gitignore
+README.md
+.env
+.env.example
+.env.*.php
+.env.*.example
+.nyc_output
+.node_repl_history
+.npm
+.eslintcache
+.stylelintcache
+
+# Laravel específicos
+/vendor
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/framework/cache/*
+!/storage/framework/cache/.gitkeep
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitkeep
+/storage/framework/views/*
+!/storage/framework/views/.gitkeep
+/storage/framework/testing/*
+!/storage/framework/testing/.gitkeep
+/bootstrap/cache/*
+!/bootstrap/cache/.gitkeep
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.phpunit.result.cache
+/coverage
+/tests/coverage
+
+# Deployment
+deploy.php
+.deployer

@@ -1,0 +1,167 @@
+version: '3.8'
+
+# Configuración Docker Compose para SIGESA
+# Sistema de Gestión de Acreditación con PostgreSQL
+
+services:
+  # 🐘 Base de datos PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: sigesa_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-sigesa_db}
+      POSTGRES_USER: ${DB_USERNAME:-sigesa_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-sigesa_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=es_ES.UTF-8 --lc-ctype=es_ES.UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - sigesa_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-sigesa_user} -d ${DB_DATABASE:-sigesa_db}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # 🔴 Redis para cache y sesiones
+  redis:
+    image: redis:7-alpine
+    container_name: sigesa_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-sigesa_redis_pass}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - sigesa_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # 🖥️ Backend Laravel
+  backend:
+    build:
+      context: ./backend-sigesa/backend-sigesa
+      dockerfile: Dockerfile
+    container_name: sigesa_backend
+    restart: unless-stopped
+    working_dir: /var/www
+    environment:
+      APP_NAME: "SIGESA"
+      APP_ENV: ${APP_ENV:-production}
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL:-http://localhost}
+      
+      # Database
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-sigesa_db}
+      DB_USERNAME: ${DB_USERNAME:-sigesa_user}
+      DB_PASSWORD: ${DB_PASSWORD:-sigesa_password}
+      
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-sigesa_redis_pass}
+      REDIS_PORT: 6379
+      
+      # Cache
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      
+      # Mail
+      MAIL_MAILER: ${MAIL_MAILER:-smtp}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-tls}
+      
+      # Ejecutar migraciones y seeders
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      RUN_SEEDERS: ${RUN_SEEDERS:-false}
+    volumes:
+      - ./backend-sigesa/backend-sigesa/storage:/var/www/storage
+      - ./backend-sigesa/backend-sigesa/bootstrap/cache:/var/www/bootstrap/cache
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - sigesa_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ⚛️ Frontend React
+  frontend:
+    build:
+      context: ./frontend-sigesa/frontend-sigesa
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8000/api}
+        REACT_APP_APP_NAME: "SIGESA"
+        REACT_APP_APP_ENV: ${APP_ENV:-production}
+    container_name: sigesa_frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      - backend
+    networks:
+      - sigesa_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # 🌐 Nginx Reverse Proxy (Opcional - para producción avanzada)
+  nginx:
+    image: nginx:alpine
+    container_name: sigesa_nginx
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/sites:/etc/nginx/conf.d:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - sigesa_network
+    profiles:
+      - production
+
+# 📦 Volúmenes persistentes
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  nginx_logs:
+    driver: local
+
+# 🌐 Red personalizada
+networks:
+  sigesa_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

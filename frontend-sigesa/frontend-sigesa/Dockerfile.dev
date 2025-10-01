@@ -1,0 +1,27 @@
+# Dockerfile de desarrollo para React - SIGESA
+FROM node:18-alpine
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# Instalar dependencias globales
+RUN npm install -g nodemon
+
+# Copiar archivos de dependencias
+COPY package*.json ./
+
+# Instalar todas las dependencias (incluidas las de desarrollo)
+RUN npm install
+
+# Copiar código fuente
+COPY . .
+
+# Exponer puerto 3000
+EXPOSE 3000
+
+# Variables de entorno para desarrollo
+ENV REACT_APP_API_URL=http://localhost:8000/api
+ENV REACT_APP_APP_ENV=development
+
+# Comando por defecto para desarrollo
+CMD ["npm", "start"]

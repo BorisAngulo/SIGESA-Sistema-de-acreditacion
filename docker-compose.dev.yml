@@ -1,0 +1,73 @@
+# Docker Compose para DESARROLLO - SIGESA
+# Esta configuración es optimizada para desarrollo local
+
+services:
+  postgres:
+    extends:
+      file: docker-compose.yml
+      service: postgres
+    environment:
+      POSTGRES_DB: sigesa_dev
+      POSTGRES_USER: sigesa_dev
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5433:5432"
+
+  redis:
+    extends:
+      file: docker-compose.yml
+      service: redis
+    command: redis-server --appendonly yes
+    # Sin password para desarrollo
+
+  backend:
+    extends:
+      file: docker-compose.yml
+      service: backend
+    build:
+      context: ./backend-sigesa/backend-sigesa
+      dockerfile: Dockerfile
+      args:
+        APP_ENV: local
+    environment:
+      APP_ENV: local
+      APP_DEBUG: true
+      DB_DATABASE: sigesa_dev
+      DB_USERNAME: sigesa_dev
+      DB_PASSWORD: password123
+      REDIS_PASSWORD: ""
+      RUN_MIGRATIONS: true
+      RUN_SEEDERS: true
+    volumes:
+      # Volúmenes adicionales para desarrollo
+      - ./backend-sigesa/backend-sigesa:/var/www:delegated
+      - backend_vendor:/var/www/vendor
+    ports:
+      - "8000:9000"
+    command: php artisan serve --host=0.0.0.0 --port=9000
+
+  frontend:
+    build:
+      context: ./frontend-sigesa/frontend-sigesa
+      dockerfile: Dockerfile.dev
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000/api
+      - REACT_APP_APP_ENV=development
+    volumes:
+      - ./frontend-sigesa/frontend-sigesa:/app:delegated
+      - frontend_node_modules:/app/node_modules
+    ports:
+      - "3000:3000"
+    command: npm start
+
+volumes:
+  backend_vendor:
+  frontend_node_modules:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  sigesa_network:
+    driver: bridge
