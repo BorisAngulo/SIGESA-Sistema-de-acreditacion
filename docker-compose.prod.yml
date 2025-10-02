@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Docker Compose para PRODUCCIÓN - SIGESA
 # Esta configuración es optimizada para entornos de producción
 
@@ -92,3 +90,7 @@ volumes:
     driver: local
   nginx_prod_logs:
     driver: local
+
+networks:
+  sigesa_network:
+    driver: bridge
