@@ -870,146 +870,259 @@ const ReportesScreen = () => {
         )}
       </div>
 
-      <div className="filters-section">
-        <div className="filters-header">
-          <h3>Filtros de Análisis</h3>
-          <div className="filters-controls">
-            <label className="comparison-toggle">
-              <input 
-                type="checkbox" 
-                checked={filters.comparisonMode}
-                onChange={(e) => updateFilter('comparisonMode', e.target.checked)}
-                disabled={filters.selectedYear === 'todos'} 
-              />
-              <span>Modo Comparativo</span>
-            </label>
-            <button onClick={clearFilters} className="clear-filters-btn">
-              Vista General
-            </button>
-          </div>
+    <div className="filters-section">
+      <div className="filters-header">
+        <div className="filters-title-section">
+          <h3>Panel de Filtros Avanzados</h3>
+          <p className="filters-description">Configure los parámetros de análisis para obtener información detallada</p>
         </div>
-        
-        <div className="filters-grid">
-          <div className="filter-group">
-            <label>Período de Análisis:</label>
-            <select 
-              value={filters.selectedYear} 
-              onChange={(e) => updateFilter('selectedYear', e.target.value)}
-              className="filter-select"
-            >
-              <option value="todos">📊 Todos los años (Vista General)</option>
-              <option value="2024">🗓️ Año 2024</option>
-              <option value="2023">🗓️ Año 2023</option>
-              <option value="2022">🗓️ Año 2022</option>
-              <option value="2021">🗓️ Año 2021</option>
-            </select>
-          </div>
-          
-          {filters.comparisonMode && filters.selectedYear !== 'todos' && (
-            <div className="filter-group">
-              <label>Año Comparación:</label>
+        <div className="filters-actions">
+          <label className="comparison-toggle">
+            <input 
+              type="checkbox" 
+              checked={filters.comparisonMode}
+              onChange={(e) => updateFilter('comparisonMode', e.target.checked)}
+              disabled={filters.selectedYear === 'todos'} 
+            />
+            <span className="toggle-label">
+              <span className="toggle-icon">📊</span>
+              Análisis Comparativo
+            </span>
+          </label>
+          <button onClick={clearFilters} className="clear-filters-btn">
+            <span>↻</span> Restablecer Filtros
+          </button>
+        </div>
+      </div>
+      
+      <div className="filters-content">
+        {/* Sección de Filtros Temporales */}
+        <div className="filter-section temporal-filters">
+          <h4 className="section-title">
+            <span className="section-icon">📅</span>
+            Período de Análisis
+          </h4>
+          <div className="filter-row">
+            <div className="filter-group enhanced">
+              <label className="filter-label">
+                <span className="label-icon">🗓️</span>
+                Año de Análisis
+              </label>
               <select 
-                value={filters.comparisonYear} 
-                onChange={(e) => updateFilter('comparisonYear', e.target.value)}
-                className="filter-select comparison"
+                value={filters.selectedYear} 
+                onChange={(e) => updateFilter('selectedYear', e.target.value)}
+                className="filter-select primary"
               >
+                <option value="todos">Vista General - Todos los Años</option>
+                <option value="2024">2024</option>
                 <option value="2023">2023</option>
                 <option value="2022">2022</option>
                 <option value="2021">2021</option>
-                <option value="2020">2020</option>
               </select>
             </div>
-          )}
-
-          <div className="filter-group">
-            <label>Facultad:</label>
-            <select 
-              value={filters.selectedFacultad} 
-              onChange={(e) => updateFilter('selectedFacultad', e.target.value)}
-              className="filter-select"
-            >
-              <option value="todas">🏛️ Todas las Facultades</option>
-              {data.facultades.map(f => (
-                <option key={f.id} value={f.id}>{f.nombre_facultad}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label>Carrera:</label>
-            <select 
-              value={filters.selectedCarrera} 
-              onChange={(e) => updateFilter('selectedCarrera', e.target.value)}
-              className="filter-select"
-            >
-              <option value="todas">📚 Todas las Carreras</option>
-              {getAvailableCarreras().map(c => (
-                <option key={c.id} value={c.id}>{c.nombre_carrera}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label>Modalidad:</label>
-            <select 
-              value={filters.selectedModalidad} 
-              onChange={(e) => updateFilter('selectedModalidad', e.target.value)}
-              className="filter-select"
-            >
-              <option value="todas">🎯 Todas las Modalidades</option>
-              {data.modalidades.map(m => (
-                <option key={m.id} value={m.id}>{m.nombre_modalidad}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="filter-group export-buttons">
-            <button onClick={loadAllData} className="update-btn">
-              Actualizar
-            </button>
-            <button onClick={exportToExcel} className="export-btn excel">
-              📊 Descargar Excel
-            </button>
+            
+            {filters.comparisonMode && filters.selectedYear !== 'todos' && (
+              <div className="filter-group enhanced comparison-group">
+                <label className="filter-label">
+                  <span className="label-icon">📈</span>
+                  Año de Comparación
+                </label>
+                <select 
+                  value={filters.comparisonYear} 
+                  onChange={(e) => updateFilter('comparisonYear', e.target.value)}
+                  className="filter-select comparison"
+                >
+                  <option value="2023">2023</option>
+                  <option value="2022">2022</option>
+                  <option value="2021">2021</option>
+                  <option value="2020">2020</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
-        
-        <div className="filter-indicator">
-          <span className="indicator-label">Vista Actual:</span>
-          <span className="indicator-value">{getFilterDescription()}</span>
-          {filters.selectedYear === 'todos' && (
-            <span className="indicator-badge">Vista Completa</span>
-          )}
+
+        {/* Sección de Filtros Académicos */}
+        <div className="filter-section academic-filters">
+          <h4 className="section-title">
+            <span className="section-icon">🎓</span>
+            Estructura Académica
+          </h4>
+          <div className="filter-row">
+            <div className="filter-group enhanced">
+              <label className="filter-label">
+                <span className="label-icon">🏛️</span>
+                Facultad
+                {filters.selectedFacultad !== 'todas' && (
+                  <span className="filter-active-badge">Activo</span>
+                )}
+              </label>
+              <select 
+                value={filters.selectedFacultad} 
+                onChange={(e) => {
+                  updateFilter('selectedFacultad', e.target.value);
+                  if (e.target.value !== 'todas') {
+                    updateFilter('selectedCarrera', 'todas');
+                  }
+                }}
+                className="filter-select"
+              >
+                <option value="todas">Todas las Facultades</option>
+                {data.facultades.map(f => (
+                  <option key={f.id} value={f.id}>
+                    {f.nombre_facultad} ({f.codigo_facultad})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="filter-group enhanced">
+              <label className="filter-label">
+                <span className="label-icon">📚</span>
+                Carrera
+                {filters.selectedCarrera !== 'todas' && (
+                  <span className="filter-active-badge">Activo</span>
+                )}
+              </label>
+              <select 
+                value={filters.selectedCarrera} 
+                onChange={(e) => updateFilter('selectedCarrera', e.target.value)}
+                className="filter-select"
+                disabled={filters.selectedFacultad === 'todas' && data.carreras.length === 0}
+              >
+                <option value="todas">Todas las Carreras</option>
+                {getAvailableCarreras().map(c => (
+                  <option key={c.id} value={c.id}>
+                    {c.nombre_carrera}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Sección de Filtros de Acreditación */}
+        <div className="filter-section accreditation-filters">
+          <h4 className="section-title">
+            <span className="section-icon">🏆</span>
+            Modalidades de Acreditación
+          </h4>
+          <div className="filter-row">
+            <div className="filter-group enhanced full-width">
+              <label className="filter-label">
+                <span className="label-icon">🎯</span>
+                Modalidad
+                {filters.selectedModalidad !== 'todas' && (
+                  <span className="filter-active-badge">Activo</span>
+                )}
+              </label>
+              <select 
+                value={filters.selectedModalidad} 
+                onChange={(e) => updateFilter('selectedModalidad', e.target.value)}
+                className="filter-select"
+              >
+                <option value="todas">Todas las Modalidades</option>
+                {data.modalidades.map(m => (
+                  <option key={m.id} value={m.id}>
+                    {m.nombre_modalidad}
+                    {m.descripcion && ` - ${m.descripcion}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Sección de Acciones */}
+        <div className="filter-section actions-section">
+          <div className="action-buttons">
+            <button onClick={loadAllData} className="action-btn update">
+              <span className="btn-icon">🔄</span>
+              <span className="btn-text">Actualizar Datos</span>
+            </button>
+            <button onClick={exportToExcel} className="action-btn export excel">
+              <span className="btn-icon">📊</span>
+              <span className="btn-text">Exportar a Excel</span>
+            </button>
+            <button onClick={exportToPDF} className="action-btn export pdf">
+              <span className="btn-icon">📄</span>
+              <span className="btn-text">Exportar a PDF</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {filters.comparisonMode && comparativaAnual && filters.selectedYear !== 'todos' && (
-        <div className="comparison-stats">
-          <h3>Análisis Comparativo {filters.selectedYear} vs {filters.comparisonYear}</h3>
-          <div className="comparison-grid">
-            <div className="comparison-item ceub">
-              <div className="comparison-value">
-                {comparativaAnual.ceub_growth > 0 ? '↗️' : comparativaAnual.ceub_growth < 0 ? '↘️' : '➡️'}
-                {Math.abs(comparativaAnual.ceub_growth).toFixed(1)}%
-              </div>
-              <div className="comparison-label">Crecimiento CEUB</div>
-            </div>
-            <div className="comparison-item arcusur">
-              <div className="comparison-value">
-                {comparativaAnual.arcusur_growth > 0 ? '↗️' : comparativaAnual.arcusur_growth < 0 ? '↘️' : '➡️'}
-                {Math.abs(comparativaAnual.arcusur_growth).toFixed(1)}%
-              </div>
-              <div className="comparison-label">Crecimiento ARCU-SUR</div>
-            </div>
-            <div className="comparison-item total">
-              <div className="comparison-value">
-                {comparativaAnual.total_growth > 0 ? '↗️' : comparativaAnual.total_growth < 0 ? '↘️' : '➡️'}
-                {Math.abs(comparativaAnual.total_growth).toFixed(1)}%
-              </div>
-              <div className="comparison-label">Crecimiento Total</div>
+      {/* Indicador de Vista Actual */}
+      <div className="filter-summary">
+        <div className="summary-content">
+          <div className="summary-item primary">
+            <span className="summary-icon">👁️</span>
+            <div className="summary-details">
+              <span className="summary-label">Vista Actual</span>
+              <span className="summary-value">{getFilterDescription()}</span>
             </div>
           </div>
+          
+          {filters.selectedYear === 'todos' && (
+            <div className="summary-badge complete">
+              <span className="badge-icon">✓</span>
+              Vista Completa Histórica
+            </div>
+          )}
+          
+          {(filters.selectedFacultad !== 'todas' || filters.selectedCarrera !== 'todas' || filters.selectedModalidad !== 'todas') && (
+            <div className="summary-badge filtered">
+              <span className="badge-icon">⚡</span>
+              Filtros Aplicados
+            </div>
+          )}
+
+          <div className="summary-stats">
+            <span className="stat-item">
+              <span className="stat-icon">🏛️</span>
+              {analisisFacultades.length} Facultades
+            </span>
+            <span className="stat-item">
+              <span className="stat-icon">📚</span>
+              {kpis?.carreras_totales || 0} Carreras
+            </span>
+            <span className="stat-item">
+              <span className="stat-icon">🏆</span>
+              {(kpis?.acreditaciones_ceub || 0) + (kpis?.acreditaciones_arcusur || 0)} Acreditaciones
+            </span>
+          </div>
         </div>
-      )}
+      </div>
+    </div>
+
+    {filters.comparisonMode && comparativaAnual && filters.selectedYear !== 'todos' && (
+      <div className="comparison-stats">
+        <h3>Análisis Comparativo {filters.selectedYear} vs {filters.comparisonYear}</h3>
+        <div className="comparison-grid">
+          <div className="comparison-item ceub">
+            <div className="comparison-value">
+              {comparativaAnual.ceub_growth > 0 ? '↗️' : comparativaAnual.ceub_growth < 0 ? '↘️' : '➡️'}
+              {Math.abs(comparativaAnual.ceub_growth).toFixed(1)}%
+            </div>
+            <div className="comparison-label">Crecimiento CEUB</div>
+          </div>
+          <div className="comparison-item arcusur">
+            <div className="comparison-value">
+              {comparativaAnual.arcusur_growth > 0 ? '↗️' : comparativaAnual.arcusur_growth < 0 ? '↘️' : '➡️'}
+              {Math.abs(comparativaAnual.arcusur_growth).toFixed(1)}%
+            </div>
+            <div className="comparison-label">Crecimiento ARCU-SUR</div>
+          </div>
+          <div className="comparison-item total">
+            <div className="comparison-value">
+              {comparativaAnual.total_growth > 0 ? '↗️' : comparativaAnual.total_growth < 0 ? '↘️' : '➡️'}
+              {Math.abs(comparativaAnual.total_growth).toFixed(1)}%
+            </div>
+            <div className="comparison-label">Crecimiento Total</div>
+          </div>
+        </div>
+      </div>
+    )}
 
       <div className="kpi-grid">
         {[
