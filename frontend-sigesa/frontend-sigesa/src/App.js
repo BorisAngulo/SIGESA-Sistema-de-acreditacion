@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate  } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import ToastProvider from './components/ToastProvider';
 import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -41,10 +42,11 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <div style={styles.app}>
-          <Header />
+        <ToastProvider>
+          <div style={styles.app}>
+            <Header />
 
-          <main style={styles.main}>
+            <main style={styles.main}>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
@@ -160,6 +162,7 @@ function App() {
 
           <Footer />
         </div>
+        </ToastProvider>
       </AuthProvider>
     </Router>
   );

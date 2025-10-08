@@ -10,16 +10,7 @@ import {
   cleanupBackups
 } from '../services/backupAPI';
 import '../styles/BackupScreen.css';
-
-// Función temporal para notificaciones (reemplazar con toast cuando esté disponible)
-const showNotification = (message, type = 'info') => {
-  console.log(`${type.toUpperCase()}: ${message}`);
-  if (type === 'error') {
-    alert(`Error: ${message}`);
-  } else {
-    alert(message);
-  }
-};
+import useToast from '../hooks/useToast';
 
 const BackupScreen = () => {
   const [backups, setBackups] = useState([]);
@@ -32,6 +23,7 @@ const BackupScreen = () => {
     type: '',
     days: ''
   });
+  const toast = useToast();
 
   useEffect(() => {
     loadData();
@@ -48,8 +40,7 @@ const BackupScreen = () => {
       setBackups(backupsData.backups.data || []);
       setStats(statsData);
     } catch (error) {
-      console.error('Error cargando datos:', error);
-      showNotification('Error al cargar los datos de backups', 'error');
+      toast.error('Error al cargar los datos de backups');
     } finally {
       setLoading(false);
     }
@@ -60,11 +51,11 @@ const BackupScreen = () => {
       setCreating(true);
       await createBackup(storageDisk); // Pasar el tipo de almacenamiento seleccionado
       const storageText = storageDisk === 'google' ? 'Google Drive' : 'Local';
-      showNotification(`Backup manual iniciado correctamente en ${storageText}`, 'success');
+      toast.success(`Backup manual iniciado correctamente en ${storageText}`);
       loadData(); // Recargar datos
     } catch (error) {
       console.error('Error creando backup:', error);
-      showNotification('Error al crear backup: ' + error.message, 'error');
+      toast.error('Error al crear backup: ' + error.message);
     } finally {
       setCreating(false);
     }
@@ -73,10 +64,10 @@ const BackupScreen = () => {
   const handleDownload = async (backup) => {
     try {
       await downloadBackup(backup.id);
-      showNotification(`Descargando ${backup.filename}`, 'success');
+      toast.success(`Iniciando descarga de ${backup.filename}`);
     } catch (error) {
       console.error('Error descargando backup:', error);
-      showNotification('Error al descargar backup: ' + error.message, 'error');
+      toast.error('Error al descargar backup: ' + error.message);
     }
   };
 
@@ -87,11 +78,11 @@ const BackupScreen = () => {
 
     try {
       await deleteBackup(backup.id);
-      showNotification('Backup eliminado correctamente', 'success');
+      toast.success('Backup eliminado correctamente');
       loadData(); // Recargar datos
     } catch (error) {
       console.error('Error eliminando backup:', error);
-      showNotification('Error al eliminar backup: ' + error.message, 'error');
+      toast.error('Error al eliminar backup: ' + error.message);
     }
   };
 
@@ -105,11 +96,11 @@ const BackupScreen = () => {
 
     try {
       const result = await cleanupBackups(parseInt(keepDays));
-      showNotification(result.message, 'success');
+      toast.success(result.message || 'Limpieza de backups completada');
       loadData(); // Recargar datos
     } catch (error) {
       console.error('Error en limpieza:', error);
-      showNotification('Error en la limpieza: ' + error.message, 'error');
+      toast.error('Error en la limpieza: ' + error.message);
     }
   };
 

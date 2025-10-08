@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { Upload, Plus, Globe, Image, Building2, Hash, AlertCircle, CheckCircle2, Trash2 } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
+import {  Plus, Globe, Building2, Hash, AlertCircle, CheckCircle2 } from "lucide-react";
 import { createFacultad } from "../services/api";
 import ModalConfirmacionCreacion from "../components/ModalConfirmacionCreacion";
 import "../styles/CrearFacultad.css";
+import useToast from "../hooks/useToast";
 
 export default function CrearFacultad({ onNuevaFacultad }) {
   const [formData, setFormData] = useState({
@@ -13,9 +15,10 @@ export default function CrearFacultad({ onNuevaFacultad }) {
   });
   const [mensaje, setMensaje] = useState(null);
   const [errors, setErrors] = useState({});
-  const [previewLogo, setPreviewLogo] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const toast = useToast();
+  const navigate = useNavigate();
 
   const validateNombre = (nombre) => {
     if (!nombre.trim()) return "El nombre es requerido";
@@ -77,62 +80,6 @@ export default function CrearFacultad({ onNuevaFacultad }) {
     }
   };
 
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Validar tipo de archivo
-      if (!file.type.startsWith('image/')) {
-        setErrors(prev => ({
-          ...prev,
-          logo: "Por favor selecciona un archivo de imagen válido"
-        }));
-        return;
-      }
-
-      // Validar tamaño
-      if (file.size > 5 * 1024 * 1024) {
-        setErrors(prev => ({
-          ...prev,
-          logo: "El logo debe ser menor a 5MB"
-        }));
-        return;
-      }
-
-      setErrors(prev => ({
-        ...prev,
-        logo: null
-      }));
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewLogo(reader.result);
-      };
-      reader.readAsDataURL(file);
-      
-      setFormData(prev => ({
-        ...prev,
-        logo: file
-      }));
-    }
-  };
-
-  const handleRemoveLogo = () => {
-    setFormData(prev => ({
-      ...prev,
-      logo: null
-    }));
-    setPreviewLogo(null);
-    setErrors(prev => ({
-      ...prev,
-      logo: null
-    }));
-    
-    const fileInput = document.querySelector('input[type="file"]');
-    if (fileInput) {
-      fileInput.value = '';
-    }
-  };
-
   const handleSubmitClick = () => {
     const nombreError = validateNombre(formData.nombre);
     const codigoError = validateCodigo(formData.codigo);
@@ -189,8 +136,9 @@ export default function CrearFacultad({ onNuevaFacultad }) {
         pagina_web: "",
         logo: null
       });
-      setPreviewLogo(null);
       setShowConfirmModal(false);
+      toast.success("Facultad creada exitosamente");
+      navigate("/facultad"); 
       
       if (onNuevaFacultad) onNuevaFacultad(nueva);
     } catch (error) {
@@ -329,70 +277,6 @@ export default function CrearFacultad({ onNuevaFacultad }) {
             <p className="error-message">
               <AlertCircle className="error-icon" />
               {errors.pagina_web}
-            </p>
-          )}
-        </div>
-
-        {/* Logo */}
-        <div className="form-group">
-          <label className="form-label">
-            <Image className="label-icon" style={{ marginRight: '8px' }} />
-            <span>Logo de la Facultad <span className="optional-text">(opcional)</span></span>
-          </label>
-          
-          <div className="logo-upload-container">
-            {!previewLogo ? (
-              <div className="logo-upload-area">
-                <label className="logo-upload-label">
-                  <div className="logo-upload-content">
-                    <Upload className="upload-icon" />
-                    <p className="upload-text">
-                      <span className="upload-text-bold">Clic para subir</span> o arrastra el archivo
-                    </p>
-                    <p className="upload-text-small">PNG, JPG o SVG (Máx. 5MB)</p>
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleLogoChange}
-                    className="hidden-file-input"
-                  />
-                </label>
-              </div>
-            ) : (
-              <div className="logo-preview">
-                <div className="logo-preview-container">
-                  <img
-                    src={previewLogo}
-                    alt="Preview logo"
-                    className="logo-preview-image"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleRemoveLogo}
-                    className="logo-remove-button"
-                    title="Eliminar logo"
-                  >
-                    <Trash2 className="remove-icon" />
-                  </button>
-                </div>
-                <p className="logo-preview-text">Logo seleccionado</p>
-                <button
-                  type="button"
-                  onClick={handleRemoveLogo}
-                  className="logo-remove-text-button"
-                >
-                  <Trash2 className="remove-text-icon" />
-                  Eliminar logo
-                </button>
-              </div>
-            )}
-          </div>
-          
-          {errors.logo && (
-            <p className="error-message">
-              <AlertCircle className="error-icon" />
-              {errors.logo}
             </p>
           )}
         </div>

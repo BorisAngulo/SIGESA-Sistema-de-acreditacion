@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { getFacultadesConCarreras, deleteFacultad } from "../services/api";
 import { Search, Plus } from "lucide-react";
-import { hasAnyPermission, canManageFacultades } from "../services/permissions";
+import { canManageFacultades } from "../services/permissions";
 import mascota from "../assets/mascota.png";
 import { useNavigate } from "react-router-dom";
 import ModalConfirmacion from "../components/ModalConfirmacion";
 import ModalOpciones from "../components/ModalOpciones";
 import "../styles/FacultadScreen.css";
+import useToast from "../hooks/useToast";
 
 const truncateUrl = (url, maxLength = 50) => {
   if (!url || url.length <= maxLength) {
@@ -46,6 +47,7 @@ export default function FacultadScreen() {
   const [eliminando, setEliminando] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const toast = useToast();
   
   useEffect(() => {
     const cargarDatos = async () => {
@@ -107,10 +109,10 @@ export default function FacultadScreen() {
       
       setModalOpen(false);
       setFacultadAEliminar(null);
-      alert("Facultad eliminada correctamente");
+      toast.success("Facultad eliminada correctamente");
     } catch (err) {
       console.error("Error al eliminar facultad:", err);
-      alert("No se pudo eliminar la facultad. Por favor, inténtalo de nuevo.");
+      toast.error("No se pudo eliminar la facultad. Por favor, inténtalo de nuevo.");
     } finally {
       setEliminando(false);
     }

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Upload, FileText, X } from 'lucide-react';
 import './ModalSubirDocumentoGlobal.css';
+import useToast from '../hooks/useToast';
 
 const ModalSubirDocumentoGlobal = ({ isOpen, onClose, onUpload, isUploading = false }) => {
+  const toast = useToast();
   const [documentData, setDocumentData] = useState({
     nombre: '',
     descripcion: '',
@@ -69,9 +71,10 @@ const ModalSubirDocumentoGlobal = ({ isOpen, onClose, onUpload, isUploading = fa
         archivo: null
       });
       onClose();
+      toast.success('Documento subido exitosamente');
     } catch (error) {
       console.error('Error al subir documento:', error);
-      alert('Error al subir el documento: ' + (error.message || 'Error desconocido'));
+      toast.error('Error al subir el documento: ' + (error.message || 'Error desconocido'));
     }
   };
 

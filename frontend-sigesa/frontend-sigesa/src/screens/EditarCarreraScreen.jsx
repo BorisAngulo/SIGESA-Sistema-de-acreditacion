@@ -4,11 +4,13 @@ import { ArrowLeft, Save, X, AlertCircle, CheckCircle, Globe, GraduationCap } fr
 import { updateCarrera, getCarreraById, getFacultades } from '../services/api';
 import mascota from '../assets/mascota.png';
 import '../styles/EditarCarreraScreen.css';
+import useToast from '../hooks/useToast';
 
 export default function EditarCarreraScreen() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+  const toast = useToast();
+
   const [formData, setFormData] = useState({
     nombre_carrera: '',
     codigo_carrera: '',
@@ -177,13 +179,12 @@ export default function EditarCarreraScreen() {
       await updateCarrera(id, dataToSend);
       
       setSaveSuccess(true);
-      
-      setTimeout(() => {
-        navigate('/carrera');
-      }, 2000);
+      toast.success("Carrera actualizada exitosamente!");
+      navigate(-1); // Navegar hacia atrás
 
     } catch (error) {
       console.error('Error al actualizar carrera:', error);
+      toast.error("No se pudo actualizar la carrera. Por favor, inténtalo de nuevo.");
       setErrors({ general: error.message });
     } finally {
       setSaving(false);
@@ -193,10 +194,10 @@ export default function EditarCarreraScreen() {
   const handleCancel = () => {
     if (hasChanges()) {
       if (window.confirm('¿Estás seguro? Los cambios no guardados se perderán.')) {
-        navigate('/carrera');
+        navigate(-1); // Navegar hacia atrás
       }
     } else {
-      navigate('/carrera');
+      navigate(-1); // Navegar hacia atrás
     }
   };
 
