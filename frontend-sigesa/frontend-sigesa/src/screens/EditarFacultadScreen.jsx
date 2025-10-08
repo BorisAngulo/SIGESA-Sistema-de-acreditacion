@@ -4,11 +4,13 @@ import { ArrowLeft, Save, X, AlertCircle, CheckCircle, Globe } from 'lucide-reac
 import { updateFacultad, getFacultadById } from '../services/api';
 import mascota from '../assets/mascota.png';
 import '../styles/EditarFacultadScreen.css';
+import useToast from '../hooks/useToast';
 
 export default function EditarFacultadScreen() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+  const toast = useToast();
+
   const [formData, setFormData] = useState({
     nombre_facultad: '',
     codigo_facultad: '',
@@ -159,10 +161,8 @@ export default function EditarFacultadScreen() {
       await updateFacultad(id, dataToSend);
       
       setSaveSuccess(true);
-      
-      setTimeout(() => {
-        navigate('/facultad');
-      }, 2000);
+      toast.success("Facultad actualizada exitosamente!");
+      navigate(-1);
 
     } catch (error) {
       console.error('Error al actualizar facultad:', error);
@@ -175,10 +175,10 @@ export default function EditarFacultadScreen() {
   const handleCancel = () => {
     if (hasChanges()) {
       if (window.confirm('¿Estás seguro? Los cambios no guardados se perderán.')) {
-        navigate('/facultad');
+        navigate(-1);
       }
     } else {
-      navigate('/facultad');
+      navigate(-1);
     }
   };
 

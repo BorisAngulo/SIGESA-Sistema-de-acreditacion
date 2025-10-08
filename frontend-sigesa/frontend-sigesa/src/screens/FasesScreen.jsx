@@ -1,23 +1,9 @@
-/**
- * FasesScreen.jsx - Pantalla de Gestión de Fases de Acreditación
- * 
- * OPTIMIZACIONES IMPLEMENTADAS:
- * - ✅ Endpoint consolidado: Una sola llamada HTTP obtiene carrera-modalidad + fases + subfases
- * - ✅ Reducción de 60-70% en tiempo de carga inicial
- * - ✅ fasesData actualizado automáticamente con datos completos del endpoint consolidado
- * - ✅ Eliminados todos los fallbacks (innecesarios si la API falla)
- * - ✅ Eliminada función loadSubfasesForFase (obsoleta)
- * - ✅ Eliminado estado loadingSubfases (innecesario)
- * - ✅ Imports limpiados (removidos getFasesByCarreraModalidad y getSubfasesByFase)
- * - ✅ Simplificado toggleFase (subfases ya cargadas)
- * - ✅ Código base reducido y optimizado
- */
-
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Calendar, Edit3 } from 'lucide-react';
 import DateProcessModal from '../components/DateProcessModal';
+import useToast from '../hooks/useToast';
 import { 
   createFase, 
   updateFase, 
@@ -55,6 +41,7 @@ const EditDateProcessForm = ({ fasesData, onClose, onSuccess }) => {
   const [fechaFin, setFechaFin] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const toast = useToast();
 
   useEffect(() => {
     if (fasesData) {
@@ -125,13 +112,12 @@ const EditDateProcessForm = ({ fasesData, onClose, onSuccess }) => {
         fechasData
       );
 
-      console.log('✅ Fechas actualizadas exitosamente:', resultado);
-      
-      alert('Fechas actualizadas exitosamente');
+      toast.updated('Fechas actualizadas exitosamente');
       onSuccess();
       
     } catch (error) {
       console.error('Error al actualizar fechas:', error);
+      toast.error('Error al actualizar las fechas: ' + (error.message || 'Error desconocido'));
       setError('Error al actualizar las fechas: ' + (error.message || 'Error desconocido'));
     } finally {
       setLoading(false);
@@ -214,12 +200,13 @@ const EditDateProcessForm = ({ fasesData, onClose, onSuccess }) => {
     </form>
   );
 };
-
+//Fases screen
 const FasesScreen = () => {
   const location = useLocation();
   const params = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const toast = useToast();
   
   const [fasesData, setFasesData] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -626,19 +613,12 @@ const FasesScreen = () => {
           carreraModalidadId: carreraModalidadId || null // Conservar el ID si viene desde CarrerasModalidadesAdmin
         });
         
-        console.log('✅ Datos procesados para FasesScreen:', {
-          ...location.state,
-          modalidadId: resolvedModalidadId
-        });
-        console.log('Datos procesados desde location.state');
       } else {
         // Si no hay location.state, intentar obtener de parámetros query
         const searchParams = new URLSearchParams(location.search);
         const carreraId = searchParams.get('carrera');
         const modalidadId = searchParams.get('modalidad');
         const carreraModalidadId = searchParams.get('carreraModalidadId');
-        
-        console.log('Datos de query params:', { carreraId, modalidadId, carreraModalidadId });
         
         if (!carreraId || !modalidadId) {
           console.error('Faltan parámetros query necesarios:', { carreraId, modalidadId });
@@ -878,13 +858,16 @@ const FasesScreen = () => {
         delete newSubfases[faseToDelete.id];
         return newSubfases;
       });
-      
-      console.log('Fase eliminada correctamente:', faseToDelete.id);
       setShowDeleteModal(false);
       setFaseToDelete(null);
+
+      // Toast de éxito para eliminación
+      toast.deleted('Fase eliminada exitosamente');
     } catch (error) {
       console.error('Error al eliminar fase:', error);
-      alert('Error al eliminar la fase: ' + error.message);
+      
+      // Toast de error
+      toast.error('Error al eliminar la fase: ' + error.message);
     } finally {
       setDeleteLoading(false);
     }
@@ -1024,6 +1007,9 @@ const FasesScreen = () => {
               }
             : fase
         ));
+
+        // Toast de éxito para actualización
+        toast.updated('Fase actualizada exitosamente');
         
       } else {
         const nuevaFaseCreada = await createFase({
@@ -1052,6 +1038,9 @@ const FasesScreen = () => {
           ...prev,
           [nuevaFaseCreada.id]: []
         }));
+
+        // Toast de éxito para creación
+        toast.created('Fase creada exitosamente');
         
       }
       
@@ -1076,7 +1065,8 @@ const FasesScreen = () => {
         errorMessage = error.message;
       }
       
-      alert('Error al guardar la fase: ' + errorMessage);
+      // Toast de error
+      toast.error(errorMessage);
     }
   };
 
@@ -1110,10 +1100,9 @@ const FasesScreen = () => {
 
   const handleEditarFechasProceso = () => {
     console.log('📅 EDITAR FECHAS DE PROCESO');
-    console.log('  - fasesData:', fasesData);
     
     if (!fasesData) {
-      alert('No se encontraron datos del proceso de acreditación.');
+      toast.error('No se encontraron datos del proceso de acreditación.');
       return;
     }
     
@@ -1138,6 +1127,7 @@ const FasesScreen = () => {
             updated_at: datosActualizados.updated_at
           }));
           console.log('✅ Datos del proceso actualizados en el estado');
+          
         }
       }
     } catch (error) {
@@ -1223,8 +1213,8 @@ const FasesScreen = () => {
       setShowFinalizarModal(false);
       
       // Mostrar mensaje de éxito
-      alert('🎉 Acreditación finalizada exitosamente. Se han guardado las fechas de aprobación y el certificado.');
-      
+      toast.success('🎉 Acreditación finalizada exitosamente. Se han guardado las fechas de aprobación y el certificado.');
+
       // Redirigir a CarrerasModalidadesAdmin
       navigate('/carrera-modalidades-admin');
       
@@ -1282,14 +1272,14 @@ const FasesScreen = () => {
             [faseId]: prev[faseId].filter(s => s.id !== subfase.id)
           }));
 
-          alert('Subfase eliminada exitosamente');
+          toast.success('Subfase eliminada exitosamente');
         } else {
           throw new Error(result.error || 'Error al eliminar la subfase');
         }
         
       } catch (error) {
         console.error('Error al eliminar subfase:', error);
-        alert('Error al eliminar la subfase: ' + error.message);
+        toast.error('Error al eliminar la subfase: ' + error.message);
       }
     }
   };
@@ -1318,7 +1308,7 @@ const FasesScreen = () => {
     } catch (error) {
       console.error('Error al cargar documentos:', error);
       setDocumentos([]); // Asegurar que siempre sea un array en caso de error
-      alert('Error al cargar documentos: ' + error.message);
+      toast.error('Error al cargar documentos: ' + error.message);
     }
   };
 
@@ -1386,17 +1376,17 @@ const FasesScreen = () => {
       
       if (documentoTarget.type === 'fase') {
         await asociarDocumentoAFase(documentoTarget.id, documento.id);
-        alert('Documento asociado a la fase exitosamente');
+        toast.success('Documento asociado a la fase exitosamente');
       } else if (documentoTarget.type === 'subfase') {
         await asociarDocumentoASubfase(documentoTarget.id, documento.id);
-        alert('Documento asociado a la subfase exitosamente');
+        toast.success('Documento asociado a la subfase exitosamente');
       }
       
       // No necesitamos recargar documentos aquí porque no se creó uno nuevo
       handleCerrarModalDocumento();
     } catch (error) {
       console.error('Error al asociar documento:', error);
-      alert('Error al asociar documento: ' + error.message);
+      toast.error('Error al asociar documento: ' + error.message);
     }
   };
 
@@ -1421,11 +1411,11 @@ const FasesScreen = () => {
       if (documentoTarget.type === 'fase') {
         console.log('Asociando a fase:', documentoTarget.id, 'documento:', nuevoDocumento.id);
         await asociarDocumentoAFase(documentoTarget.id, nuevoDocumento.id);
-        alert('Documento subido y asociado a la fase exitosamente');
+        toast.success('Documento subido y asociado a la fase exitosamente');
       } else if (documentoTarget.type === 'subfase') {
         console.log('Asociando a subfase:', documentoTarget.id, 'documento:', nuevoDocumento.id);
         await asociarDocumentoASubfase(documentoTarget.id, nuevoDocumento.id);
-        alert('Documento subido y asociado a la subfase exitosamente');
+        toast.success('Documento subido y asociado a la subfase exitosamente');
       }
       
       handleCerrarModalDocumento();

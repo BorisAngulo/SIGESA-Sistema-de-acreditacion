@@ -4,40 +4,13 @@ import { createCarrera, getFacultades } from '../services/api';
 import { ArrowLeft, Save, AlertCircle, BookOpen, Code, Globe, CheckCircle, X } from 'lucide-react';
 import ModalConfirmacionCreacion from '../components/ModalConfirmacionCreacion';
 import "../styles/CrearCarrera.css";
-
-const AlertToast = ({ type, message, isVisible, onClose }) => {
-  useEffect(() => {
-    if (isVisible) {
-      const timer = setTimeout(() => {
-        onClose();
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [isVisible, onClose]);
-
-  if (!isVisible) return null;
-
-  return (
-    <div className={`alert-toast ${type}`}>
-      <div className="alert-content">
-        {type === 'success' ? (
-          <CheckCircle size={20} className="alert-icon" />
-        ) : (
-          <AlertCircle size={20} className="alert-icon" />
-        )}
-        <span className="alert-message">{message}</span>
-        <button onClick={onClose} className="alert-close">
-          <X size={16} />
-        </button>
-      </div>
-    </div>
-  );
-};
+import useToast from '../hooks/useToast';
 
 export default function CrearCarrera() {
   const { facultadId } = useParams();
   const navigate = useNavigate();
-  
+  const toast = useToast();
+
   const [formData, setFormData] = useState({
     facultad_id: facultadId || '',
     codigo_carrera: '',
@@ -51,24 +24,6 @@ export default function CrearCarrera() {
   const [loadingFacultad, setLoadingFacultad] = useState(true);
   const [fieldErrors, setFieldErrors] = useState({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  
-  const [alert, setAlert] = useState({
-    show: false,
-    type: 'success', 
-    message: ''
-  });
-
-  const showAlert = (type, message) => {
-    setAlert({
-      show: true,
-      type,
-      message
-    });
-  };
-
-  const closeAlert = () => {
-    setAlert(prev => ({ ...prev, show: false }));
-  };
 
   useEffect(() => {
     const cargarFacultad = async () => {
@@ -84,7 +39,7 @@ export default function CrearCarrera() {
         setFacultad(facultadEncontrada);
       } catch (error) {
         console.error('Error al cargar facultad:', error);
-        showAlert('error', 'Error al cargar la información de la facultad');
+        toast.error('Error al cargar la información de la facultad');
       } finally {
         setLoadingFacultad(false);
       }
@@ -124,7 +79,7 @@ export default function CrearCarrera() {
     
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      showAlert('error', 'Por favor, corrige los errores en el formulario');
+      toast.error('Por favor, corrige los errores en el formulario');
       return;
     }
 
@@ -143,12 +98,8 @@ export default function CrearCarrera() {
         pagina_carrera: formData.pagina_carrera.trim() || null
       };
 
-      console.log('Enviando datos:', dataToSend);
-      
-      const response = await createCarrera(dataToSend);
-      console.log('Carrera creada:', response);
-      
-      showAlert('success', `La carrera "${formData.nombre_carrera}" ha sido creada exitosamente`);
+      await createCarrera(dataToSend);
+      toast.success(`La carrera "${formData.nombre_carrera}" ha sido creada exitosamente`);
       
       setFormData({
         facultad_id: facultadId || '',
@@ -157,17 +108,18 @@ export default function CrearCarrera() {
         pagina_carrera: '',
         id_usuario_updated_carrera: 1 
       });
-      
+      navigate(`/visualizar-carreras/${facultadId}`);
     } catch (error) {
       console.error('Error al crear carrera:', error);
       
       if (error.response?.data?.errors) {
         setFieldErrors(error.response.data.errors);
-        showAlert('error', 'Se encontraron errores en el formulario');
+        toast.error('Se encontraron errores en el formulario');
+
       } else if (error.response?.data?.message) {
-        showAlert('error', error.response.data.message);
+        toast.error(error.response.data.message);
       } else {
-        showAlert('error', 'Error al crear la carrera. Por favor, intenta nuevamente');
+        toast.error('Error al crear la carrera. Por favor, intenta nuevamente');
       }
     } finally {
       setLoading(false);
@@ -217,12 +169,6 @@ export default function CrearCarrera() {
 
   return (
     <div className="crear-carrera-container">
-      <AlertToast
-        type={alert.type}
-        message={alert.message}
-        isVisible={alert.show}
-        onClose={closeAlert}
-      />
 
       <div className="content-wrapper">
         <div className="page-header">

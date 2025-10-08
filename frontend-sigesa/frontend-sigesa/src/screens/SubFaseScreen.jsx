@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FileText, Link, Plus, Save } from 'lucide-react';
 import { createSubfase, updateSubfase } from '../services/api';
 import '../styles/SubFaseScreen.css';
+import useToast from '../hooks/useToast';
 
 const SubFaseScreen = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const SubFaseScreen = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [subfaseId, setSubfaseId] = useState(null);
   const [faseData, setFaseData] = useState(null);
+  const toast = useToast();
   
   // Estados para habilitar FODA y PLAME
   const [habilitarFoda, setHabilitarFoda] = useState(false);
@@ -151,8 +153,7 @@ const SubFaseScreen = () => {
       }
 
       if (result.success) {
-        alert(isEditing ? 'Subfase actualizada exitosamente' : 'Subfase creada exitosamente');
-        
+        toast.success(isEditing ? 'Subfase actualizada exitosamente' : 'Subfase creada exitosamente');
        navigate(-1);
       } else {
         throw new Error(result.error || 'Error al procesar la subfase');
@@ -160,7 +161,7 @@ const SubFaseScreen = () => {
       
     } catch (error) {
       console.error('❌ Error al procesar subfase:', error);
-      alert(`Error al ${isEditing ? 'actualizar' : 'crear'} la subfase: ${error.message}`);
+      toast.error(`Error al ${isEditing ? 'actualizar' : 'crear'} la subfase: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }

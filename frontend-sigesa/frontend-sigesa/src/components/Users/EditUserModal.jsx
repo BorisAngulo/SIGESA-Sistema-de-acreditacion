@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { updateUserAPI, getRolesAPI } from '../../services/userAPI';
 import { getFacultades, getCarrerasByFacultad } from '../../services/api';
 import './UserModal.css';
+import useToast from '../../hooks/useToast';
 
 const EditUserModal = ({ user, onClose, onUserUpdated, token }) => {
   const [formData, setFormData] = useState({
@@ -21,6 +22,7 @@ const EditUserModal = ({ user, onClose, onUserUpdated, token }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
+  const toast = useToast();
 
   useEffect(() => {
     loadRoles();
@@ -195,6 +197,7 @@ const EditUserModal = ({ user, onClose, onUserUpdated, token }) => {
       
       if (response.success) {
         onUserUpdated(response.data);
+        toast.success('Usuario actualizado exitosamente');
       } else {
         if (response.validationErrors) {
           setValidationErrors(response.validationErrors);

@@ -6,12 +6,14 @@ import EditUserModal from '../components/Users/EditUserModal';
 import ConfirmDeleteModal from '../components/Users/ConfirmDeleteModal';
 import { getUsersAPI, deleteUserAPI } from '../services/userAPI';
 import './UsuariosScreen.css';
+import useToast from '../hooks/useToast';
 
 const UsuariosScreen = () => {
   const { user, token } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const toast = useToast();
   
   // Estados para modales
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -74,11 +76,17 @@ const UsuariosScreen = () => {
         setUsers(users.filter(u => u.id !== selectedUser.id));
         setShowDeleteModal(false);
         setSelectedUser(null);
+        
+        // Toast de éxito
+        toast.deleted(`Usuario ${selectedUser.name} eliminado exitosamente`);
       } else {
         const errorMessage = typeof response.error === 'string' 
           ? response.error 
           : response.error?.mensaje || response.error?.error || 'Error al eliminar usuario';
         setError(errorMessage);
+        
+        // Toast de error
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error('Error al eliminar usuario:', error);
@@ -86,6 +94,9 @@ const UsuariosScreen = () => {
         ? error 
         : error?.message || 'Error de conexión al eliminar usuario';
       setError(errorMessage);
+      
+      // Toast de error
+      toast.error(errorMessage);
     }
   };
 

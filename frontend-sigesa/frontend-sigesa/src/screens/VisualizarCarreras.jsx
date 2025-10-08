@@ -11,6 +11,7 @@ import ModalOpciones from '../components/ModalOpciones';
 import ModalConfirmacion from '../components/ModalConfirmacion';
 import mascota from "../assets/mascota.png";
 import "../styles/VisualizarCarreras.css";
+import useToast from '../hooks/useToast';
 
 export default function VisualizarCarreras() {
   const { facultadId } = useParams();
@@ -24,6 +25,7 @@ export default function VisualizarCarreras() {
   const [modalOpen, setModalOpen] = useState(false);
   const [carreraAEliminar, setCarreraAEliminar] = useState(null);
   const [eliminando, setEliminando] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -113,10 +115,10 @@ export default function VisualizarCarreras() {
       
       setModalOpen(false);
       setCarreraAEliminar(null);
-      alert("Carrera eliminada correctamente");
+      toast.success("Carrera eliminada correctamente");
     } catch (err) {
       console.error("Error al eliminar carrera:", err);
-      alert("No se pudo eliminar la carrera. Por favor, inténtalo de nuevo.");
+      toast.error("No se pudo eliminar la carrera. Por favor, inténtalo de nuevo.");
     } finally {
       setEliminando(false);
     }

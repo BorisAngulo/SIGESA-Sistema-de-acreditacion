@@ -3,8 +3,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { getAllDocumentos, createDocumentoGlobal, downloadDocumento } from '../services/api';
 import ModalAsociacionesDocumento from '../components/ModalAsociacionesDocumento';
 import ModalSubirDocumentoGlobal from '../components/ModalSubirDocumentoGlobal';
-import { FileText, Search, Eye, Calendar, User, Hash, Plus, Download } from 'lucide-react';
+import { FileText, Search, Eye, Calendar, Hash, Plus, Download } from 'lucide-react';
 import '../styles/DocumentosScreen.css';
+import useToast from '../hooks/useToast';
 
 const DocumentosScreen = () => {
   const { hasRole } = useAuth();
@@ -17,6 +18,7 @@ const DocumentosScreen = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [downloadingDocuments, setDownloadingDocuments] = useState(new Set());
+  const toast = useToast();
 
   // Verificar si el usuario tiene permisos
   const tienePermisoCompleto = hasRole('Admin') || hasRole('Tecnico');
@@ -133,7 +135,7 @@ const DocumentosScreen = () => {
       
       if (result && result.exito) {
         console.log('Documento subido exitosamente:', result);
-        // Recargar la lista de documentos
+        toast.success('Documento subido exitosamente');
         await cargarDocumentos();
         setShowUploadModal(false);
       } else {
@@ -141,6 +143,7 @@ const DocumentosScreen = () => {
       }
     } catch (error) {
       console.error('Error al subir documento:', error);
+      toast.error(error.message || 'Error al subir el documento');
       throw error;
     } finally {
       setIsUploading(false);
@@ -149,15 +152,14 @@ const DocumentosScreen = () => {
 
   const handleDescargarDocumento = async (documento) => {
     try {
-      console.log('Descargando documento:', documento.nombre_documento);
-      
+      toast.success(`Iniciando descarga de ${documento.nombre_documento}`);
       // Agregar el documento a la lista de descargas en progreso
       setDownloadingDocuments(prev => new Set(prev).add(documento.id));
       
       await downloadDocumento(documento.id);
     } catch (error) {
       console.error('Error al descargar documento:', error);
-      alert('Error al descargar el documento: ' + (error.message || 'Error desconocido'));
+      toast.error('Error al descargar el documento: ' + (error.message || 'Error desconocido'));
     } finally {
       // Remover el documento de la lista de descargas en progreso
       setDownloadingDocuments(prev => {

@@ -3,7 +3,7 @@ import './UserModal.css';
 
 const ConfirmDeleteModal = ({ user, onClose, onConfirm }) => {
   const userRole = user.roles && user.roles.length > 0 ? user.roles[0].name : 'Sin rol';
-  
+
   const getRoleDisplayName = (roleName) => {
     const roleNames = {
       'Admin': 'Administrador',

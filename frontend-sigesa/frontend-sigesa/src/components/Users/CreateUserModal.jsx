@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createUserAPI, getRolesAPI } from '../../services/userAPI';
 import { getFacultades, getCarrerasByFacultad } from '../../services/api';
 import './UserModal.css';
+import useToast from '../../hooks/useToast';
 
 const CreateUserModal = ({ onClose, onUserCreated, token }) => {
   const [formData, setFormData] = useState({
@@ -21,6 +22,7 @@ const CreateUserModal = ({ onClose, onUserCreated, token }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
+  const toast = useToast();
 
   useEffect(() => {
     loadRoles();
@@ -175,6 +177,7 @@ const CreateUserModal = ({ onClose, onUserCreated, token }) => {
       
       if (response.success) {
         onUserCreated(response.data);
+        toast.success('Usuario creado exitosamente');
       } else {
         if (response.validationErrors) {
           setValidationErrors(response.validationErrors);
