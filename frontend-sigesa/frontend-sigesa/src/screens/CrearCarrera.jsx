@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { createCarrera, getFacultades } from '../services/api';
-import { ArrowLeft, Save, AlertCircle, BookOpen, Code, Globe, CheckCircle, X } from 'lucide-react';
+import { ArrowLeft, Save, AlertCircle, BookOpen, Code, Globe } from 'lucide-react';
 import ModalConfirmacionCreacion from '../components/ModalConfirmacionCreacion';
 import "../styles/CrearCarrera.css";
 import useToast from '../hooks/useToast';
@@ -39,7 +39,6 @@ export default function CrearCarrera() {
         setFacultad(facultadEncontrada);
       } catch (error) {
         console.error('Error al cargar facultad:', error);
-        toast.error('Error al cargar la información de la facultad');
       } finally {
         setLoadingFacultad(false);
       }

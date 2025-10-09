@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createUserAPI, getRolesAPI } from '../../services/userAPI';
 import { getFacultades, getCarrerasByFacultad } from '../../services/api';
 import './UserModal.css';
@@ -24,12 +24,7 @@ const CreateUserModal = ({ onClose, onUserCreated, token }) => {
   const [validationErrors, setValidationErrors] = useState({});
   const toast = useToast();
 
-  useEffect(() => {
-    loadRoles();
-    loadFacultades();
-  }, []);
-
-  const loadRoles = async () => {
+  const loadRoles = useCallback(async () => {
     try {
       const response = await getRolesAPI(token);
       if (response.success) {
@@ -40,9 +35,9 @@ const CreateUserModal = ({ onClose, onUserCreated, token }) => {
     } catch (error) {
       console.error('Error al cargar roles:', error);
     }
-  };
+  }, [token]);
 
-  const loadFacultades = async () => {
+  const loadFacultades = useCallback(async () => {
     try {
       const response = await getFacultades();
       if (response && response.length > 0) {
@@ -51,7 +46,26 @@ const CreateUserModal = ({ onClose, onUserCreated, token }) => {
     } catch (error) {
       console.error('Error al cargar facultades:', error);
     }
-  };
+  }, []);
+
+  const loadCarrerasByFacultad = useCallback(async (facultadId) => {
+    try {
+      const response = await getCarrerasByFacultad(facultadId);
+      if (response && response.length > 0) {
+        setCarreras(response);
+      } else {
+        setCarreras([]);
+      }
+    } catch (error) {
+      console.error('Error al cargar carreras:', error);
+      setCarreras([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRoles();
+    loadFacultades();
+  }, [loadRoles, loadFacultades]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -101,19 +115,6 @@ const CreateUserModal = ({ onClose, onUserCreated, token }) => {
     }
   };
 
-  const loadCarrerasByFacultad = async (facultadId) => {
-    try {
-      const response = await getCarrerasByFacultad(facultadId);
-      if (response && response.length > 0) {
-        setCarreras(response);
-      } else {
-        setCarreras([]);
-      }
-    } catch (error) {
-      console.error('Error al cargar carreras:', error);
-      setCarreras([]);
-    }
-  };
 
   const validateForm = () => {
     const errors = {};

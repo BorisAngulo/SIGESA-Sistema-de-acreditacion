@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Calendar, Edit3 } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import DateProcessModal from '../components/DateProcessModal';
 import useToast from '../hooks/useToast';
 import { 
@@ -107,7 +107,7 @@ const EditDateProcessForm = ({ fasesData, onClose, onSuccess }) => {
       console.log('ID de carrera-modalidad:', fasesData.carreraModalidadId || fasesData.id);
 
       // Llamar a la API para actualizar las fechas
-      const resultado = await updateCarreraModalidadFechas(
+      await updateCarreraModalidadFechas(
         fasesData.carreraModalidadId || fasesData.id, 
         fechasData
       );
@@ -575,7 +575,7 @@ const FasesScreen = () => {
       verificandoEnProcesoRef.current = false;
       console.log('✅ Verificación completada');
     }
-  }, [fasesData?.carreraId, fasesData?.modalidadId, fasesData?.carreraModalidadId, fasesData?.fromCarrerasModalidadesAdmin, fasesData?.fecha_ini_proceso, fasesData?.fecha_fin_proceso]);
+  }, [fasesData?.carreraId, fasesData?.modalidadId, fasesData?.carreraModalidadId, fasesData?.fromCarrerasModalidadesAdmin, fasesData?.fecha_ini_proceso, fasesData?.fecha_fin_proceso, fasesData?.estado_modalidad]);
 
   useEffect(() => {
     const processLocationData = async () => {
@@ -788,9 +788,10 @@ const FasesScreen = () => {
       fasesData?.carreraNombre,
       fasesData?.modalidadData,
       location.state?.subfaseActualizada,
-      // loadSubfasesForFase removido - ya no es necesario con endpoint consolidado
       showDateProcessModal,
-      continuarCargaFases
+      continuarCargaFases,
+      fases.length,
+      fasesData?.fecha_ini_proceso
     ]);
 
   // ✅ OPTIMIZACIÓN: useEffect optimizado para verificar el estado del proceso
@@ -814,9 +815,10 @@ const FasesScreen = () => {
     verificarEstadoProceso, 
     fasesData?.carreraId, 
     fasesData?.modalidadId, 
-    fasesData?.fromCarrerasModalidadesAdmin
-    // ❌ REMOVIDO: fasesData?.fecha_ini_proceso, fasesData?.fecha_fin_proceso
-    // Estas dependencias causaban múltiples re-renderizados innecesarios
+    fasesData?.fromCarrerasModalidadesAdmin,
+    botonFinalizarHabilitado, // Agregar esta dependencia
+    fasesData?.fecha_fin_proceso, // Agregar esta dependencia
+    fasesData?.fecha_ini_proceso 
   ]);
 
   const toggleFase = (faseId) => {

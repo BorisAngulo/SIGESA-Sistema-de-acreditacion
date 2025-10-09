@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { updateUserAPI, getRolesAPI } from '../../services/userAPI';
 import { getFacultades, getCarrerasByFacultad } from '../../services/api';
 import './UserModal.css';
@@ -23,18 +23,8 @@ const EditUserModal = ({ user, onClose, onUserUpdated, token }) => {
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
   const toast = useToast();
-
-  useEffect(() => {
-    loadRoles();
-    loadFacultades();
-    
-    // Si el usuario es coordinador y tiene carrera, cargar las carreras de esa facultad
-    if (user.roles && user.roles.length > 0 && user.roles[0].name === 'Coordinador' && user.carrera?.facultad?.id) {
-      loadCarrerasByFacultad(user.carrera.facultad.id);
-    }
-  }, []);
-
-  const loadRoles = async () => {
+  
+  const loadRoles = useCallback(async () => {
     try {
       const response = await getRolesAPI(token);
       if (response.success) {
@@ -45,9 +35,9 @@ const EditUserModal = ({ user, onClose, onUserUpdated, token }) => {
     } catch (error) {
       console.error('Error al cargar roles:', error);
     }
-  };
+  }, [token]);
 
-  const loadFacultades = async () => {
+  const loadFacultades = useCallback(async () => {
     try {
       const response = await getFacultades();
       if (response && response.length > 0) {
@@ -56,9 +46,9 @@ const EditUserModal = ({ user, onClose, onUserUpdated, token }) => {
     } catch (error) {
       console.error('Error al cargar facultades:', error);
     }
-  };
+  }, []);
 
-  const loadCarrerasByFacultad = async (facultadId) => {
+  const loadCarrerasByFacultad = useCallback(async (facultadId) => {
     try {
       const response = await getCarrerasByFacultad(facultadId);
       if (response && response.length > 0) {
@@ -70,7 +60,17 @@ const EditUserModal = ({ user, onClose, onUserUpdated, token }) => {
       console.error('Error al cargar carreras:', error);
       setCarreras([]);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadRoles();
+    loadFacultades();
+    
+    // Si el usuario es coordinador y tiene carrera, cargar las carreras de esa facultad
+    if (user.roles && user.roles.length > 0 && user.roles[0].name === 'Coordinador' && user.carrera?.facultad?.id) {
+      loadCarrerasByFacultad(user.carrera.facultad.id);
+    }
+  }, [loadRoles, loadFacultades, loadCarrerasByFacultad, user.roles, user.carrera?.facultad?.id]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

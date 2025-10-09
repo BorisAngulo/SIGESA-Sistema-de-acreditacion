@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 // import { toast, ToastContainer } from 'react-toastify';
 // import 'react-toastify/dist/ReactToastify.css';
 import {
@@ -25,11 +25,7 @@ const BackupScreen = () => {
   });
   const toast = useToast();
 
-  useEffect(() => {
-    loadData();
-  }, [filters]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const [backupsData, statsData] = await Promise.all([
@@ -44,7 +40,11 @@ const BackupScreen = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, toast]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleCreateBackup = async () => {
     try {
