@@ -9,7 +9,8 @@ const Header = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showModalidadesMenu, setShowModalidadesMenu] = useState(false);
   const [showAdminMenu, setShowAdminMenu] = useState(false);
-  const [useImageBackground, setUseImageBackground] = useState(true); // Nueva opción para alternar fondo
+  const [showReportesMenu, setShowReportesMenu] = useState(false); 
+  const [useImageBackground, setUseImageBackground] = useState(true);
   const navigate = useNavigate();
 
   // Referencias para detectar clics fuera de los menús
@@ -17,6 +18,7 @@ const Header = () => {
   const modalidadesTecnicoRef = useRef(null);
   const adminRef = useRef(null);
   const userMenuRef = useRef(null);
+  const reportesRef = useRef(null); 
 
   // Efecto para cerrar menús al hacer clic fuera
   useEffect(() => {
@@ -32,6 +34,10 @@ const Header = () => {
       }
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setShowUserMenu(false);
+      }
+     
+      if (reportesRef.current && !reportesRef.current.contains(event.target)) {
+        setShowReportesMenu(false);
       }
     };
 
@@ -55,6 +61,10 @@ const Header = () => {
     setShowAdminMenu(!showAdminMenu);
   };
 
+  const handleReportesClick = () => {
+    setShowReportesMenu(!showReportesMenu);
+  };
+
   const handleAdminOptionSelect = (route) => {
     setShowAdminMenu(false);
     navigate(route);
@@ -67,6 +77,11 @@ const Header = () => {
     } else if (modalidad === 'ceub') {
       navigate('/modalidades/ceub');
     }
+  };
+
+  const handleReporteSelect = (route) => {
+    setShowReportesMenu(false);
+    navigate(route);
   };
 
   const renderNavLinks = () => {
@@ -82,9 +97,7 @@ const Header = () => {
           <NavLink to="/login" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
             Iniciar Sesión
           </NavLink>
-          
         </>
-        
       );
     }
 
@@ -173,9 +186,39 @@ const Header = () => {
             <NavLink to="/facultad" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
               Facultades
             </NavLink>
-            <NavLink to="/reportes" className={({ isActive }) => isActive ? 'header-link active' : 'header-link'}>
-              Reportes
-            </NavLink>
+            
+            <div className="modalidades-dropdown" ref={reportesRef}>
+              <button 
+                className="modalidades-toggle header-link"
+                onClick={handleReportesClick}
+              >
+                Reportes
+                <span className={`dropdown-arrow ${showReportesMenu ? 'open' : ''}`}>▼</span>
+              </button>
+              
+              {showReportesMenu && (
+                <div className="modalidades-dropdown-menu">
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => handleReporteSelect('/reportes/facultades')}
+                  >
+                    Facultades
+                  </button>
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => handleReporteSelect('/reportes/carreras')}
+                  >
+                    Carreras
+                  </button>
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => handleReporteSelect('/reportes/modalidades')}
+                  >
+                    Modalidades
+                  </button>
+                </div>
+              )}
+            </div>
           </>
         );
       
@@ -236,7 +279,6 @@ const Header = () => {
             </NavLink>
           </>
         );
-    
       
       default:
         return commonLinks;
@@ -247,7 +289,6 @@ const Header = () => {
     <header className={`header-container ${useImageBackground ? 'header-with-image subtle-waves' : 'header-original'}`}>
       <div className="header-top">
         <img src={departamento} alt="Logo general" className="header-logo" />
-        {/* Botón para alternar entre fondos - solo visible para desarrollo */}
         <button 
           className="background-toggle"
           onClick={() => setUseImageBackground(!useImageBackground)}

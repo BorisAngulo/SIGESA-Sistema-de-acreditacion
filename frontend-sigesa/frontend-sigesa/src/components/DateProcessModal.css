@@ -5,6 +5,10 @@
   width: 90%;
 }
 
+.date-process-modal .modal-header h2 {
+  color: white;
+}
+
 .process-info {
   background: #f8f9fa;
   padding: 16px;
