@@ -14,19 +14,48 @@ class FilaPlameSeeder extends Seeder
      */
     public function run()
     {
+        // Limpiar filas existentes
+        DB::table('fila_plames')->truncate();
+        
         // Obtener todas las modalidades para asociar las filas
         $modalidades = DB::table('modalidades')->get();
         
-        $filasBase = [
-            'Planificación',
-            'Organización', 
-            'Dirección',
-            'Coordinación',
-            'Control'
+        // Definir filas específicas para cada modalidad
+        $filasPorModalidad = [
+            'ARCU-SUR' => [
+                'Contexto Institucional',
+                'Proyecto Académico', 
+                'Comunidad Universitaria',
+                'Infraestructura'
+            ],
+            'CEUB' => [
+                'Normas Juridicas Institucionales',
+                'Misión y Objetivo', 
+                'Currículo',
+                'Administración y gestión académica',
+                'Docentes',
+                'Estudiantes',
+                'Investigación e interacción social',
+                'Recursos educativos',
+                'Administrativos financieros',
+                'Infraestructura'
+            ]
         ];
 
         foreach ($modalidades as $modalidad) {
-            foreach ($filasBase as $nombreFila) {
+            // Determinar qué filas usar según el nombre de la modalidad
+            $filasAUsar = [];
+            
+            if (stripos($modalidad->nombre_modalidad, 'ARCU') !== false || stripos($modalidad->nombre_modalidad, 'SUR') !== false) {
+                $filasAUsar = $filasPorModalidad['ARCU-SUR'];
+            } elseif (stripos($modalidad->nombre_modalidad, 'CEUB') !== false) {
+                $filasAUsar = $filasPorModalidad['CEUB'];
+            } else {
+                // Por defecto usar CEUB si no se identifica la modalidad
+                $filasAUsar = $filasPorModalidad['CEUB'];
+            }
+
+            foreach ($filasAUsar as $nombreFila) {
                 DB::table('fila_plames')->insert([
                     'nombre_fila_plame' => $nombreFila,
                     'id_modalidad' => $modalidad->id,

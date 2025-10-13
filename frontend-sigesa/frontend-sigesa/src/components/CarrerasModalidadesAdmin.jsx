@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Building2, 
@@ -13,10 +13,10 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  Download,
   Upload,
   Award,
-  Trash2
+  Trash2,
+  Grid3X3
 } from 'lucide-react';
 import { 
   getCarrerasModalidadesDetallesCompletos, 
@@ -25,6 +25,7 @@ import {
   eliminarCarreraModalidad
 } from '../services/api';
 import ModalSubirCertificado from './ModalSubirCertificado';
+import PlameModal from './PlameModal';
 import './CarrerasModalidadesAdmin.css';
 
 const CarrerasModalidadesAdmin = () => {
@@ -47,6 +48,10 @@ const CarrerasModalidadesAdmin = () => {
   const [carreraModalidadToDelete, setCarreraModalidadToDelete] = useState(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Estados para modal PLAME
+  const [showPlameModal, setShowPlameModal] = useState(false);
+  const [selectedCarreraModalidadPlame, setSelectedCarreraModalidadPlame] = useState(null);
 
   useEffect(() => {
     cargarCarrerasModalidades();
@@ -188,51 +193,21 @@ const CarrerasModalidadesAdmin = () => {
     }
   };
 
-  const getEstadoBadge = (estado, carreraModalidad = null) => {
-    // Si se proporciona la carrera-modalidad, usar la lógica avanzada
-    if (carreraModalidad) {
-      const estadoProceso = getEstadoProceso(carreraModalidad);
-      return (
-        <span className={`estado-badge ${estadoProceso.clase}`}>
-          {estadoProceso.icono}
-          {estadoProceso.texto}
-        </span>
-      );
-    }
-
-    // Lógica para fases y subfases
-    if (estado === true) {
-      return (
-        <span className="estado-badge completado">
-          <CheckCircle size={12} />
-          Completado
-        </span>
-      );
-    } else if (estado === false) {
-      return (
-        <span className="estado-badge en-proceso">
-          <Clock size={12} />
-          En Proceso
-        </span>
-      );
-    } else {
-      return (
-        <span className="estado-badge pendiente">
-          <Clock size={12} />
-          Pendiente
-        </span>
-      );
-    }
+  // Funciones para manejar el modal PLAME
+  const handleAbrirPlame = (carreraModalidad) => {
+    setSelectedCarreraModalidadPlame(carreraModalidad);
+    setShowPlameModal(true);
   };
 
-  const formatFecha = (fecha) => {
-    if (!fecha) return 'No definida';
-    return new Date(fecha).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const handleCerrarPlame = () => {
+    setShowPlameModal(false);
+    setSelectedCarreraModalidadPlame(null);
   };
+
+  // Validar que carrerasModalidades sea un array (memoizado)
+  const carrerasModalidadesArray = useMemo(() => {
+    return Array.isArray(carrerasModalidades) ? carrerasModalidades : [];
+  }, [carrerasModalidades]);
 
   const getEstadoProceso = (carreraModalidad) => {
     const ahora = new Date();
@@ -240,14 +215,15 @@ const CarrerasModalidadesAdmin = () => {
     const fechaFin = carreraModalidad.fecha_fin_proceso ? new Date(carreraModalidad.fecha_fin_proceso) : null;
     const estado = carreraModalidad.estado_modalidad;
 
-    console.log('Evaluando estado para carrera-modalidad:', {
-      id: carreraModalidad.id,
-      ahora: ahora.toISOString(),
-      fechaInicio: fechaInicio?.toISOString(),
-      fechaFin: fechaFin?.toISOString(),
-      estado: estado,
-      carreraNombre: carreraModalidad.carrera?.nombre
-    });
+    // Log solo en modo debug cuando sea necesario
+    // console.log('Evaluando estado para carrera-modalidad:', {
+    //   id: carreraModalidad.id,
+    //   ahora: ahora.toISOString(),
+    //   fechaInicio: fechaInicio?.toISOString(),
+    //   fechaFin: fechaFin?.toISOString(),
+    //   estado: estado,
+    //   carreraNombre: carreraModalidad.carrera?.nombre
+    // });
 
     // Si el estado es true, está aprobado
     if (estado === true) {
@@ -296,29 +272,88 @@ const CarrerasModalidadesAdmin = () => {
     };
   };
 
-  // Validar que carrerasModalidades sea un array
-  const carrerasModalidadesArray = Array.isArray(carrerasModalidades) ? carrerasModalidades : [];
+  // Memoizar los estados calculados para evitar recálculos constantes
+  const estadosCalculados = useMemo(() => {
+    const estados = {};
+    carrerasModalidadesArray.forEach(cm => {
+      estados[cm.id] = getEstadoProceso(cm);
+    });
+    return estados;
+  }, [carrerasModalidadesArray]);
 
-  // Obtener listas únicas para filtros
-  const facultadesUnicas = [...new Set(carrerasModalidadesArray
-    .filter(cm => cm.carrera?.facultad?.nombre)
-    .map(cm => cm.carrera.facultad.nombre))];
-  const modalidadesUnicas = [...new Set(carrerasModalidadesArray
-    .filter(cm => cm.modalidad?.nombre)
-    .map(cm => cm.modalidad.nombre))];
+  const getEstadoBadge = (estado, carreraModalidad = null) => {
+    // Si se proporciona la carrera-modalidad, usar la lógica avanzada
+    if (carreraModalidad) {
+      const estadoProceso = estadosCalculados[carreraModalidad.id] || getEstadoProceso(carreraModalidad);
+      return (
+        <span className={`estado-badge ${estadoProceso.clase}`}>
+          {estadoProceso.icono}
+          {estadoProceso.texto}
+        </span>
+      );
+    }
 
-  // Filtrar datos
-  const carrerasModalidadesFiltradas = carrerasModalidadesArray.filter(cm => {
-    const matchesSearch = 
-      (cm.carrera?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (cm.carrera?.facultad?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (cm.modalidad?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase());
+    // Lógica para fases y subfases
+    if (estado === true) {
+      return (
+        <span className="estado-badge completado">
+          <CheckCircle size={12} />
+          Completado
+        </span>
+      );
+    } else if (estado === false) {
+      return (
+        <span className="estado-badge en-proceso">
+          <Clock size={12} />
+          En Proceso
+        </span>
+      );
+    } else {
+      return (
+        <span className="estado-badge pendiente">
+          <Clock size={12} />
+          Pendiente
+        </span>
+      );
+    }
+  };
 
-    const matchesFacultad = !selectedFacultad || cm.carrera?.facultad?.nombre === selectedFacultad;
-    const matchesModalidad = !selectedModalidad || cm.modalidad?.nombre === selectedModalidad;
+  const formatFecha = (fecha) => {
+    if (!fecha) return 'No definida';
+    return new Date(fecha).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
-    return matchesSearch && matchesFacultad && matchesModalidad;
-  });
+  // Obtener listas únicas para filtros con optimización
+  const facultadesUnicas = useMemo(() => {
+    return [...new Set(carrerasModalidadesArray
+      .filter(cm => cm.carrera?.facultad?.nombre)
+      .map(cm => cm.carrera.facultad.nombre))];
+  }, [carrerasModalidadesArray]);
+
+  const modalidadesUnicas = useMemo(() => {
+    return [...new Set(carrerasModalidadesArray
+      .filter(cm => cm.modalidad?.nombre)
+      .map(cm => cm.modalidad.nombre))];
+  }, [carrerasModalidadesArray]);
+
+  // Filtrar datos con optimización
+  const carrerasModalidadesFiltradas = useMemo(() => {
+    return carrerasModalidadesArray.filter(cm => {
+      const matchesSearch = 
+        (cm.carrera?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (cm.carrera?.facultad?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (cm.modalidad?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesFacultad = !selectedFacultad || cm.carrera?.facultad?.nombre === selectedFacultad;
+      const matchesModalidad = !selectedModalidad || cm.modalidad?.nombre === selectedModalidad;
+
+      return matchesSearch && matchesFacultad && matchesModalidad;
+    });
+  }, [carrerasModalidadesArray, searchTerm, selectedFacultad, selectedModalidad]);
 
   if (loading) {
     return (
@@ -456,6 +491,19 @@ const CarrerasModalidadesAdmin = () => {
                       Subir Certificado
                     </button>
                   )}
+                  
+                  {/* Botón PLAME */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAbrirPlame(cm);
+                    }}
+                    className="btn-plame"
+                    title="Matriz PLAME"
+                  >
+                    <Grid3X3 size={16} />
+                    PLAME
+                  </button>
                   
                   {/* Botón de eliminar */}
                   <button
@@ -667,6 +715,14 @@ const CarrerasModalidadesAdmin = () => {
             </div>
           </div>
         </div>
+      )}
+      
+      {/* Modal PLAME */}
+      {showPlameModal && selectedCarreraModalidadPlame && (
+        <PlameModal
+          carreraModalidad={selectedCarreraModalidadPlame}
+          onClose={handleCerrarPlame}
+        />
       )}
     </div>
   );

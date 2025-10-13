@@ -2284,30 +2284,104 @@ export const getTiposEstrategiasFoda = async () => {
 
 // ===== FUNCIONES DE PLAME =====
 
-// Obtener PLAME por subfase
-export const getPlameBySubfase = async (subfaseId) => {
+// Verificar si existe PLAME para carrera-modalidad
+export const verificarPlameExiste = async (carreraModalidadId) => {
   try {
-    console.log('🔍 Obteniendo PLAME para subfase ID:', subfaseId);
+    // Verificar si hay token de autenticación
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('No hay token de autenticación. Por favor, inicie sesión nuevamente.');
+    }
+
+    console.log('🔍 Verificando existencia de PLAME para carrera-modalidad ID:', carreraModalidadId);
     
-    const res = await fetch(`${API_URL}/plame/subfase/${subfaseId}`, {
+    const res = await fetch(`${API_URL}/plame/verificar/${carreraModalidadId}`, {
       method: "GET",
       headers: getAuthHeaders(),
     });
     
+    // Manejar respuestas específicas
+    if (res.status === 401) {
+      throw new Error('Sesión expirada. Por favor, inicie sesión nuevamente.');
+    }
+    
+    if (res.status === 403) {
+      throw new Error('No tiene permisos para acceder a esta funcionalidad.');
+    }
+    
     if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Error response:', errorText);
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    console.log('✅ Verificación PLAME:', data);
+    
+    if (data.estado && data.datos) {
+      return data.datos;
+    } else {
+      throw new Error(data.mensaje || data.error || 'Error al verificar PLAME');
+    }
+  } catch (error) {
+    console.error('❌ Error al verificar PLAME:', error);
+    
+    // Si es error de red o fetch, proporcionar mensaje más claro
+    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+      throw new Error('Error de conexión con el servidor. Verifique que el servidor esté ejecutándose.');
+    }
+    
+    throw error;
+  }
+};
+
+// Obtener PLAME por carrera-modalidad
+export const getPlameByCarreraModalidad = async (carreraModalidadId) => {
+  try {
+    // Verificar si hay token de autenticación
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('No hay token de autenticación. Por favor, inicie sesión nuevamente.');
+    }
+
+    console.log('🔍 Obteniendo PLAME para carrera-modalidad ID:', carreraModalidadId);
+    
+    const res = await fetch(`${API_URL}/plame/carrera-modalidad/${carreraModalidadId}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    // Manejar respuestas específicas
+    if (res.status === 401) {
+      throw new Error('Sesión expirada. Por favor, inicie sesión nuevamente.');
+    }
+    
+    if (res.status === 403) {
+      throw new Error('No tiene permisos para acceder a esta funcionalidad.');
+    }
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Error response:', errorText);
       throw new Error(`Error ${res.status}: ${res.statusText}`);
     }
     
     const data = await res.json();
     console.log('📊 PLAME obtenido:', data);
     
-    if (data.exito && data.datos) {
+    if (data.estado && data.datos) {
       return data.datos;
     } else {
-      throw new Error(data.error || 'Error al obtener PLAME');
+      throw new Error(data.mensaje || data.error || 'Error al obtener PLAME');
     }
   } catch (error) {
     console.error('❌ Error al obtener PLAME:', error);
+    
+    // Si es error de red o fetch, proporcionar mensaje más claro
+    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+      throw new Error('Error de conexión con el servidor. Verifique que el servidor esté ejecutándose.');
+    }
+    
     throw error;
   }
 };
@@ -2317,10 +2391,13 @@ export const actualizarMatrizPlame = async (plameId, matrizData) => {
   try {
     console.log('💾 Actualizando matriz PLAME:', plameId, matrizData);
     
-    const res = await fetch(`${API_URL}/plame/${plameId}/matriz`, {
+    const res = await fetch(`${API_URL}/plame/matriz`, {
       method: "PUT",
       headers: getAuthHeaders(),
-      body: JSON.stringify(matrizData),
+      body: JSON.stringify({
+        id_plame: plameId,
+        ...matrizData
+      }),
     });
     
     if (!res.ok) {
@@ -2347,7 +2424,7 @@ export const getEstadisticasPlame = async (plameId) => {
   try {
     console.log('📊 Obteniendo estadísticas PLAME ID:', plameId);
     
-    const res = await fetch(`${API_URL}/plame/${plameId}/estadisticas`, {
+    const res = await fetch(`${API_URL}/plame/estadisticas/${plameId}`, {
       method: "GET",
       headers: getAuthHeaders(),
     });
@@ -2407,28 +2484,37 @@ export const actualizarRelacionPlame = async (plameId, filaId, columnaId, valor)
   try {
     console.log('🔄 Actualizando relación PLAME:', { plameId, filaId, columnaId, valor });
     
-    const res = await fetch(`${API_URL}/plame/${plameId}/relacion`, {
+    const res = await fetch(`${API_URL}/plame/relacion`, {
       method: "PUT",
       headers: getAuthHeaders(),
       body: JSON.stringify({
-        fila_id: filaId,
-        columna_id: columnaId,
-        valor: valor
+        id_plame: plameId,
+        id_fila_plame: filaId,
+        id_columna_plame: columnaId,
+        valor_relacion_plame: valor
       }),
     });
     
     if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.error || `Error ${res.status}: ${res.statusText}`);
+      let errorMessage = `Error ${res.status}: ${res.statusText}`;
+      try {
+        const errorData = await res.json();
+        errorMessage = errorData.mensaje || errorData.error || errorMessage;
+      } catch (e) {
+        // Si no se puede parsear el JSON, usar el mensaje por defecto
+      }
+      throw new Error(errorMessage);
     }
     
     const data = await res.json();
+    console.log('🔍 Respuesta del servidor:', data);
     
-    if (data.exito && data.datos) {
+    // Verificar diferentes formatos de respuesta exitosa
+    if (data.exito === true || res.status === 200) {
       console.log('✅ Relación PLAME actualizada exitosamente');
-      return data.datos;
+      return data.datos || data;
     } else {
-      throw new Error(data.error || 'Error al actualizar relación PLAME');
+      throw new Error(data.mensaje || data.error || 'Error al actualizar relación PLAME');
     }
   } catch (error) {
     console.error('❌ Error al actualizar relación PLAME:', error);
@@ -2634,5 +2720,28 @@ export const getReportesCarrerasPorFacultad = async (facultadId) => {
     console.error('❌ Error al obtener carreras por facultad:', error);
     throw error;
   }
+};
+
+// ===== FUNCIONES DE UTILIDAD =====
+
+// Verificar conectividad con el servidor
+export const verificarConectividadServidor = async () => {
+  try {
+    const res = await fetch(`${API_URL}/health`, {
+      method: "GET",
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    return res.ok;
+  } catch (error) {
+    console.error('Error de conectividad:', error);
+    return false;
+  }
+};
+
+// Verificar autenticación actual
+export const verificarAutenticacion = () => {
+  const token = getAuthToken();
+  return !!token;
 };
 

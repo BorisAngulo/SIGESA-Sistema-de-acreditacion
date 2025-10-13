@@ -115,7 +115,6 @@ const CreateUserModal = ({ onClose, onUserCreated, token }) => {
     }
   };
 
-
   const validateForm = () => {
     const errors = {};
     

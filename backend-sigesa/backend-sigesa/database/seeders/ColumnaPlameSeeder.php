@@ -14,13 +14,22 @@ class ColumnaPlameSeeder extends Seeder
      */
     public function run()
     {
+        // Limpiar columnas existentes
+        DB::table('columna_plames')->truncate();
+        
         $columnas = [
-            'Eficiencia',
-            'Eficacia', 
-            'Efectividad',
-            'Productividad',
-            'Calidad',
-            'Innovación'
+            'Objetivo',
+            'Producto', 
+            'Actividades',
+            'Indicador',
+            'Validez indicador',
+            'Resultado esperado',
+            'Resultado alcanzado (carrera)',
+            'Resultado alcanzado (DUEA)',
+            'Costo esperado',
+            'Costo alcanzado',
+            'Tiempo esperado',
+            'Tiempo alcanzado',
         ];
 
         foreach ($columnas as $nombreColumna) {

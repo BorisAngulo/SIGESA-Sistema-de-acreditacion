@@ -7,7 +7,7 @@ use App\Models\Plame;
 use App\Models\FilaPlame;
 use App\Models\ColumnaPlame;
 use App\Models\RelacionPlame;
-use App\Models\SubFase;
+use App\Models\CarreraModalidad;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\ApiException;
@@ -18,32 +18,65 @@ class PlameController extends BaseApiController
     use ApiResponseTrait;
 
     /**
-     * Obtener matriz PLAME por subfase
+     * Verificar si existe PLAME para carrera-modalidad
      */
-    public function getPlameBySubfase($subfaseId)
+    public function verificarPlameExiste($carreraModalidadId)
     {
         try {
-            $subfase = SubFase::find($subfaseId);
-            if (!$subfase) {
-                throw ApiException::notFound('subfase', $subfaseId);
+            $carreraModalidad = CarreraModalidad::find($carreraModalidadId);
+            if (!$carreraModalidad) {
+                throw ApiException::notFound('carrera-modalidad', $carreraModalidadId);
             }
 
-            // Obtener PLAME de la subfase
-            $plame = Plame::where('id_subfase', $subfaseId)->first();
+            $plameExiste = Plame::where('id_carreraModalidad', $carreraModalidadId)->exists();
 
+            return $this->successResponse([
+                'existe' => $plameExiste,
+                'carrera_modalidad_id' => $carreraModalidadId,
+                'carrera' => $carreraModalidad->carrera?->nombre,
+                'modalidad' => $carreraModalidad->modalidad?->nombre
+            ], $plameExiste ? 'PLAME existe para esta carrera-modalidad' : 'PLAME no existe para esta carrera-modalidad');
+
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * Obtener matriz PLAME por carrera-modalidad (crear si no existe)
+     */
+    public function getPlameByCarreraModalidad($carreraModalidadId)
+    {
+        try {
+            $carreraModalidad = CarreraModalidad::with(['carrera', 'modalidad'])->find($carreraModalidadId);
+            if (!$carreraModalidad) {
+                throw ApiException::notFound('carrera-modalidad', $carreraModalidadId);
+            }
+
+            // Obtener PLAME de la carrera-modalidad
+            $plame = Plame::where('id_carreraModalidad', $carreraModalidadId)->first();
+
+            $esNuevo = false;
             if (!$plame) {
                 // Si no existe, crear uno nuevo
                 $plame = Plame::create([
-                    'id_subfase' => $subfaseId,
+                    'id_carreraModalidad' => $carreraModalidadId,
                     'tipo_evaluacion_plame' => 'matriz'
                 ]);
+                $esNuevo = true;
+                
+                \Log::info("Nueva matriz PLAME creada para carrera-modalidad: {$carreraModalidadId}");
             }
 
-            // Obtener filas y columnas según la modalidad de la carrera
-            $modalidadId = $subfase->fase->carreraModalidad->modalidad_id;
+            // Obtener filas y columnas
+            $modalidadId = $carreraModalidad->modalidad_id;
             
+            // Las filas dependen de la modalidad
             $filas = FilaPlame::where('id_modalidad', $modalidadId)->get();
-            $columnas = ColumnaPlame::where('id_modalidad', $modalidadId)->get();
+            // Las columnas son genéricas para todas las modalidades
+            $columnas = ColumnaPlame::all();
 
             // Obtener relaciones existentes
             $relaciones = RelacionPlame::where('id_plame', $plame->id)
@@ -66,14 +99,19 @@ class PlameController extends BaseApiController
                 }
             }
 
+            $mensaje = $esNuevo 
+                ? 'Nueva matriz PLAME creada y obtenida exitosamente' 
+                : 'Matriz PLAME obtenida exitosamente';
+
             return $this->successResponse([
                 'plame' => $plame,
-                'subfase' => $subfase,
+                'carreraModalidad' => $carreraModalidad,
                 'filas' => $filas,
                 'columnas' => $columnas,
                 'matriz' => $matriz,
-                'relaciones' => $relaciones
-            ], 'Matriz PLAME obtenida exitosamente');
+                'relaciones' => $relaciones,
+                'esNuevo' => $esNuevo
+            ], $mensaje);
 
         } catch (ApiException $e) {
             return $this->handleApiException($e);
@@ -184,12 +222,27 @@ class PlameController extends BaseApiController
     }
 
     /**
-     * Obtener columnas PLAME por modalidad
+     * Obtener columnas PLAME (genéricas para todas las modalidades)
+     * Nota: Mantiene el parámetro modalidadId por compatibilidad con rutas existentes
      */
-    public function getColumnasByModalidad($modalidadId)
+    public function getColumnasByModalidad($modalidadId = null)
     {
         try {
-            $columnas = ColumnaPlame::where('id_modalidad', $modalidadId)->get();
+            // Las columnas son genéricas, no dependen de la modalidad
+            $columnas = ColumnaPlame::all();
+            return $this->successResponse($columnas, 'Columnas PLAME obtenidas exitosamente');
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * Obtener todas las columnas PLAME
+     */
+    public function getColumnas()
+    {
+        try {
+            $columnas = ColumnaPlame::all();
             return $this->successResponse($columnas, 'Columnas PLAME obtenidas exitosamente');
         } catch (\Exception $e) {
             return $this->handleGeneralException($e);

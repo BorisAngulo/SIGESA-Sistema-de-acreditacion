@@ -218,6 +218,7 @@
 
 .btn-descargar-certificado,
 .btn-subir-certificado,
+.btn-plame,
 .btn-eliminar-carrera-modalidad {
   display: flex;
   align-items: center;
@@ -261,6 +262,23 @@
 }
 
 .btn-subir-certificado:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-plame {
+  background: #8b5cf6;
+  color: white;
+}
+
+.btn-plame:hover:not(:disabled) {
+  background: #7c3aed;
+  transform: translateY(-1px);
+}
+
+.btn-plame:disabled {
   background: #d1d5db;
   color: #9ca3af;
   cursor: not-allowed;
@@ -607,6 +625,7 @@
 
   .btn-descargar-certificado,
   .btn-subir-certificado,
+  .btn-plame,
   .btn-eliminar-carrera-modalidad {
     font-size: 0.75rem;
     padding: 0.4rem 0.6rem;

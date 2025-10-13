@@ -32,7 +32,6 @@ import ModalEscogerDocumento from '../components/ModalEscogerDocumento';
 import ModalDetallesFase from '../components/ModalDetallesFase';
 import FinalizarAcreditacionModal from '../components/FinalizarAcreditacionModal';
 import FodaModal from '../components/FodaModal';
-import PlameModal from '../components/PlameModal';
 import '../styles/FasesScreen.css';
 
 // Componente para el formulario de edición de fechas del proceso
@@ -249,9 +248,8 @@ const FasesScreen = () => {
   const ultimaVerificacionRef = useRef(null);
   const verificandoEnProcesoRef = useRef(false);
 
-  // Estados para modales FODA y PLAME
+  // Estados para modal FODA
   const [showFodaModal, setShowFodaModal] = useState(false);
-  const [showPlameModal, setShowPlameModal] = useState(false);
   const [subfaseSeleccionada, setSubfaseSeleccionada] = useState(null);
 
   // Estado para el modal de edición de fechas de proceso
@@ -399,7 +397,6 @@ const FasesScreen = () => {
               estadoSubfase: subfase.estado_subfase,
               faseId: subfase.fase_id,
               tiene_foda: subfase.tiene_foda || false,
-              tiene_plame: subfase.tiene_plame || false,
               createdAt: subfase.created_at,
               updatedAt: subfase.updated_at,
               progreso: 0, 
@@ -1496,7 +1493,7 @@ const FasesScreen = () => {
     });
   };
 
-  // Funciones para manejar modales FODA y PLAME
+  // Funciones para manejar modal FODA
   const handleAbrirFoda = (subfase) => {
     setSubfaseSeleccionada(subfase);
     setShowFodaModal(true);
@@ -1504,16 +1501,6 @@ const FasesScreen = () => {
 
   const handleCerrarFoda = () => {
     setShowFodaModal(false);
-    setSubfaseSeleccionada(null);
-  };
-
-  const handleAbrirPlame = (subfase) => {
-    setSubfaseSeleccionada(subfase);
-    setShowPlameModal(true);
-  };
-
-  const handleCerrarPlame = () => {
-    setShowPlameModal(false);
     setSubfaseSeleccionada(null);
   };
 
@@ -1788,11 +1775,7 @@ const FasesScreen = () => {
                                       FODA
                                     </span>
                                   )}
-                                  {subfase.tiene_plame && (
-                                    <span className="analysis-badge plame-badge" title="Matriz PLAME habilitada">
-                                      PLAME
-                                    </span>
-                                  )}
+
                                 </div>
                               </div>
                               <span className="subfase-descripcion">{subfase.descripcion}</span>
@@ -1828,18 +1811,7 @@ const FasesScreen = () => {
                                 </button>
                               )}
                               
-                              {subfase.tiene_plame && (
-                                <button 
-                                  className="action-icon plame"
-                                  onClick={() => handleAbrirPlame(subfase)}
-                                  title="Matriz PLAME"
-                                >
-                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                    <path d="M3 3H21V21H3V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                    <path d="M9 3V21M15 3V21M3 9H21M3 15H21" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                                  </svg>
-                                </button>
-                              )}
+
                               
                               <button 
                                 className="action-icon document"
@@ -1949,12 +1921,6 @@ const FasesScreen = () => {
       <FodaModal
         isOpen={showFodaModal}
         onClose={handleCerrarFoda}
-        subfase={subfaseSeleccionada}
-      />
-
-      <PlameModal
-        isOpen={showPlameModal}
-        onClose={handleCerrarPlame}
         subfase={subfaseSeleccionada}
       />
 
