@@ -101,10 +101,6 @@ const EditDateProcessForm = ({ fasesData, onClose, onSuccess }) => {
         fecha_ini_proceso: fechaInicio,
         fecha_fin_proceso: fechaFin
       };
-
-      console.log('Actualizando fechas del proceso:', fechasData);
-      console.log('ID de carrera-modalidad:', fasesData.carreraModalidadId || fasesData.id);
-
       // Llamar a la API para actualizar las fechas
       await updateCarreraModalidadFechas(
         fasesData.carreraModalidadId || fasesData.id, 
@@ -264,9 +260,7 @@ const FasesScreen = () => {
 
   const getModalidadId = async (modalidadNombre) => {
     try {
-      console.log('Buscando modalidad para:', modalidadNombre);
       const modalidades = await getModalidades();
-      console.log(' Modalidades disponibles:', modalidades);
       
       if (!modalidades || modalidades.length === 0) {
         console.error('No se obtuvieron modalidades de la API');
@@ -295,7 +289,6 @@ const FasesScreen = () => {
         });
         
         if (modalidadEncontrada) {
-          console.log('Modalidad encontrada:', modalidadEncontrada);
           return modalidadEncontrada.id;
         }
       }
@@ -315,9 +308,6 @@ const FasesScreen = () => {
       }
       
       console.warn('No se encontró modalidad para:', modalidadNombre);
-      modalidades.forEach(m => {
-        console.log(`  - ID: ${m.id}, Nombre: "${m.nombre}", Descripción: "${m.descripcion || 'N/A'}"`);
-      });
       
       return null;
     } catch (error) {
@@ -436,26 +426,23 @@ const FasesScreen = () => {
   // Función independiente para verificar el estado del proceso
   const verificarEstadoProceso = useCallback(async () => {
     
-    // ✅ OPTIMIZACIÓN: Evitar ejecuciones innecesarias
+    // OPTIMIZACIÓN: Evitar ejecuciones innecesarias
     const claveVerificacion = `${fasesData?.carreraId}-${fasesData?.modalidadId}-${fasesData?.fromCarrerasModalidadesAdmin}`;
     if (ultimaVerificacionRef.current === claveVerificacion && verificandoEnProcesoRef.current) {
-      console.log('⏭️ Omitiendo verificación - ya en proceso para la misma clave:', claveVerificacion);
       return;
     }
     
     if (!fasesData?.carreraId || !fasesData?.modalidadId) {
-      console.log('⏳ Datos incompletos para verificar estado del proceso');
       setBotonFinalizarHabilitado(false);
       return;
     }
 
-    // ✅ OPTIMIZACIÓN: Marcar como en proceso
+    // OPTIMIZACIÓN: Marcar como en proceso
     verificandoEnProcesoRef.current = true;
     ultimaVerificacionRef.current = claveVerificacion;
 
     try {
       setVerificandoEstadoProceso(true);
-      console.log('🔄 Iniciando verificación...');
 
       let procesoActivo = false;
       let carreraModalidadInfo = null;
@@ -464,7 +451,6 @@ const FasesScreen = () => {
       if (fasesData.fromCarrerasModalidadesAdmin) {
         // Primero verificar si ya está finalizada (estado_modalidad = true)
         if (fasesData.estado_modalidad === true) {
-          console.log('🚫 Proceso ya finalizado - estado_modalidad es true');
           procesoActivo = false;
         } else if (fasesData.fecha_ini_proceso && fasesData.fecha_fin_proceso) {
           // Usar las fechas específicas del registro seleccionado
@@ -481,7 +467,6 @@ const FasesScreen = () => {
           
         } else if (fasesData.carreraModalidadId) {
           // Si no tenemos fechas pero sí el ID, consultar la carrera-modalidad específica por ID
-          console.log('🔍 Consultando carrera-modalidad específica por ID:', fasesData.carreraModalidadId);
           try {
             const registroEspecifico = await getCarreraModalidadPorId(fasesData.carreraModalidadId);
             carreraModalidadInfo = registroEspecifico;
@@ -489,7 +474,6 @@ const FasesScreen = () => {
             if (registroEspecifico) {
               // Verificar si ya está finalizada
               if (registroEspecifico.estado_modalidad === true) {
-                console.log('🚫 Proceso ya finalizado - estado_modalidad es true');
                 procesoActivo = false;
               } else if (registroEspecifico.fecha_ini_proceso && registroEspecifico.fecha_fin_proceso) {
                 const fechaActual = new Date();
@@ -502,11 +486,9 @@ const FasesScreen = () => {
                 
                 procesoActivo = fechaActualSoloFecha >= fechaInicioSoloFecha && fechaActualSoloFecha <= fechaFinSoloFecha;
               } else {
-                console.log('No tiene fechas válidas');
                 procesoActivo = false;
               }
             } else {
-              console.log('No se pudo obtener el registro específico por ID');
               procesoActivo = false;
             }
           } catch (error) {
@@ -517,9 +499,7 @@ const FasesScreen = () => {
           procesoActivo = false;
         }
       } else {
-        // ✅ SIMPLIFICADO: Si viene desde ModalidadesScreen, usar SOLO datos existentes
-        console.log('📋 Verificando desde ModalidadesScreen usando datos del endpoint consolidado');
-        
+        // SIMPLIFICADO: Si viene desde ModalidadesScreen, usar SOLO datos existentes
         // El endpoint consolidado YA debe haber cargado todos los datos necesarios
         carreraModalidadInfo = {
           id: fasesData.carreraModalidadId,
@@ -530,7 +510,6 @@ const FasesScreen = () => {
         
         // Verificar si ya está finalizada
         if (fasesData.estado_modalidad === true) {
-          console.log('🚫 Proceso ya finalizado - estado_modalidad es true');
           procesoActivo = false;
         } else {
           // Verificar si está dentro del rango de fechas activo
@@ -544,24 +523,10 @@ const FasesScreen = () => {
           
           procesoActivo = fechaActualSoloFecha >= fechaInicioSoloFecha && fechaActualSoloFecha <= fechaFinSoloFecha;
         }
-        
-        console.log('✅ Verificación completada usando SOLO datos existentes');
-        console.log('  - ¿Proceso activo?:', procesoActivo);
-      }
 
-      // Log adicional para debugging
-      if (carreraModalidadInfo) {
-        console.log('📋 Información de carrera-modalidad:', {
-          id: carreraModalidadInfo.id,
-          estado_modalidad: carreraModalidadInfo.estado_modalidad,
-          fecha_ini_proceso: carreraModalidadInfo.fecha_ini_proceso,
-          fecha_fin_proceso: carreraModalidadInfo.fecha_fin_proceso
-        });
       }
 
       setBotonFinalizarHabilitado(procesoActivo);
-      console.log('🔧 Estado del proceso verificado:', procesoActivo ? 'ACTIVO' : 'INACTIVO');
-      console.log('🔧 botonFinalizarHabilitado establecido a:', procesoActivo);
 
     } catch (error) {
       console.error('❌ Error al verificar estado del proceso:', error);
@@ -570,7 +535,6 @@ const FasesScreen = () => {
       setVerificandoEstadoProceso(false);
       // ✅ OPTIMIZACIÓN: Limpiar referencia de proceso en curso
       verificandoEnProcesoRef.current = false;
-      console.log('✅ Verificación completada');
     }
   }, [fasesData?.carreraId, fasesData?.modalidadId, fasesData?.carreraModalidadId, fasesData?.fromCarrerasModalidadesAdmin, fasesData?.fecha_ini_proceso, fasesData?.fecha_fin_proceso, fasesData?.estado_modalidad]);
 
@@ -584,14 +548,10 @@ const FasesScreen = () => {
           carreraId,
           carreraModalidadId
         } = location.state;
-        
-        console.log('Datos recibidos en FasesScreen (location.state):', location.state);
 
         let resolvedModalidadId = modalidadId;
         if (!resolvedModalidadId && modalidad) {
-          console.log('Obteniendo modalidadId para:', modalidad);
           resolvedModalidadId = await getModalidadId(modalidad);
-          console.log('modalidadId obtenido:', resolvedModalidadId);
         }
         
   
@@ -633,9 +593,6 @@ const FasesScreen = () => {
           carreraNombre: 'Cargando...',
           modalidadData: null
         });
-        
-        console.log('Datos configurados desde query params');
-    
       }
     };
 
@@ -645,23 +602,16 @@ const FasesScreen = () => {
   useEffect(() => {
     const loadFases = async () => {
       if (!fasesData?.carreraId || !fasesData?.modalidadId) {
-        console.log('Esperando datos completos para cargar fases...');
         return;
       }
       
       // ✅ OPTIMIZACIÓN FINAL: Evitar ejecución si los datos ya están cargados
       if (fases.length > 0 && fasesData.carreraModalidadId && fasesData.fecha_ini_proceso) {
-        console.log('🚫 DATOS YA CARGADOS - omitiendo ejecución duplicada:', {
-          fases_count: fases.length,
-          carreraModalidadId: fasesData.carreraModalidadId,
-          fecha_ini_proceso: fasesData.fecha_ini_proceso
-        });
         return;
       }
       
       // Evitar bucle infinito si ya se está mostrando el modal de fechas
       if (showDateProcessModal) {
-        console.log('Modal de fechas abierto, omitiendo carga de fases...');
         return;
       }
       
@@ -674,18 +624,13 @@ const FasesScreen = () => {
         
         // Si viene desde CarrerasModalidadesAdmin, usar directamente el ID proporcionado
         if (fasesData.fromCarrerasModalidadesAdmin && fasesData.carreraModalidadId) {
-          console.log('Navegación desde CarrerasModalidadesAdmin - usando ID existente:', fasesData.carreraModalidadId);
           carreraModalidadIdFinal = fasesData.carreraModalidadId;
           
           // Simular que encontramos una carrera-modalidad para evitar mostrar el modal
           existeCarreraModalidad = { id: fasesData.carreraModalidadId };
           
-          // Para CarrerasModalidadesAdmin, las fechas se verificarán en verificarEstadoProceso()
-          console.log('Navegación desde CarrerasModalidadesAdmin - ID configurado');
         } else {
-          console.log('✅ SIMPLIFICADO: Navegación desde ModalidadesScreen - usando endpoint consolidado directamente');
-        
-          // ✅ OPTIMIZACIÓN: En lugar de validar primero, usar directamente el endpoint consolidado
+          // OPTIMIZACIÓN: En lugar de validar primero, usar directamente el endpoint consolidado
           try {
             // Buscar carrera-modalidad activa SOLO para obtener el ID
             const carreraModalidadActiva = await getCarreraModalidadActiva(
@@ -695,9 +640,7 @@ const FasesScreen = () => {
             
             if (carreraModalidadActiva) {
               existeCarreraModalidad = carreraModalidadActiva;
-              console.log('🎯 Carrera-modalidad encontrada - procediendo con endpoint consolidado');
             } else {
-              console.log('❌ No se encontró carrera-modalidad activa - mostrando modal de fechas');
               existeCarreraModalidad = null;
             }
           } catch (error) {
@@ -793,16 +736,8 @@ const FasesScreen = () => {
 
   // ✅ OPTIMIZACIÓN: useEffect optimizado para verificar el estado del proceso
   useEffect(() => {
-    console.log('🔄 useEffect verificarEstadoProceso triggered');
-    console.log('  - fasesData?.carreraId:', fasesData?.carreraId);
-    console.log('  - fasesData?.modalidadId:', fasesData?.modalidadId);
-    console.log('  - fasesData?.fromCarrerasModalidadesAdmin:', fasesData?.fromCarrerasModalidadesAdmin);
-    console.log('  - fasesData?.fecha_ini_proceso:', fasesData?.fecha_ini_proceso);
-    console.log('  - fasesData?.fecha_fin_proceso:', fasesData?.fecha_fin_proceso);
-    console.log('  - botonFinalizarHabilitado actual:', botonFinalizarHabilitado);
     
     if (fasesData?.carreraId && fasesData?.modalidadId) {
-      console.log('✅ Ejecutando verificarEstadoProceso...');
       verificarEstadoProceso();
     } else {
       console.log('❌ No se ejecuta verificarEstadoProceso - datos incompletos');
@@ -879,7 +814,6 @@ const FasesScreen = () => {
 
   const handleSaveFase = async (nuevaFase) => {
     try {
-      console.log('fasesData completo:', fasesData);
       
       let carreraModalidadIdFinal = fasesData.carreraModalidadId;
       let existeCarreraModalidad = null;
@@ -903,15 +837,12 @@ const FasesScreen = () => {
             carreraModalidadIdFinal = existeCarreraModalidad.id;
           } else {
             
-            // Solo como respaldo, buscar cualquier carrera-modalidad existente
-            console.log('🔍 RESPALDO: Buscando cualquier carrera-modalidad específica...');
             existeCarreraModalidad = await getCarreraModalidadEspecifica(
               fasesData.carreraId, 
               fasesData.modalidadId
             );
             
             if (existeCarreraModalidad) {
-              console.log('RESPALDO exitoso - Carrera-modalidad encontrada (posiblemente fuera de fechas):', existeCarreraModalidad);
               carreraModalidadIdFinal = existeCarreraModalidad.id;
             }
           }
@@ -928,7 +859,6 @@ const FasesScreen = () => {
       }
       
       if (!existeCarreraModalidad) {
-        console.log('Buscando carrera-modalidad activa para creación de fase...');
         
         try {
           existeCarreraModalidad = await getCarreraModalidadActiva(
@@ -937,7 +867,6 @@ const FasesScreen = () => {
           );
           
           if (existeCarreraModalidad) {
-            console.log('✅ Carrera-modalidad activa encontrada para fase:', existeCarreraModalidad);
             carreraModalidadIdFinal = existeCarreraModalidad.id;
           } else {
             console.log('No hay carrera-modalidad activa para las fechas actuales');
@@ -1075,30 +1004,19 @@ const FasesScreen = () => {
   };
 
   const handleFinalizarAcreditacion = () => {
-    console.log('🚀 BOTÓN FINALIZAR PRESIONADO');
-    console.log('  - botonFinalizarHabilitado:', botonFinalizarHabilitado);
-    console.log('  - verificandoEstadoProceso:', verificandoEstadoProceso);
-    console.log('  - fasesData:', fasesData);
-    console.log('  - showFinalizarModal antes:', showFinalizarModal);
     
     if (!botonFinalizarHabilitado) {
       console.log('❌ Botón bloqueado - proceso no activo');
       alert('El proceso de acreditación no está activo en este momento. Verifique las fechas del proceso.');
       return;
     }
-    
-    console.log('✅ Abriendo modal de finalización');
     setShowFinalizarModal(true);
-    console.log('📝 setShowFinalizarModal(true) ejecutado');
     
     // Verificar después de un pequeño delay
-    setTimeout(() => {
-      console.log('🔍 showFinalizarModal después del setState:', showFinalizarModal);
-    }, 100);
+    setTimeout(100);
   };
 
   const handleEditarFechasProceso = () => {
-    console.log('📅 EDITAR FECHAS DE PROCESO');
     
     if (!fasesData) {
       toast.error('No se encontraron datos del proceso de acreditación.');
@@ -1109,13 +1027,11 @@ const FasesScreen = () => {
   };
 
   const handleEditDateSuccess = async () => {
-    console.log('✅ Fechas actualizadas exitosamente');
     setShowEditDateModal(false);
     
     // Actualizar los datos del proceso para reflejar los cambios
     try {
       if (fasesData.carreraModalidadId || fasesData.id) {
-        console.log('🔄 Recargando datos del proceso...');
         const datosActualizados = await getCarreraModalidadPorId(fasesData.carreraModalidadId || fasesData.id);
         
         if (datosActualizados) {
@@ -1125,7 +1041,6 @@ const FasesScreen = () => {
             fecha_fin_proceso: datosActualizados.fecha_fin_proceso,
             updated_at: datosActualizados.updated_at
           }));
-          console.log('✅ Datos del proceso actualizados en el estado');
           
         }
       }
@@ -1140,34 +1055,15 @@ const FasesScreen = () => {
 
   const handleSubmitFinalizacion = async (formData) => {
     try {
-      console.log('Iniciando finalización de acreditación...');
-      console.log('Datos de finalización recibidos:', {
-        fecha_ini_aprobacion: formData.get('fecha_ini_aprobacion'),
-        fecha_fin_aprobacion: formData.get('fecha_fin_aprobacion'),
-        certificado: formData.get('certificado')?.name || 'Sin archivo'
-      });
-      
-      console.log('🔍 Verificando ID para finalización:');
-      console.log('  - fasesData?.id:', fasesData?.id);
-      console.log('  - fasesData?.carreraModalidadId:', fasesData?.carreraModalidadId);
-      console.log('  - fasesData.modalidadId:', fasesData?.modalidadId);
-      console.log('  - fasesData.carreraId:', fasesData?.carreraId);
-      console.log('  - fasesData completo:', JSON.stringify(fasesData, null, 2));
       
       // Usar carreraModalidadId como primera opción, luego id como fallback
       let idParaFinalizar = fasesData?.carreraModalidadId || fasesData?.id;
       
-      console.log('🎯 ID directo encontrado:', idParaFinalizar);
-      
       // Si no tenemos ID directo, intentar buscar la carrera-modalidad activa
       if (!idParaFinalizar) {
-        console.log('❓ No hay ID directo, buscando carrera-modalidad activa...');
-        
         // Convertir IDs a números para asegurar compatibilidad
         const carreraIdNumero = parseInt(fasesData.carreraId);
         const modalidadIdNumero = parseInt(fasesData.modalidadId);
-        
-        console.log('🔄 Buscando con IDs convertidos:', { carreraId: carreraIdNumero, modalidadId: modalidadIdNumero });
         
         try {
           const carreraModalidadActiva = await getCarreraModalidadActiva(
@@ -1177,10 +1073,8 @@ const FasesScreen = () => {
           
           if (carreraModalidadActiva) {
             idParaFinalizar = carreraModalidadActiva.id;
-            console.log('✅ ID encontrado desde carrera-modalidad activa:', idParaFinalizar);
           } else {
             // Si no hay activa, buscar cualquier carrera-modalidad específica
-            console.log('🔍 No hay activa, buscando carrera-modalidad específica...');
             const carreraModalidadEspecifica = await getCarreraModalidadEspecifica(
               carreraIdNumero, 
               modalidadIdNumero
@@ -1188,7 +1082,6 @@ const FasesScreen = () => {
             
             if (carreraModalidadEspecifica) {
               idParaFinalizar = carreraModalidadEspecifica.id;
-              console.log('✅ ID encontrado desde carrera-modalidad específica:', idParaFinalizar);
             }
           }
         } catch (searchError) {
@@ -1201,12 +1094,8 @@ const FasesScreen = () => {
         throw new Error('No se encontró el ID de la carrera-modalidad');
       }
       
-      console.log('✅ Usando ID para finalización:', idParaFinalizar);
-      
       // Llamar a la API para finalizar la acreditación
       const resultado = await finalizarAcreditacion(idParaFinalizar, formData);
-      
-      console.log('✅ Acreditación finalizada exitosamente:', resultado);
       
       // Cerrar el modal
       setShowFinalizarModal(false);
@@ -1261,7 +1150,6 @@ const FasesScreen = () => {
   const handleEliminarSubfase = async (subfase, faseId) => {
     if (window.confirm(`¿Está seguro de que desea eliminar la subfase "${subfase.nombre}"?`)) {
       try {
-        console.log('Eliminando subfase:', subfase.id);
         
         const result = await deleteSubfase(subfase.id);
         
@@ -1288,7 +1176,6 @@ const FasesScreen = () => {
   const loadDocumentos = async () => {
     try {
       const response = await getDocumentos();
-      console.log('Response from getDocumentos:', response);
       
       // Asegurar que siempre sea un array
       let documentosData = [];
@@ -1301,8 +1188,6 @@ const FasesScreen = () => {
       } else if (response && Array.isArray(response)) {
         documentosData = response;
       }
-      
-      console.log('Setting documentos to:', documentosData);
       setDocumentos(documentosData);
     } catch (error) {
       console.error('Error al cargar documentos:', error);
@@ -1371,8 +1256,6 @@ const FasesScreen = () => {
 
   const handleSeleccionarDocumento = async (documento) => {
     try {
-      console.log('Asociando documento:', documento.id, 'a', documentoTarget.type, documentoTarget.id);
-      
       if (documentoTarget.type === 'fase') {
         await asociarDocumentoAFase(documentoTarget.id, documento.id);
         toast.success('Documento asociado a la fase exitosamente');
@@ -1391,16 +1274,12 @@ const FasesScreen = () => {
 
   const handleSubirDocumento = async (documentoData) => {
     try {
-      console.log('Subiendo nuevo documento:', documentoData);
       
       // Crear el documento
       const response = await createDocumento(documentoData);
-      console.log('Response de createDocumento:', response);
       
       // La respuesta del backend tiene estructura: {exito, estado, mensaje, datos, error}
       const nuevoDocumento = response.datos || response.data || response;
-      console.log('Nuevo documento creado:', nuevoDocumento);
-      console.log('ID del nuevo documento:', nuevoDocumento.id);
       
       if (!nuevoDocumento.id) {
         throw new Error('No se pudo obtener el ID del documento creado');
@@ -1408,11 +1287,9 @@ const FasesScreen = () => {
       
       // Asociar inmediatamente al target
       if (documentoTarget.type === 'fase') {
-        console.log('Asociando a fase:', documentoTarget.id, 'documento:', nuevoDocumento.id);
         await asociarDocumentoAFase(documentoTarget.id, nuevoDocumento.id);
         toast.success('Documento subido y asociado a la fase exitosamente');
       } else if (documentoTarget.type === 'subfase') {
-        console.log('Asociando a subfase:', documentoTarget.id, 'documento:', nuevoDocumento.id);
         await asociarDocumentoASubfase(documentoTarget.id, nuevoDocumento.id);
         toast.success('Documento subido y asociado a la subfase exitosamente');
       }
@@ -1430,16 +1307,10 @@ const FasesScreen = () => {
     try {
       setShowDetallesModal(true);
       
-      console.log('🔍 Cargando documentos para la fase:', fase.id, fase.nombre_fase);
-      
       // Obtener documentos asociados a la fase
-      const response = await getDocumentosByFase(fase.id);
-      console.log('📄 Respuesta completa de getDocumentosByFase:', response);
-      
+      const response = await getDocumentosByFase(fase.id);      
       // Extraer los documentos del formato de respuesta de SIGESA
       const documentos = response?.datos || response || [];
-      console.log('📋 Documentos extraídos:', documentos);
-      
       setDetallesData({
         tipo: 'fase',
         data: fase,
@@ -1458,17 +1329,10 @@ const FasesScreen = () => {
   const handleMostrarDetallesSubfase = async (subfase, faseId) => {
     try {
       setShowDetallesModal(true);
-      
-      console.log('🔍 Cargando documentos para la subfase:', subfase.id, subfase.nombre_subfase);
-      
       // Obtener documentos asociados a la subfase
       const response = await getDocumentosBySubfase(subfase.id);
-      console.log('📄 Respuesta completa de getDocumentosBySubfase:', response);
-      
       // Extraer los documentos del formato de respuesta de SIGESA
       const documentos = response?.datos || response || [];
-      console.log('📋 Documentos extraídos:', documentos);
-      
       setDetallesData({
         tipo: 'subfase',
         data: subfase,

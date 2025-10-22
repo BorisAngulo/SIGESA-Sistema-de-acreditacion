@@ -28,4 +28,20 @@ class Carrera extends Model
     {
         return $this->belongsTo(Facultad::class, 'facultad_id');
     }
+
+    /**
+     * Relación con las modalidades a través de CarreraModalidad (carrera_modalidades)
+     */
+    public function modalidades()
+    {
+        return $this->belongsToMany(Modalidad::class, 'carrera_modalidades', 'carrera_id', 'modalidad_id');
+    }
+
+    /**
+     * Relación con CarreraModalidad
+     */
+    public function carreraModalidades()
+    {
+        return $this->hasMany(CarreraModalidad::class, 'carrera_id');
+    }
 }

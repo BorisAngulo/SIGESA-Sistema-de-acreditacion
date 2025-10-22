@@ -1153,13 +1153,25 @@ export const createSubfase = async (subfaseData) => {
     console.log('Status:', res.status, res.statusText);
     
     const response = await res.json();
+    console.log('Response completa:', response);
     
     if (res.ok) {
       console.log('Subfase creada exitosamente:', response);
       return { success: true, data: response.datos || response };
     } else {
       console.error('Error al crear subfase:', response);
-      return { success: false, error: response.error || 'Error al crear subfase' };
+      // Intentar extraer el mensaje de error más detallado
+      let errorMessage = 'Error al crear subfase';
+      if (response.error) {
+        errorMessage = response.error;
+      } else if (response.errors) {
+        // Para errores de validación 422
+        const validationErrors = Object.values(response.errors).flat();
+        errorMessage = validationErrors.join(', ');
+      } else if (response.message) {
+        errorMessage = response.message;
+      }
+      return { success: false, error: errorMessage, details: response };
     }
   } catch (error) {
     console.error('Error general al crear subfase:', error);
@@ -2743,5 +2755,78 @@ export const verificarConectividadServidor = async () => {
 export const verificarAutenticacion = () => {
   const token = getAuthToken();
   return !!token;
+};
+
+// ===============================
+// FUNCIONES DE REPORTES DE FACULTADES
+// ===============================
+
+/**
+ * Obtener reporte completo de facultades con análisis de acreditación
+ */
+export const getReporteFacultades = async (filters = {}) => {
+  try {
+    console.log('🏛️ Obteniendo reporte de facultades', filters);
+    
+    const params = new URLSearchParams();
+    if (filters.year && filters.year !== 'todos') params.append('year', filters.year);
+    if (filters.modalidad_id && filters.modalidad_id !== 'todas') params.append('modalidad_id', filters.modalidad_id);
+    if (filters.estado_acreditacion && filters.estado_acreditacion !== 'todos') params.append('estado_acreditacion', filters.estado_acreditacion);
+    
+    const res = await fetch(`${API_URL}/reportes/facultades?${params.toString()}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.exito && data.datos) {
+      console.log('✅ Reporte de facultades obtenido exitosamente');
+      return data.datos;
+    } else {
+      throw new Error(data.mensaje || 'Error al obtener reporte de facultades');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener reporte de facultades:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener estadísticas específicas de una facultad
+ */
+export const getEstadisticasFacultad = async (facultadId, filters = {}) => {
+  try {
+    console.log(`📊 Obteniendo estadísticas para facultad ${facultadId}`, filters);
+    
+    const params = new URLSearchParams();
+    if (filters.year && filters.year !== 'todos') params.append('year', filters.year);
+    if (filters.modalidad_id && filters.modalidad_id !== 'todas') params.append('modalidad_id', filters.modalidad_id);
+    
+    const res = await fetch(`${API_URL}/reportes/facultades/${facultadId}/estadisticas?${params.toString()}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data.exito && data.datos) {
+      console.log('✅ Estadísticas de facultad obtenidas exitosamente');
+      return data.datos;
+    } else {
+      throw new Error(data.mensaje || 'Error al obtener estadísticas de facultad');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener estadísticas de facultad:', error);
+    throw error;
+  }
 };
 

@@ -32,7 +32,15 @@ Route::prefix('reportes')->group(function () {
     Route::get('estados/distribucion', [ReportesController::class, 'getDistribucionEstados'])
         ->name('reportes.estados.distribucion');
     
+    // Nuevo: Reporte completo de facultades (debe ir antes de rutas específicas)
+    Route::get('facultades', [ReportesController::class, 'getReporteFacultades'])
+        ->name('reportes.facultades.reporte');
+    
     // Carreras con detalles de acreditación por facultad
     Route::get('facultades/{facultadId}/carreras', [ReportesController::class, 'getCarrerasConAcreditacion'])
         ->name('reportes.facultades.carreras');
+    
+    // Nuevo: Estadísticas específicas de una facultad
+    Route::get('facultades/{facultadId}/estadisticas', [ReportesController::class, 'getEstadisticasFacultad'])
+        ->name('reportes.facultades.estadisticas');
 });

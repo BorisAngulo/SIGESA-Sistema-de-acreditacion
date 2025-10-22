@@ -61,10 +61,6 @@ const CarrerasModalidadesAdmin = () => {
     try {
       setLoading(true);
       const data = await getCarrerasModalidadesDetallesCompletos();
-      console.log('Datos recibidos de la API:', data);
-      console.log('Tipo de datos:', typeof data);
-      console.log('Es array?:', Array.isArray(data));
-      console.log('Cantidad de elementos:', data?.length);
       if (data && data.length > 0) {
         console.log('Primer elemento:', data[0]);
       }
@@ -214,18 +210,6 @@ const CarrerasModalidadesAdmin = () => {
     const fechaInicio = carreraModalidad.fecha_ini_proceso ? new Date(carreraModalidad.fecha_ini_proceso) : null;
     const fechaFin = carreraModalidad.fecha_fin_proceso ? new Date(carreraModalidad.fecha_fin_proceso) : null;
     const estado = carreraModalidad.estado_modalidad;
-
-    // Log solo en modo debug cuando sea necesario
-    // console.log('Evaluando estado para carrera-modalidad:', {
-    //   id: carreraModalidad.id,
-    //   ahora: ahora.toISOString(),
-    //   fechaInicio: fechaInicio?.toISOString(),
-    //   fechaFin: fechaFin?.toISOString(),
-    //   estado: estado,
-    //   carreraNombre: carreraModalidad.carrera?.nombre
-    // });
-
-    // Si el estado es true, está aprobado
     if (estado === true) {
       return {
         texto: 'Aprobado',
@@ -234,7 +218,6 @@ const CarrerasModalidadesAdmin = () => {
       };
     }
 
-    // Si hay fechas de proceso, verificar si está en proceso
     if (fechaInicio && fechaFin) {
       const enProceso = ahora >= fechaInicio && ahora <= fechaFin;
       
@@ -340,19 +323,26 @@ const CarrerasModalidadesAdmin = () => {
       .map(cm => cm.modalidad.nombre))];
   }, [carrerasModalidadesArray]);
 
-  // Filtrar datos con optimización
+  // Filtrar y ordenar datos con optimización
   const carrerasModalidadesFiltradas = useMemo(() => {
-    return carrerasModalidadesArray.filter(cm => {
-      const matchesSearch = 
-        (cm.carrera?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (cm.carrera?.facultad?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (cm.modalidad?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase());
+    return carrerasModalidadesArray
+      .filter(cm => {
+        const matchesSearch = 
+          (cm.carrera?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (cm.carrera?.facultad?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (cm.modalidad?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesFacultad = !selectedFacultad || cm.carrera?.facultad?.nombre === selectedFacultad;
-      const matchesModalidad = !selectedModalidad || cm.modalidad?.nombre === selectedModalidad;
+        const matchesFacultad = !selectedFacultad || cm.carrera?.facultad?.nombre === selectedFacultad;
+        const matchesModalidad = !selectedModalidad || cm.modalidad?.nombre === selectedModalidad;
 
-      return matchesSearch && matchesFacultad && matchesModalidad;
-    });
+        return matchesSearch && matchesFacultad && matchesModalidad;
+      })
+      .sort((a, b) => {
+        // Ordenar por fecha de actualización (updated_at) de más reciente a más antiguo
+        const fechaA = new Date(a.updated_at || a.created_at || 0);
+        const fechaB = new Date(b.updated_at || b.created_at || 0);
+        return fechaB - fechaA; // Orden descendente (más reciente primero)
+      });
   }, [carrerasModalidadesArray, searchTerm, selectedFacultad, selectedModalidad]);
 
   if (loading) {
