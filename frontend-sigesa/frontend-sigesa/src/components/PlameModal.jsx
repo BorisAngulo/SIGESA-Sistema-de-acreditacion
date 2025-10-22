@@ -1,58 +1,111 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
-  getPlameBySubfase, 
-  actualizarMatrizPlame, 
-  getEstadisticasPlame,
-  crearPlameParaSubfase,
+  verificarPlameExiste,
+  getPlameByCarreraModalidad, 
   actualizarRelacionPlame
 } from '../services/api';
 import '../styles/PlameModal.css';
 
-const PlameModal = ({ isOpen, onClose, subfase }) => {
+const PlameModal = ({ carreraModalidad, onClose }) => {
   const [plame, setPlame] = useState(null);
   const [estadisticas, setEstadisticas] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [editandoCelda, setEditandoCelda] = useState(null);
   const [valorTemporal, setValorTemporal] = useState('');
+  
+  // Estados para verificación y creación
+  const [verificando, setVerificando] = useState(true);
+  const [mostrandoConfirmacion, setMostrandoConfirmacion] = useState(false);
 
-  // Cargar datos iniciales
-  useEffect(() => {
-    if (isOpen && subfase) {
-      cargarDatos();
-    }
-  }, [isOpen, subfase]);
-
-  const cargarDatos = async () => {
+  const cargarPlameExistente = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // Intentar obtener PLAME existente
-      let plameData = await getPlameBySubfase(subfase.id);
+      // Obtener PLAME por carrera-modalidad
+      const plameData = await getPlameByCarreraModalidad(carreraModalidad.id);
       
-      // Si no existe, crear uno nuevo
-      if (!plameData) {
-        console.log('No existe PLAME, creando uno nuevo...');
-        plameData = await crearPlameParaSubfase(subfase.id, {
-          nombre_plame: `PLAME - ${subfase.nombre_subfase}`,
-          descripcion_plame: `Análisis PLAME para ${subfase.nombre_subfase}`
-        });
-      }
+      // Estructurar los datos correctamente para el frontend
+      const plameEstructurado = {
+        ...plameData.plame,
+        filas: plameData.filas || [],
+        columnas: plameData.columnas || [],
+        relaciones: plameData.relaciones || []
+      };
       
-      setPlame(plameData);
+      console.log('📊 PLAME estructurado para frontend:', plameEstructurado);
+      setPlame(plameEstructurado);
       
-      // Cargar estadísticas si existe el PLAME
-      if (plameData?.id) {
-        const estadisticasData = await getEstadisticasPlame(plameData.id);
-        setEstadisticas(estadisticasData);
-      }
+      // Las estadísticas se calcularán en tiempo real cuando existan relaciones
+      setEstadisticas(null);
     } catch (err) {
-      setError('Error al cargar datos PLAME: ' + err.message);
       console.error('Error cargando PLAME:', err);
+      
+      // Manejo específico de errores de autenticación
+      if (err.message.includes('token de autenticación') || err.message.includes('Sesión expirada')) {
+        setError('Su sesión ha expirado. Por favor, inicie sesión nuevamente.');
+      } else if (err.message.includes('Error de conexión')) {
+        setError('No se puede conectar con el servidor. Verifique que el servidor esté ejecutándose.');
+      } else {
+        setError('Error al cargar datos PLAME: ' + err.message);
+      }
     } finally {
       setLoading(false);
     }
+  }, [carreraModalidad]);
+
+  const verificarExistencia = useCallback(async () => {
+    try {
+      setVerificando(true);
+      setError(null);
+      
+      // Verificar si existe PLAME para esta carrera-modalidad
+      const existeData = await verificarPlameExiste(carreraModalidad.id);
+      
+      if (existeData.existe) {
+        // Si existe, cargar directamente
+        await cargarPlameExistente();
+      } else {
+        // Si no existe, mostrar confirmación
+        setMostrandoConfirmacion(true);
+      }
+    } catch (err) {
+      console.error('Error al verificar existencia de PLAME:', err);
+      
+      // Manejo específico de errores de autenticación
+      if (err.message.includes('token de autenticación') || err.message.includes('Sesión expirada')) {
+        setError('Su sesión ha expirado. Por favor, inicie sesión nuevamente.');
+      } else if (err.message.includes('Error de conexión')) {
+        setError('No se puede conectar con el servidor. Verifique que el servidor esté ejecutándose.');
+      } else {
+        setError('Error al verificar matriz PLAME: ' + err.message);
+      }
+    } finally {
+      setVerificando(false);
+    }
+  }, [carreraModalidad, cargarPlameExistente]);
+
+  // Verificar existencia al cargar
+  useEffect(() => {
+    if (carreraModalidad) {
+      verificarExistencia();
+    }
+  }, [carreraModalidad, verificarExistencia]);
+
+  const handleCrearNuevaMatriz = async () => {
+    try {
+      setMostrandoConfirmacion(false);
+      await cargarPlameExistente(); // Esto creará la matriz automáticamente
+    } catch (err) {
+      console.error('Error al crear nueva matriz:', err);
+      setError('Error al crear nueva matriz PLAME: ' + err.message);
+    }
+  };
+
+  const handleCancelarCreacion = () => {
+    setMostrandoConfirmacion(false);
+    onClose();
   };
 
   const handleEditarCelda = (filaId, columnaId, valorActual) => {
@@ -74,7 +127,7 @@ const PlameModal = ({ isOpen, onClose, subfase }) => {
       );
       
       // Recargar datos
-      await cargarDatos();
+      await cargarPlameExistente();
       
       // Limpiar edición
       setEditandoCelda(null);
@@ -96,10 +149,10 @@ const PlameModal = ({ isOpen, onClose, subfase }) => {
     if (!plame?.relaciones) return 0;
     
     const relacion = plame.relaciones.find(r => 
-      r.fila_plame_id === filaId && r.columna_plame_id === columnaId
+      r.id_fila_plame === filaId && r.id_columna_plame === columnaId
     );
     
-    return relacion?.valor || 0;
+    return relacion?.valor_relacion_plame || 0;
   };
 
   const getCeldaColor = (valor) => {
@@ -115,25 +168,71 @@ const PlameModal = ({ isOpen, onClose, subfase }) => {
     return valor >= 3 ? 'white' : 'black';
   };
 
-  if (!isOpen) return null;
+  if (!carreraModalidad) return null;
 
   return (
-    <div className="modal-overlay">
+    <div className="plame-modal-overlay">
       <div className="plame-modal">
         <div className="modal-header">
-          <h2>Matriz PLAME - {subfase?.nombre_subfase}</h2>
+          <h2>Matriz PLAME - {carreraModalidad?.carrera?.nombre} ({carreraModalidad?.modalidad?.nombre})</h2>
           <button className="close-btn" onClick={onClose}>&times;</button>
         </div>
 
         {error && (
           <div className="error-message">
-            {error}
+            <div className="error-content">
+              <span className="error-icon">⚠️</span>
+              <span className="error-text">{error}</span>
+            </div>
+            {(error.includes('conexión') || error.includes('servidor')) && (
+              <button 
+                className="btn-retry" 
+                onClick={() => {
+                  setError(null);
+                  verificarExistencia();
+                }}
+              >
+                🔄 Reintentar
+              </button>
+            )}
           </div>
         )}
 
-        <div className="modal-content">
-          {loading ? (
-            <div className="loading">Cargando matriz PLAME...</div>
+        <div className="plame-modal-content">
+          {verificando ? (
+            <div className="loading">
+              <div className="spinner"></div>
+              <p>Verificando matriz PLAME...</p>
+            </div>
+          ) : mostrandoConfirmacion ? (
+            <div className="confirmation-content">
+              <div className="confirmation-icon">📊</div>
+              <h3>Matriz PLAME no encontrada</h3>
+              <p>
+                No existe una matriz PLAME para <strong>{carreraModalidad?.carrera?.nombre}</strong> 
+                en modalidad <strong>{carreraModalidad?.modalidad?.nombre}</strong>.
+              </p>
+              <p>¿Desea crear una nueva matriz PLAME?</p>
+              <div className="confirmation-buttons">
+                <button 
+                  className="btn-primary" 
+                  onClick={handleCrearNuevaMatriz}
+                >
+                  ✅ Crear Matriz PLAME
+                </button>
+                <button 
+                  className="btn-secondary" 
+                  onClick={handleCancelarCreacion}
+                >
+                  ❌ Cancelar
+                </button>
+              </div>
+            </div>
+          ) : loading ? (
+            <div className="loading">
+              <div className="spinner"></div>
+              <p>Cargando matriz PLAME...</p>
+            </div>
           ) : plame ? (
             <>
               <div className="plame-info">
@@ -174,8 +273,8 @@ const PlameModal = ({ isOpen, onClose, subfase }) => {
                         {plame.columnas?.map(columna => (
                           <th key={columna.id} className="header-columna">
                             <div className="columna-content">
-                              <div className="columna-codigo">{columna.codigo_columna}</div>
-                              <div className="columna-nombre">{columna.nombre_columna}</div>
+                              <div className="columna-codigo">COL-{columna.id}</div>
+                              <div className="columna-nombre">{columna.nombre_columna_plame}</div>
                             </div>
                           </th>
                         ))}
@@ -186,8 +285,8 @@ const PlameModal = ({ isOpen, onClose, subfase }) => {
                         <tr key={fila.id}>
                           <td className="header-fila">
                             <div className="fila-content">
-                              <div className="fila-codigo">{fila.codigo_fila}</div>
-                              <div className="fila-nombre">{fila.nombre_fila}</div>
+                              <div className="fila-codigo">FILA-{fila.id}</div>
+                              <div className="fila-nombre">{fila.nombre_fila_plame}</div>
                             </div>
                           </td>
                           {plame.columnas?.map(columna => {

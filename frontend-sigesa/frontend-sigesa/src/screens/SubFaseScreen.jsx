@@ -72,19 +72,7 @@ const SubFaseScreen = () => {
         // Cargar configuraciones de FODA y PLAME si existen
         setHabilitarFoda(Boolean(subfase.tiene_foda));
         setHabilitarPlame(Boolean(subfase.tiene_plame));
-        
-        console.log('📝 Modo edición activado para subfase:', subfase);
-        console.log('📅 Fechas cargadas:', {
-          inicio: formatDate(subfase.fechaInicio || subfase.fecha_inicio_subfase),
-          fin: formatDate(subfase.fechaFin || subfase.fecha_fin_subfase)
-        });
-        console.log('📋 Datos cargados:', {
-          titulo: subfase.nombre || subfase.nombre_subfase,
-          descripcion: subfase.descripcion || subfase.descripcion_subfase,
-          urlDrive: subfase.urlDrive || subfase.url_subfase,
-          foda: subfase.tiene_foda,
-          plame: subfase.tiene_plame
-        });
+      
       } else {
         console.log('➕ Modo creación activado');
       }
@@ -141,21 +129,18 @@ const SubFaseScreen = () => {
         tiene_plame: habilitarPlame
       };
 
-      console.log('📤 Enviando datos de subfase:', subfaseData);
-
       let result;
       if (isEditing && subfaseId) {
         result = await updateSubfase(subfaseId, subfaseData);
-        console.log('✅ Subfase actualizada:', result);
       } else {
         result = await createSubfase(subfaseData);
-        console.log('✅ Subfase creada:', result);
       }
 
       if (result.success) {
         toast.success(isEditing ? 'Subfase actualizada exitosamente' : 'Subfase creada exitosamente');
        navigate(-1);
       } else {
+        console.error('❌ Detalles del error:', result.details);
         throw new Error(result.error || 'Error al procesar la subfase');
       }
       

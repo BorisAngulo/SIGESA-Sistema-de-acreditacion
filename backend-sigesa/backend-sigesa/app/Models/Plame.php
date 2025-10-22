@@ -12,12 +12,12 @@ class Plame extends Model
     protected $table = 'plames';
 
     protected $fillable = [
-        'id_subfase',
+        'id_carreraModalidad',
         'tipo_evaluacion_plame',
     ];
 
-    public function subFase()
+    public function carreraModalidad()
     {
-        return $this->belongsTo(SubFase::class, 'id_subfase');
+        return $this->belongsTo(CarreraModalidad::class, 'id_carreraModalidad');
     }
 }

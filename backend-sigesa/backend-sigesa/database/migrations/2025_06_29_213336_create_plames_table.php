@@ -16,8 +16,8 @@ class CreatePlamesTable extends Migration
         Schema::create('plames', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('id_subfase')
-                ->constrained('sub_fases')
+            $table->foreignId('id_carreraModalidad')
+                ->constrained('carrera_modalidades')
                 ->onDelete('cascade');
             $table->string('tipo_evaluacion_plame', 50)->nullable();
         });

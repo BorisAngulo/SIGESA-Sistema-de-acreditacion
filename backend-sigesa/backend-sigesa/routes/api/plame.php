@@ -11,9 +11,13 @@ use App\Http\Controllers\Api\PlameController;
 
 Route::middleware(['auth:sanctum'])->prefix('plame')->name('plame.')->group(function () {
     
+    // === VERIFICAR EXISTENCIA PLAME ===
+    Route::get('/verificar/{carreraModalidadId}', [PlameController::class, 'verificarPlameExiste'])
+        ->name('verificar-existe');
+    
     // === OBTENER MATRIZ PLAME ===
-    Route::get('/subfase/{subfaseId}', [PlameController::class, 'getPlameBySubfase'])
-        ->name('get-by-subfase');
+    Route::get('/carrera-modalidad/{carreraModalidadId}', [PlameController::class, 'getPlameByCarreraModalidad'])
+        ->name('get-by-carrera-modalidad');
     
     // === ACTUALIZAR MATRIZ PLAME ===
     Route::put('/relacion', [PlameController::class, 'updateRelacionPlame'])
@@ -30,10 +34,13 @@ Route::middleware(['auth:sanctum'])->prefix('plame')->name('plame.')->group(func
     Route::get('/estadisticas/{plameId}', [PlameController::class, 'getEstadisticasPlame'])
         ->name('estadisticas');
     
-    // === FILAS Y COLUMNAS POR MODALIDAD ===
+    // === FILAS Y COLUMNAS ===
     Route::get('/filas/modalidad/{modalidadId}', [PlameController::class, 'getFilasByModalidad'])
         ->name('filas-by-modalidad');
         
     Route::get('/columnas/modalidad/{modalidadId}', [PlameController::class, 'getColumnasByModalidad'])
         ->name('columnas-by-modalidad');
+        
+    Route::get('/columnas', [PlameController::class, 'getColumnas'])
+        ->name('columnas');
 });

@@ -76,6 +76,8 @@ const DocumentosScreen = () => {
       case '03':
         className = 'badge-global';
         break;
+      default:
+        className = 'badge-desconocido';
     }
     
     return <span className={`tipo-documento-badge ${className}`}>{texto}</span>;

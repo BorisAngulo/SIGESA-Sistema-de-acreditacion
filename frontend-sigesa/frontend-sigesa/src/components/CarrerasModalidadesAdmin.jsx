@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Building2, 
@@ -13,10 +13,10 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  Download,
   Upload,
   Award,
-  Trash2
+  Trash2,
+  Grid3X3
 } from 'lucide-react';
 import { 
   getCarrerasModalidadesDetallesCompletos, 
@@ -25,6 +25,7 @@ import {
   eliminarCarreraModalidad
 } from '../services/api';
 import ModalSubirCertificado from './ModalSubirCertificado';
+import PlameModal from './PlameModal';
 import './CarrerasModalidadesAdmin.css';
 
 const CarrerasModalidadesAdmin = () => {
@@ -48,6 +49,10 @@ const CarrerasModalidadesAdmin = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Estados para modal PLAME
+  const [showPlameModal, setShowPlameModal] = useState(false);
+  const [selectedCarreraModalidadPlame, setSelectedCarreraModalidadPlame] = useState(null);
+
   useEffect(() => {
     cargarCarrerasModalidades();
   }, []);
@@ -56,10 +61,6 @@ const CarrerasModalidadesAdmin = () => {
     try {
       setLoading(true);
       const data = await getCarrerasModalidadesDetallesCompletos();
-      console.log('Datos recibidos de la API:', data);
-      console.log('Tipo de datos:', typeof data);
-      console.log('Es array?:', Array.isArray(data));
-      console.log('Cantidad de elementos:', data?.length);
       if (data && data.length > 0) {
         console.log('Primer elemento:', data[0]);
       }
@@ -188,10 +189,85 @@ const CarrerasModalidadesAdmin = () => {
     }
   };
 
+  // Funciones para manejar el modal PLAME
+  const handleAbrirPlame = (carreraModalidad) => {
+    setSelectedCarreraModalidadPlame(carreraModalidad);
+    setShowPlameModal(true);
+  };
+
+  const handleCerrarPlame = () => {
+    setShowPlameModal(false);
+    setSelectedCarreraModalidadPlame(null);
+  };
+
+  // Validar que carrerasModalidades sea un array (memoizado)
+  const carrerasModalidadesArray = useMemo(() => {
+    return Array.isArray(carrerasModalidades) ? carrerasModalidades : [];
+  }, [carrerasModalidades]);
+
+  const getEstadoProceso = (carreraModalidad) => {
+    const ahora = new Date();
+    const fechaInicio = carreraModalidad.fecha_ini_proceso ? new Date(carreraModalidad.fecha_ini_proceso) : null;
+    const fechaFin = carreraModalidad.fecha_fin_proceso ? new Date(carreraModalidad.fecha_fin_proceso) : null;
+    const estado = carreraModalidad.estado_modalidad;
+    if (estado === true) {
+      return {
+        texto: 'Aprobado',
+        clase: 'aprobado',
+        icono: <CheckCircle size={12} />
+      };
+    }
+
+    if (fechaInicio && fechaFin) {
+      const enProceso = ahora >= fechaInicio && ahora <= fechaFin;
+      
+      if (enProceso) {
+        return {
+          texto: 'En Proceso',
+          clase: 'en-proceso',
+          icono: <Clock size={12} />
+        };
+      }
+      
+      // Si está fuera del proceso y el estado es false, está rechazado
+      if (estado === false && ahora > fechaFin) {
+        return {
+          texto: 'Rechazado',
+          clase: 'rechazado',
+          icono: <AlertCircle size={12} />
+        };
+      }
+    }
+
+    // Estado por defecto para otros casos
+    if (estado === false) {
+      return {
+        texto: 'Inactivo',
+        clase: 'inactivo',
+        icono: <AlertCircle size={12} />
+      };
+    }
+
+    return {
+      texto: 'Pendiente',
+      clase: 'pendiente',
+      icono: <Clock size={12} />
+    };
+  };
+
+  // Memoizar los estados calculados para evitar recálculos constantes
+  const estadosCalculados = useMemo(() => {
+    const estados = {};
+    carrerasModalidadesArray.forEach(cm => {
+      estados[cm.id] = getEstadoProceso(cm);
+    });
+    return estados;
+  }, [carrerasModalidadesArray]);
+
   const getEstadoBadge = (estado, carreraModalidad = null) => {
     // Si se proporciona la carrera-modalidad, usar la lógica avanzada
     if (carreraModalidad) {
-      const estadoProceso = getEstadoProceso(carreraModalidad);
+      const estadoProceso = estadosCalculados[carreraModalidad.id] || getEstadoProceso(carreraModalidad);
       return (
         <span className={`estado-badge ${estadoProceso.clase}`}>
           {estadoProceso.icono}
@@ -234,91 +310,40 @@ const CarrerasModalidadesAdmin = () => {
     });
   };
 
-  const getEstadoProceso = (carreraModalidad) => {
-    const ahora = new Date();
-    const fechaInicio = carreraModalidad.fecha_ini_proceso ? new Date(carreraModalidad.fecha_ini_proceso) : null;
-    const fechaFin = carreraModalidad.fecha_fin_proceso ? new Date(carreraModalidad.fecha_fin_proceso) : null;
-    const estado = carreraModalidad.estado_modalidad;
+  // Obtener listas únicas para filtros con optimización
+  const facultadesUnicas = useMemo(() => {
+    return [...new Set(carrerasModalidadesArray
+      .filter(cm => cm.carrera?.facultad?.nombre)
+      .map(cm => cm.carrera.facultad.nombre))];
+  }, [carrerasModalidadesArray]);
 
-    console.log('Evaluando estado para carrera-modalidad:', {
-      id: carreraModalidad.id,
-      ahora: ahora.toISOString(),
-      fechaInicio: fechaInicio?.toISOString(),
-      fechaFin: fechaFin?.toISOString(),
-      estado: estado,
-      carreraNombre: carreraModalidad.carrera?.nombre
-    });
+  const modalidadesUnicas = useMemo(() => {
+    return [...new Set(carrerasModalidadesArray
+      .filter(cm => cm.modalidad?.nombre)
+      .map(cm => cm.modalidad.nombre))];
+  }, [carrerasModalidadesArray]);
 
-    // Si el estado es true, está aprobado
-    if (estado === true) {
-      return {
-        texto: 'Aprobado',
-        clase: 'aprobado',
-        icono: <CheckCircle size={12} />
-      };
-    }
+  // Filtrar y ordenar datos con optimización
+  const carrerasModalidadesFiltradas = useMemo(() => {
+    return carrerasModalidadesArray
+      .filter(cm => {
+        const matchesSearch = 
+          (cm.carrera?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (cm.carrera?.facultad?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (cm.modalidad?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Si hay fechas de proceso, verificar si está en proceso
-    if (fechaInicio && fechaFin) {
-      const enProceso = ahora >= fechaInicio && ahora <= fechaFin;
-      
-      if (enProceso) {
-        return {
-          texto: 'En Proceso',
-          clase: 'en-proceso',
-          icono: <Clock size={12} />
-        };
-      }
-      
-      // Si está fuera del proceso y el estado es false, está rechazado
-      if (estado === false && ahora > fechaFin) {
-        return {
-          texto: 'Rechazado',
-          clase: 'rechazado',
-          icono: <AlertCircle size={12} />
-        };
-      }
-    }
+        const matchesFacultad = !selectedFacultad || cm.carrera?.facultad?.nombre === selectedFacultad;
+        const matchesModalidad = !selectedModalidad || cm.modalidad?.nombre === selectedModalidad;
 
-    // Estado por defecto para otros casos
-    if (estado === false) {
-      return {
-        texto: 'Inactivo',
-        clase: 'inactivo',
-        icono: <AlertCircle size={12} />
-      };
-    }
-
-    return {
-      texto: 'Pendiente',
-      clase: 'pendiente',
-      icono: <Clock size={12} />
-    };
-  };
-
-  // Validar que carrerasModalidades sea un array
-  const carrerasModalidadesArray = Array.isArray(carrerasModalidades) ? carrerasModalidades : [];
-
-  // Obtener listas únicas para filtros
-  const facultadesUnicas = [...new Set(carrerasModalidadesArray
-    .filter(cm => cm.carrera?.facultad?.nombre)
-    .map(cm => cm.carrera.facultad.nombre))];
-  const modalidadesUnicas = [...new Set(carrerasModalidadesArray
-    .filter(cm => cm.modalidad?.nombre)
-    .map(cm => cm.modalidad.nombre))];
-
-  // Filtrar datos
-  const carrerasModalidadesFiltradas = carrerasModalidadesArray.filter(cm => {
-    const matchesSearch = 
-      (cm.carrera?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (cm.carrera?.facultad?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (cm.modalidad?.nombre || '').toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesFacultad = !selectedFacultad || cm.carrera?.facultad?.nombre === selectedFacultad;
-    const matchesModalidad = !selectedModalidad || cm.modalidad?.nombre === selectedModalidad;
-
-    return matchesSearch && matchesFacultad && matchesModalidad;
-  });
+        return matchesSearch && matchesFacultad && matchesModalidad;
+      })
+      .sort((a, b) => {
+        // Ordenar por fecha de actualización (updated_at) de más reciente a más antiguo
+        const fechaA = new Date(a.updated_at || a.created_at || 0);
+        const fechaB = new Date(b.updated_at || b.created_at || 0);
+        return fechaB - fechaA; // Orden descendente (más reciente primero)
+      });
+  }, [carrerasModalidadesArray, searchTerm, selectedFacultad, selectedModalidad]);
 
   if (loading) {
     return (
@@ -456,6 +481,19 @@ const CarrerasModalidadesAdmin = () => {
                       Subir Certificado
                     </button>
                   )}
+                  
+                  {/* Botón PLAME */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAbrirPlame(cm);
+                    }}
+                    className="btn-plame"
+                    title="Matriz PLAME"
+                  >
+                    <Grid3X3 size={16} />
+                    PLAME
+                  </button>
                   
                   {/* Botón de eliminar */}
                   <button
@@ -667,6 +705,14 @@ const CarrerasModalidadesAdmin = () => {
             </div>
           </div>
         </div>
+      )}
+      
+      {/* Modal PLAME */}
+      {showPlameModal && selectedCarreraModalidadPlame && (
+        <PlameModal
+          carreraModalidad={selectedCarreraModalidadPlame}
+          onClose={handleCerrarPlame}
+        />
       )}
     </div>
   );
