@@ -41,14 +41,6 @@
     transform: translateY(0) scale(1);
   }
 }
-
-.modal-header {
-  position: relative;
-  padding: 30px;
-  color: white;
-  overflow: hidden;
-}
-
 .modal-header.blue {
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
 }
@@ -122,14 +114,6 @@
 .modal-close-btn:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: scale(1.05);
-}
-
-.modal-body {
-  flex: 1;
-  padding: 30px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
 
 .modal-body::-webkit-scrollbar {
@@ -577,14 +561,6 @@
   font-size: 0.75rem;
   color: #3b82f6;
   font-weight: 600;
-}
-
-.modal-footer {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
-  border-top: 1px solid rgba(226, 232, 240, 0.3);
-  padding: 24px 30px;
-  flex-shrink: 0;
-  backdrop-filter: blur(20px);
 }
 
 .footer-actions {

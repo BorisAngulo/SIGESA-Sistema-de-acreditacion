@@ -14,18 +14,6 @@
   overflow: hidden; /* Prevenir scroll en el overlay */
 }
 
-.modal-content {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  max-width: 600px;
-  width: 100%;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  animation: modalSlideIn 0.3s ease-out;
-}
-
 .modal-content.delete-modal {
   max-width: 500px;
 }
@@ -82,23 +70,6 @@
     opacity: 1;
     transform: scale(1) translateY(0);
   }
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 30px 20px 30px;
-  border-bottom: 1px solid #e1e5e9;
-  flex-shrink: 0; /* No permitir que se reduzca */
-  background: white; /* Asegurar fondo blanco */
-}
-
-.modal-header h2 {
-  color: #333;
-  font-size: 24px;
-  font-weight: 600;
-  margin: 0;
 }
 
 .close-btn {
@@ -274,57 +245,6 @@
   border-top: 1px solid #e1e5e9;
   background: white;
   flex-shrink: 0; /* No permitir que se reduzca */
-}
-
-.btn-primary,
-.btn-secondary,
-.btn-danger {
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-  min-width: 120px;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.btn-secondary {
-  background: #f8f9fa;
-  color: #666;
-  border: 1px solid #e1e5e9;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: #e9ecef;
-  border-color: #ced4da;
-}
-
-.btn-danger {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  color: white;
-}
-
-.btn-danger:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
 }
 
 /* Estilos específicos para el modal de eliminar */

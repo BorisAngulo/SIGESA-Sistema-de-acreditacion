@@ -24,7 +24,7 @@ import BackupScreen from './screens/BackupScreen';
 import SubFaseScreen from './screens/SubFaseScreen';
 import DocumentosScreen from './screens/DocumentosScreen';
 import MiCarreraScreen from './screens/MiCarreraScreen';
-import CarrerasModalidadesAdmin from './components/CarrerasModalidadesAdmin';
+import CarrerasModalidadesAdmin from './screens/CarrerasModalidadesAdmin';
 import ReporteFacultades from './screens/ReporteFacultades';
 import ReporteCarreras from './screens/ReporteCarreras';
 import ReporteModalidades from './screens/ReporteModalidades';

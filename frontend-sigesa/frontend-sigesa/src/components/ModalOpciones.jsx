@@ -1,21 +1,16 @@
 import React from 'react';
-import { Eye, UserPlus, BarChart3, Trash2, MoreVertical, Settings, Edit2 } from 'lucide-react';
-import { canManageFacultades, canManageCarreras, isAdmin, canViewReports } from '../services/permissions';
+import { UserPlus, BarChart3, Trash2, MoreVertical, Settings, Edit2 } from 'lucide-react';
+import { canManageFacultades, canManageCarreras, canViewReports } from '../services/permissions';
 import './ModalOpciones.css';
 
 const ModalOpciones = ({
   isVisible,
   onToggle,
-  // Props para Facultades
-  onVerCarreras,
   onAgregarCarrera,
   onEditarFacultad,
   onEliminarFacultad,
-  numeroCarreras,
   facultadId,
   facultadNombre,
-  // Props para Carreras
-  onVerInformacion,
   onGestionarModalidades,
   onEditarCarrera,
   onEliminarCarrera,

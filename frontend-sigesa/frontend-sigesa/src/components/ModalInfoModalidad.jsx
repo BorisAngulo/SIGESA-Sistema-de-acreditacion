@@ -1,5 +1,5 @@
 import React from 'react';
-import './ModalInfoModalidad.css';
+import '../styles/ModalInfoModalidad.css';
 
 const ModalInfoModalidad = ({ 
   isOpen, 

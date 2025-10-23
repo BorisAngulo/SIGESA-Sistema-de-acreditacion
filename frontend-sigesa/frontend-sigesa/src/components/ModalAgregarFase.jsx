@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Edit, Calendar, Save } from 'lucide-react';
-import './ModalAgregarFase.css';
+import '../styles/ModalAgregarFase.css';
 
 const ModalAgregarFase = ({ isOpen, onClose, onSave, fase = null }) => {
   const [formData, setFormData] = useState({
@@ -147,7 +147,7 @@ const ModalAgregarFase = ({ isOpen, onClose, onSave, fase = null }) => {
 
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content modal-content-agregarFase" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-header-icon">
             <FileText size={24} />
@@ -262,7 +262,7 @@ const ModalAgregarFase = ({ isOpen, onClose, onSave, fase = null }) => {
             <div className="modal-actions">
               <button 
                 type="button" 
-                className="btn-cancel" 
+                className="btn-secondary" 
                 onClick={handleCancel}
                 disabled={isLoading}
               >
@@ -270,7 +270,7 @@ const ModalAgregarFase = ({ isOpen, onClose, onSave, fase = null }) => {
               </button>
               <button 
                 type="submit" 
-                className={`btn-save ${isLoading ? 'btn-loading' : ''}`}
+                className={`btn-primary ${isLoading ? 'btn-loading' : ''}`}
                 disabled={isLoading}
                 onClick={handleSubmit}
               >

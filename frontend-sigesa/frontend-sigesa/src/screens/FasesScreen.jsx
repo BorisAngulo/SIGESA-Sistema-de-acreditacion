@@ -178,7 +178,7 @@ const EditDateProcessForm = ({ fasesData, onClose, onSuccess }) => {
       <div className="modal-footer">
         <button 
           type="button" 
-          className="btn-cancel" 
+          className="btn-secondary" 
           onClick={onClose}
           disabled={loading}
         >
@@ -186,7 +186,7 @@ const EditDateProcessForm = ({ fasesData, onClose, onSuccess }) => {
         </button>
         <button 
           type="submit" 
-          className="btn-save" 
+          className="btn-primary" 
           disabled={loading}
         >
           {loading ? 'Guardando...' : 'Guardar Fechas'}
@@ -445,7 +445,6 @@ const FasesScreen = () => {
       setVerificandoEstadoProceso(true);
 
       let procesoActivo = false;
-      let carreraModalidadInfo = null;
 
       // Si viene desde CarrerasModalidadesAdmin, usar las fechas específicas del registro seleccionado
       if (fasesData.fromCarrerasModalidadesAdmin) {
@@ -469,7 +468,6 @@ const FasesScreen = () => {
           // Si no tenemos fechas pero sí el ID, consultar la carrera-modalidad específica por ID
           try {
             const registroEspecifico = await getCarreraModalidadPorId(fasesData.carreraModalidadId);
-            carreraModalidadInfo = registroEspecifico;
             
             if (registroEspecifico) {
               // Verificar si ya está finalizada
@@ -499,14 +497,6 @@ const FasesScreen = () => {
           procesoActivo = false;
         }
       } else {
-        // SIMPLIFICADO: Si viene desde ModalidadesScreen, usar SOLO datos existentes
-        // El endpoint consolidado YA debe haber cargado todos los datos necesarios
-        carreraModalidadInfo = {
-          id: fasesData.carreraModalidadId,
-          estado_modalidad: fasesData.estado_modalidad,
-          fecha_ini_proceso: fasesData.fecha_ini_proceso,
-          fecha_fin_proceso: fasesData.fecha_fin_proceso
-        };
         
         // Verificar si ya está finalizada
         if (fasesData.estado_modalidad === true) {
@@ -1095,7 +1085,7 @@ const FasesScreen = () => {
       }
       
       // Llamar a la API para finalizar la acreditación
-      const resultado = await finalizarAcreditacion(idParaFinalizar, formData);
+      await finalizarAcreditacion(idParaFinalizar, formData);
       
       // Cerrar el modal
       setShowFinalizarModal(false);

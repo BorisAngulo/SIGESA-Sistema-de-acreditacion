@@ -963,26 +963,6 @@
   padding: 20px;
 }
 
-.edit-dates-modal {
-  background: white;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.edit-dates-modal .modal-header {
-  background: linear-gradient(145deg, #4a90e2, #357abd);
-  color: white;
-  padding: 20px 25px;
-  border-radius: 12px 12px 0 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .edit-dates-modal .modal-header h3 {
   margin: 0;
   font-size: 1.4rem;
@@ -990,21 +970,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.edit-dates-modal .modal-header .close-button {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
-  padding: 5px;
-  border-radius: 50%;
-  transition: background-color 0.2s;
-}
-
-.edit-dates-modal .modal-header .close-button:hover {
-  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
 }
 
 /* Formulario de Edición de Fechas */
@@ -1077,56 +1043,6 @@
 
 .edit-dates-form .current-dates-info strong {
   color: #333;
-}
-
-.edit-dates-form .modal-footer {
-  padding: 20px 25px;
-  border-top: 1px solid #e1e5e9;
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-}
-
-.edit-dates-form .btn-cancel {
-  background: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 20px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.edit-dates-form .btn-cancel:hover {
-  background: #5a6268;
-}
-
-.edit-dates-form .btn-cancel:disabled {
-  background: #cccccc;
-  cursor: not-allowed;
-}
-
-.edit-dates-form .btn-save {
-  background: linear-gradient(145deg, #28a745, #20924c);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 20px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.edit-dates-form .btn-save:hover {
-  background: linear-gradient(145deg, #20924c, #1e7e34);
-  transform: translateY(-1px);
-}
-
-.edit-dates-form .btn-save:disabled {
-  background: #cccccc;
-  cursor: not-allowed;
-  transform: none;
 }
 
 /* Responsive para editar fechas */

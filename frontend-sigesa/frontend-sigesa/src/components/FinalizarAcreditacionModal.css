@@ -3,49 +3,15 @@
   max-width: 600px;
   width: 90%;
   max-height: 90vh;
-  overflow-y: auto;
-}
-
-.finalizar-acreditacion-modal .modal-header {
-  background: linear-gradient(135deg, #28a745, #20c997);
-  color: white;
-  padding: 1.5rem;
-  border-radius: 12px 12px 0 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .finalizar-acreditacion-modal .modal-header h3 {
   margin: 0;
   font-size: 1.4rem;
   font-weight: 600;
+  color: #ffffff
 }
 
-.finalizar-acreditacion-modal .close-button {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.8rem;
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s;
-}
-
-.finalizar-acreditacion-modal .close-button:hover:not(:disabled) {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.finalizar-acreditacion-modal .close-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
 .finalizar-acreditacion-modal .modal-body {
   padding: 2rem;
@@ -210,65 +176,6 @@
   font-size: 0.85rem;
   margin-top: 0.25rem;
   display: block;
-}
-
-.finalizar-acreditacion-modal .modal-footer {
-  padding: 1.5rem 2rem;
-  border-top: 1px solid #dee2e6;
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 0 0 12px 12px;
-}
-
-.finalizar-acreditacion-modal .btn-secondary {
-  padding: 0.75rem 1.5rem;
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
-}
-
-.finalizar-acreditacion-modal .btn-secondary:hover:not(:disabled) {
-  background-color: #5a6268;
-  transform: translateY(-1px);
-}
-
-.finalizar-acreditacion-modal .btn-secondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.finalizar-acreditacion-modal .btn-primary {
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #28a745, #20c997);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.finalizar-acreditacion-modal .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #218838, #1ea88a);
-  transform: translateY(-1px);
-}
-
-.finalizar-acreditacion-modal .btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
 }
 
 .finalizar-acreditacion-modal .loading-spinner {
