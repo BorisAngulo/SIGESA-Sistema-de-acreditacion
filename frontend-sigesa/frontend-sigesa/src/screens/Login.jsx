@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, User, X } from 'lucide-react';
+import { Eye, EyeOff, User } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Navigate } from 'react-router-dom';
 import logoInicio from '../assets/logoInicio.png';
@@ -91,10 +91,6 @@ const Login = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleClose = () => {
-    console.log('Cerrando login');
-  };
-
   return (
     <div className="login-container">
       <div className="login-card">
@@ -111,9 +107,6 @@ const Login = () => {
           </div>
 
           <div className="right-panel">
-            <button onClick={handleClose} className="close-button">
-              <X size={24} />
-            </button>
 
             <div className="form-container">
               <h2 className="login-title">Iniciar Sesión</h2>

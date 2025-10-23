@@ -25,7 +25,7 @@ import {
 } from '../services/api';
 import ModalSubirCertificado from '../components/ModalSubirCertificado';
 import PlameModal from '../components/PlameModal';
-import '../styles/CarrerasModalidadesAdmin.css';
+import '../styles/CarrerasModalidadesAdmin.css';import '../styles/ModalGeneral.css';
 
 const CarrerasModalidadesAdmin = () => {
   const navigate = useNavigate();
@@ -652,8 +652,7 @@ const CarrerasModalidadesAdmin = () => {
             <div className="modal-header">
               <h2>Confirmar Eliminación</h2>
               <button className="close-button" onClick={handleCloseDeleteModal}>×</button>
-            </div>
-            
+            </div>          
             <div className="modal-body">
               <div className="warning-icon">
                 <AlertCircle size={48} color="#ef4444" />

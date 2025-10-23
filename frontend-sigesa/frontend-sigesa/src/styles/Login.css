@@ -69,24 +69,6 @@
   position: relative;
 }
 
-.close-button {
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-  color: rgba(255, 255, 255, 0.6);
-  background: transparent;
-  border: none;
-  padding: 0.5rem;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.close-button:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
-}
-
 .form-container {
   display: flex;
   flex-direction: column;
