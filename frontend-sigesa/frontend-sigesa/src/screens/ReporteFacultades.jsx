@@ -434,13 +434,13 @@ const ReporteFacultades = () => {
       {/* Estadísticas Generales */}
       {reporteData && reporteData.estadisticas_generales && (
         <div style={styles.statsSection}>
-          <h3 style={styles.sectionTitle}>Estadísticas Generales</h3>
+          <h3 style={styles.sectionTitle}>Resumen General del Sistema</h3>
           <div style={styles.statsGrid}>
             <div style={styles.statCard} className="stat-card">
               <div style={styles.statIcon}>🏛️</div>
               <div style={styles.statContent}>
                 <div style={styles.statValue}>{reporteData.estadisticas_generales.total_facultades}</div>
-                <div style={styles.statLabel}>Facultades</div>
+                <div style={styles.statLabel}>Facultades Totales</div>
               </div>
             </div>
             
@@ -448,7 +448,7 @@ const ReporteFacultades = () => {
               <div style={styles.statIcon}>📚</div>
               <div style={styles.statContent}>
                 <div style={styles.statValue}>{reporteData.estadisticas_generales.total_carreras}</div>
-                <div style={styles.statLabel}>Total Carreras</div>
+                <div style={styles.statLabel}>Carreras Totales</div>
               </div>
             </div>
             
@@ -456,15 +456,7 @@ const ReporteFacultades = () => {
               <div style={styles.statIcon}>✅</div>
               <div style={styles.statContent}>
                 <div style={styles.statValue}>{reporteData.estadisticas_generales.total_acreditadas}</div>
-                <div style={styles.statLabel}>Acreditadas</div>
-              </div>
-            </div>
-            
-            <div style={styles.statCard} className="stat-card">
-              <div style={styles.statIcon}>🎯</div>
-              <div style={styles.statContent}>
-                <div style={styles.statValue}>{reporteData.estadisticas_generales.porcentaje_cobertura_global}%</div>
-                <div style={styles.statLabel}>Cobertura Global</div>
+                <div style={styles.statLabel}>Carreras Acreditadas</div>
               </div>
             </div>
             
@@ -472,7 +464,7 @@ const ReporteFacultades = () => {
               <div style={styles.statIcon}>🔄</div>
               <div style={styles.statContent}>
                 <div style={styles.statValue}>{reporteData.estadisticas_generales.procesos_activos}</div>
-                <div style={styles.statLabel}>Procesos Activos</div>
+                <div style={styles.statLabel}>Procesos en Curso</div>
               </div>
             </div>
             
@@ -480,7 +472,7 @@ const ReporteFacultades = () => {
               <div style={styles.statIcon}>🏆</div>
               <div style={styles.statContent}>
                 <div style={styles.statValue}>{reporteData.estadisticas_generales.procesos_completados}</div>
-                <div style={styles.statLabel}>Completados</div>
+                <div style={styles.statLabel}>Procesos Completados</div>
               </div>
             </div>
           </div>
