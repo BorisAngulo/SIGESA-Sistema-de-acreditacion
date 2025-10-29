@@ -3,6 +3,7 @@ import { X, FileText, Link, Plus, Save, Calendar, CheckSquare } from 'lucide-rea
 import { createSubfase, updateSubfase } from '../services/api';
 import '../styles/ModalAgregarSubfase.css';
 import useToast from '../hooks/useToast';
+import useBodyScrollLock from '../hooks/useBodyScrollLock';
 
 const ModalAgregarSubfase = ({ 
   isOpen, 
@@ -32,18 +33,8 @@ const ModalAgregarSubfase = ({
 
   const isEditing = !!subfaseToEdit;
 
-  // Efecto para controlar el scroll del body
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
+  // Hook para controlar el scroll del body
+  useBodyScrollLock(isOpen);
 
   // Efecto para cargar datos de subfase si estamos editando
   useEffect(() => {

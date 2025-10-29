@@ -11,14 +11,10 @@ import UsuariosScreen from './screens/UsuariosScreen';
 import ActividadScreen from './screens/ActividadScreen';
 import TecnicoDUEA from './screens/TecnicoDUEA';
 import FacultadScreen from './screens/FacultadScreen';
-import CrearFacultad from './screens/CrearFacultad';
 import AsignarCarreras from './screens/AsignarCarreras';
 import VisualizarCarreras from './screens/VisualizarCarreras';
-import CrearCarrera from './screens/CrearCarrera';
 import InformacionCarrera from './screens/InformacionCarrera';
 import FasesScreen from './screens/FasesScreen';
-import EditarFacultadScreen from './screens/EditarFacultadScreen';
-import EditarCarreraScreen from './screens/EditarCarreraScreen';
 import ModalidadesScreen from './screens/ModalidadesScreen';
 import BackupScreen from './screens/BackupScreen';
 import DocumentosScreen from './screens/DocumentosScreen';
@@ -76,15 +72,9 @@ function App() {
                 } />
                 
                 {/* Rutas para Técnico */}
-                <Route path="/tecnico" element={
+                <Route path="/duea" element={
                   <ProtectedRoute allowedRoles={['Tecnico', 'Admin']}>
                     <TecnicoDUEA />
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="/facultad/crear" element={
-                  <ProtectedRoute allowedRoles={['Admin', 'Tecnico']}>
-                    <CrearFacultad />
                   </ProtectedRoute>
                 } />
                 
@@ -97,24 +87,6 @@ function App() {
                 <Route path="/carreras-modalidades" element={
                   <ProtectedRoute allowedRoles={['Admin', 'Tecnico']}>
                     <CarrerasModalidadesAdmin />
-                  </ProtectedRoute>
-                } />
-
-                <Route path="/carrera/editar/:id" element={
-                  <ProtectedRoute allowedRoles={['Admin', 'Tecnico', 'Coordinador']}>
-                    <EditarCarreraScreen />
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="/carrera/crear/:facultadId" element={
-                  <ProtectedRoute allowedRoles={['Admin', 'Tecnico', 'Coordinador']}>
-                    <CrearCarrera />
-                  </ProtectedRoute>
-                } />
-
-                <Route path="/facultad/editar/:id" element={
-                  <ProtectedRoute allowedRoles={['Admin']}>
-                    <EditarFacultadScreen />
                   </ProtectedRoute>
                 } />
                 
