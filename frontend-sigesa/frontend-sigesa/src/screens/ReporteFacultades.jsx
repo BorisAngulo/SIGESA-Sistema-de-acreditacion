@@ -88,9 +88,16 @@ if (typeof document !== 'undefined') {
 
 const ReporteFacultades = () => {
   const [loading, setLoading] = useState(true);
-  const [selectedYear, setSelectedYear] = useState('todos');
+  // Estados para filtros temporales (antes de aplicar)
+  const [tempSelectedDate, setTempSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [tempSelectedFacultad, setTempSelectedFacultad] = useState('todas');
+  const [tempSelectedModalidad, setTempSelectedModalidad] = useState('todas');
+  
+  // Estados para filtros aplicados (los que realmente afectan los datos)
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedFacultad, setSelectedFacultad] = useState('todas');
   const [selectedModalidad, setSelectedModalidad] = useState('todas');
+  
   const [expandedFaculties, setExpandedFaculties] = useState(new Set());
   const [facultades, setFacultades] = useState([]);
   const [reporteData, setReporteData] = useState(null);
@@ -98,6 +105,7 @@ const ReporteFacultades = () => {
   const [loadingCarreras, setLoadingCarreras] = useState(new Set());
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [applyingFilters, setApplyingFilters] = useState(false);
 
   const COLORS = ['#3b82f6', '#06b6d4', '#8b5cf6', '#0ea5e9', '#10b981', '#6366f1'];
   const CHART_COLORS = {
@@ -114,9 +122,12 @@ const ReporteFacultades = () => {
     loadInitialData();
   }, []);
 
+  // Solo recargar cuando se apliquen filtros manualmente
   useEffect(() => {
-    loadReporteData();
-  }, [selectedYear, selectedModalidad]);
+    if (!loading) { // No recargar durante la carga inicial
+      loadReporteData();
+    }
+  }, [selectedDate, selectedModalidad, selectedFacultad]);
 
   const loadInitialData = async () => {
     try {
@@ -137,8 +148,9 @@ const ReporteFacultades = () => {
   const loadReporteData = async () => {
     try {
       const filters = {};
-      if (selectedYear && selectedYear !== 'todos') filters.year = selectedYear;
-      if (selectedModalidad && selectedModalidad !== 'todas') filters.modalidad_id = selectedModalidad;
+      if (selectedDate) filters.fecha = selectedDate;
+      if (selectedModalidad && selectedModalidad !== 'todas') filters.modalidad_tipo = selectedModalidad;
+      if (selectedFacultad && selectedFacultad !== 'todas') filters.facultad_id = selectedFacultad;
       const reporteResponse = await getReporteFacultades(filters);
       setReporteData(reporteResponse);
     } catch (error) {
@@ -147,13 +159,65 @@ const ReporteFacultades = () => {
     }
   };
 
+  // Función para aplicar filtros
+  const applyFilters = async () => {
+    setApplyingFilters(true);
+    try {
+      // Aplicar los filtros temporales a los filtros activos
+      setSelectedDate(tempSelectedDate);
+      setSelectedFacultad(tempSelectedFacultad);
+      setSelectedModalidad(tempSelectedModalidad);
+      
+      // Limpiar datos de carreras cargadas para recargar con nuevos filtros
+      setFacultyCarreras(new Map());
+      setExpandedFaculties(new Set());
+    } catch (error) {
+      console.error('Error aplicando filtros:', error);
+      setError('Error al aplicar filtros');
+    } finally {
+      setApplyingFilters(false);
+    }
+  };
+
+  // Función para limpiar filtros
+  const clearFilters = async () => {
+    setApplyingFilters(true);
+    try {
+      const currentDate = new Date().toISOString().split('T')[0];
+      // Resetear tanto filtros temporales como aplicados
+      setTempSelectedDate(currentDate);
+      setTempSelectedFacultad('todas');
+      setTempSelectedModalidad('todas');
+      setSelectedDate(currentDate);
+      setSelectedFacultad('todas');
+      setSelectedModalidad('todas');
+      
+      // Limpiar datos de carreras cargadas
+      setFacultyCarreras(new Map());
+      setExpandedFaculties(new Set());
+    } catch (error) {
+      console.error('Error limpiando filtros:', error);
+      setError('Error al limpiar filtros');
+    } finally {
+      setApplyingFilters(false);
+    }
+  };
+
+  // Verificar si hay cambios pendientes en los filtros
+  const hasFilterChanges = () => {
+    return tempSelectedDate !== selectedDate || 
+           tempSelectedFacultad !== selectedFacultad || 
+           tempSelectedModalidad !== selectedModalidad;
+  };
+
   const loadCarrerasByFacultad = async (facultadId) => {
     if (facultyCarreras.has(facultadId) || loadingCarreras.has(facultadId)) return;
     setLoadingCarreras(prev => new Set([...prev, facultadId]));
     try {
       const filters = {};
-      if (selectedYear && selectedYear !== 'todos') filters.year = selectedYear;
-      if (selectedModalidad && selectedModalidad !== 'todas') filters.modalidad_id = selectedModalidad;
+      if (selectedDate) filters.fecha = selectedDate;
+      if (selectedModalidad && selectedModalidad !== 'todas') filters.modalidad_tipo = selectedModalidad;
+      if (selectedFacultad && selectedFacultad !== 'todas') filters.facultad_id = selectedFacultad;
       const estadisticas = await getEstadisticasFacultad(facultadId, filters);
       const carrerasDetalladas = estadisticas?.carreras || [];
       setFacultyCarreras(prev => new Map([...prev, [facultadId, carrerasDetalladas]]));
@@ -200,7 +264,7 @@ const ReporteFacultades = () => {
         ceub: facultad.ceub_total || 0,
         arcusur: facultad.arcusur_total || 0,
         porcentaje_acreditacion: facultad.porcentaje_cobertura || 0,
-        sin_acreditar: (facultad.total_carreras || 0) - ((facultad.ceub_total || 0) + (facultad.arcusur_total || 0))
+        sin_acreditar: (facultad.total_carreras || 0) - (facultad.total_acreditadas || 0)
       }));
   };
 
@@ -327,22 +391,22 @@ const ReporteFacultades = () => {
                 {carrera.nombre_carrera}
               </div>
               <div style={styles.carreraBadges}>
-                {carrera.acreditaciones?.ceub && (
+                {carrera.ceub_activa && (
                   <div style={{...styles.acredBadge, ...styles.ceubBadge}}>
                     <span>CEUB</span>
                     <div style={styles.badgeDetails}>
-                      {carrera.acreditaciones.ceub.fecha_vencimiento && (
-                        <small>Hasta: {new Date(carrera.acreditaciones.ceub.fecha_vencimiento).toLocaleDateString('es-BO')}</small>
+                      {carrera.ceub_fecha_vencimiento && (
+                        <small>Hasta: {new Date(carrera.ceub_fecha_vencimiento).toLocaleDateString('es-BO')}</small>
                       )}
                     </div>
                   </div>
                 )}
-                {carrera.acreditaciones?.arcusur && (
+                {carrera.arcusur_activa && (
                   <div style={{...styles.acredBadge, ...styles.arcusurBadge}}>
                     <span>ARCU-SUR</span>
                     <div style={styles.badgeDetails}>
-                      {carrera.acreditaciones.arcusur.fecha_vencimiento && (
-                        <small>Hasta: {new Date(carrera.acreditaciones.arcusur.fecha_vencimiento).toLocaleDateString('es-BO')}</small>
+                      {carrera.arcusur_fecha_vencimiento && (
+                        <small>Hasta: {new Date(carrera.arcusur_fecha_vencimiento).toLocaleDateString('es-BO')}</small>
                       )}
                     </div>
                   </div>
@@ -435,35 +499,95 @@ const ReporteFacultades = () => {
         </div>
         <div style={styles.filtersGrid}>
           <div style={styles.filterCard}>
-            <label style={styles.filterLabel}>📅 Período Académico</label>
-            <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} style={styles.filterSelect}>
-              <option value="todos">Todos los Años</option>
-              <option value="2025">2025</option>
-              <option value="2024">2024</option>
-              <option value="2023">2023</option>
-              <option value="2022">2022</option>
-            </select>
+            <label style={styles.filterLabel}>📅 Fecha de Referencia</label>
+            <input 
+              type="date" 
+              value={tempSelectedDate} 
+              onChange={(e) => setTempSelectedDate(e.target.value)} 
+              style={{
+                ...styles.filterSelect,
+                padding: '12px 16px',
+                fontSize: '14px',
+                fontFamily: 'inherit'
+              }}
+            />
+            <small style={{
+              display: 'block',
+              marginTop: '8px',
+              color: '#6b7280',
+              fontSize: '12px'
+            }}>
+              Las acreditaciones se evalúan a esta fecha
+            </small>
           </div>
 
           <div style={styles.filterCard}>
             <label style={styles.filterLabel}>🎯 Modalidad de Estudio</label>
-            <select value={selectedModalidad} onChange={(e) => setSelectedModalidad(e.target.value)} style={styles.filterSelect}>
+            <select value={tempSelectedModalidad} onChange={(e) => setTempSelectedModalidad(e.target.value)} style={styles.filterSelect}>
               <option value="todas">Todas las Modalidades</option>
-              <option value="1">Presencial</option>
-              <option value="2">Semipresencial</option>
-              <option value="3">A Distancia</option>
+              <option value="ceub">CEUB</option>
+              <option value="arcusur">ARCUSUR</option>
             </select>
           </div>
 
           <div style={styles.filterCard}>
             <label style={styles.filterLabel}>🏛️ Facultad Específica</label>
-            <select value={selectedFacultad} onChange={(e) => setSelectedFacultad(e.target.value)} style={styles.filterSelect}>
+            <select value={tempSelectedFacultad} onChange={(e) => setTempSelectedFacultad(e.target.value)} style={styles.filterSelect}>
               <option value="todas">Todas las Facultades</option>
               {facultades.map(f => (
                 <option key={f.id} value={f.id}>{f.nombre_facultad}</option>
               ))}
             </select>
           </div>
+        </div>
+
+        {/* Botones de control de filtros */}
+        <div style={styles.filterButtonsContainer}>
+          <button 
+            onClick={applyFilters}
+            disabled={applyingFilters || !hasFilterChanges()}
+            style={{
+              ...styles.filterBtn,
+              ...styles.applyBtn,
+              opacity: (!hasFilterChanges() || applyingFilters) ? 0.6 : 1,
+              cursor: (!hasFilterChanges() || applyingFilters) ? 'not-allowed' : 'pointer'
+            }}
+            className="action-btn"
+          >
+            {applyingFilters ? (
+              <>
+                <span className="spinner" style={{display: 'inline-block', marginRight: '8px'}}>⏳</span>
+                Aplicando...
+              </>
+            ) : (
+              <>
+                🔍 Aplicar Filtros
+                {hasFilterChanges() && <span style={{marginLeft: '8px', fontSize: '12px'}}>•</span>}
+              </>
+            )}
+          </button>
+          
+          <button 
+            onClick={clearFilters}
+            disabled={applyingFilters}
+            style={{
+              ...styles.filterBtn,
+              ...styles.clearBtn,
+              opacity: applyingFilters ? 0.6 : 1,
+              cursor: applyingFilters ? 'not-allowed' : 'pointer'
+            }}
+            className="action-btn"
+          >
+            {applyingFilters ? 'Limpiando...' : '🧹 Limpiar Filtros'}
+          </button>
+          
+          {hasFilterChanges() && (
+            <div style={styles.filterIndicator}>
+              <span style={styles.filterIndicatorText}>
+                📝 Hay cambios sin aplicar
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1745,6 +1869,53 @@ const styles = {
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: '0.5px'
+  },
+
+  // Nuevos estilos para los botones de filtros
+  filterButtonsContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    marginTop: '24px',
+    padding: '20px',
+    backgroundColor: '#f8fafc',
+    borderRadius: '16px',
+    border: '2px solid #e2e8f0',
+    flexWrap: 'wrap'
+  },
+  filterBtn: {
+    padding: '14px 28px',
+    borderRadius: '12px',
+    border: 'none',
+    fontSize: '14px',
+    fontWeight: '700',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    color: 'white',
+    boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px'
+  },
+  applyBtn: {
+    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)'
+  },
+  clearBtn: {
+    background: 'linear-gradient(135deg, #64748b 0%, #475569 100%)'
+  },
+  filterIndicator: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '8px 16px',
+    backgroundColor: '#fef3c7',
+    border: '2px solid #f59e0b',
+    borderRadius: '8px',
+    marginLeft: 'auto'
+  },
+  filterIndicatorText: {
+    fontSize: '12px',
+    color: '#d97706',
+    fontWeight: '600'
   }
 };
 

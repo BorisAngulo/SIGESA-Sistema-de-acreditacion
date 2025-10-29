@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getCarrerasByFacultad, getFacultades, deleteCarrera } from '../services/api';
+import { getCarrerasByFacultad, getFacultades, deleteCarrera, createCarrera } from '../services/api';
 import { canManageCarreras } from '../services/permissions';
 import { 
   ArrowLeft, 
@@ -8,7 +8,9 @@ import {
   Search
 } from 'lucide-react';
 import ModalOpciones from '../components/ModalOpciones';
-import ModalConfirmacion from '../components/ModalConfirmacion';
+import ModalConfirmacion from '../components/ModalConfirmacionEliminacion';
+import ModalCrearCarrera from '../components/ModalCrearCarrera';
+import ModalEditarCarrera from '../components/ModalEditarCarrera';
 import mascota from "../assets/mascota.png";
 import "../styles/VisualizarCarreras.css";
 import useToast from '../hooks/useToast';
@@ -25,6 +27,9 @@ export default function VisualizarCarreras() {
   const [modalOpen, setModalOpen] = useState(false);
   const [carreraAEliminar, setCarreraAEliminar] = useState(null);
   const [eliminando, setEliminando] = useState(false);
+  const [modalCrearCarreraOpen, setModalCrearCarreraOpen] = useState(false);
+  const [modalEditarCarreraOpen, setModalEditarCarreraOpen] = useState(false);
+  const [carreraAEditar, setCarreraAEditar] = useState(null);
   const toast = useToast();
 
   useEffect(() => {
@@ -76,7 +81,28 @@ export default function VisualizarCarreras() {
   };
 
   const handleAgregarCarrera = () => {
-    navigate(`/carrera/crear/${facultadId}`);
+    setModalCrearCarreraOpen(true);
+  };
+
+  const handleCarreraCreada = (nuevaCarrera) => {
+    console.log('Nueva carrera creada:', nuevaCarrera);
+    // Agregar la nueva carrera a la lista
+    setCarreras(prevCarreras => [...prevCarreras, nuevaCarrera]);
+    setModalCrearCarreraOpen(false);
+    toast.success("Carrera creada exitosamente");
+  };
+
+  const handleCarreraEditada = (carreraEditada) => {
+    console.log('Carrera editada:', carreraEditada);
+    // Actualizar la carrera en la lista
+    setCarreras(prevCarreras => 
+      prevCarreras.map(carrera => 
+        carrera.id === carreraEditada.id ? carreraEditada : carrera
+      )
+    );
+    setModalEditarCarreraOpen(false);
+    setCarreraAEditar(null);
+    toast.success("Carrera actualizada exitosamente");
   };
 
   const handleVerInformacion = (carreraId) => {
@@ -94,8 +120,9 @@ export default function VisualizarCarreras() {
   };
 
   const handleEditarCarrera = (carreraId) => {
-    console.log('Redirigiendo a editar carrera con ID:', carreraId);
-    navigate(`/carrera/editar/${carreraId}`);
+    setCarreraAEditar(carreraId);
+    setModalEditarCarreraOpen(true);
+    setOpcionesVisibles(null);
   };
   
   const handleEliminarCarrera = (carreraId, carreraNombre) => {
@@ -310,6 +337,29 @@ export default function VisualizarCarreras() {
           ))
         )}
       </section>
+
+      {/* Modal de creación de carrera */}
+      {modalCrearCarreraOpen && (
+        <ModalCrearCarrera
+          isOpen={modalCrearCarreraOpen}
+          onClose={() => setModalCrearCarreraOpen(false)}
+          facultadId={facultadId}
+          onCarreraCreada={handleCarreraCreada}
+        />
+      )}
+
+      {/* Modal de edición de carrera */}
+      {modalEditarCarreraOpen && carreraAEditar && (
+        <ModalEditarCarrera
+          isOpen={modalEditarCarreraOpen}
+          onClose={() => {
+            setModalEditarCarreraOpen(false);
+            setCarreraAEditar(null);
+          }}
+          carreraId={carreraAEditar}
+          onCarreraEditada={handleCarreraEditada}
+        />
+      )}
 
       {/* Modal de confirmación */}
       <ModalConfirmacion

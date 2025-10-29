@@ -400,6 +400,37 @@
   text-align: right;
 }
 
+.subfases-info {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.loading-progress {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.progress-details {
+  margin-bottom: 0.5rem;
+}
+
+.progress-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.progress-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  font-style: italic;
+  color: #9ca3af;
+}
+
 .completion-status {
   display: flex;
   justify-content: center;
@@ -425,7 +456,8 @@
 
 .modal-detalles-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   padding: 1rem 1.5rem;
   border-top: 1px solid #e5e7eb;
   background: #f8fafc;
@@ -445,6 +477,30 @@
 
 .btn-close:hover {
   background: #4b5563;
+}
+
+.btn-aprobar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.5rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-aprobar:hover:not(:disabled) {
+  background: #059669;
+}
+
+.btn-aprobar:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
 }
 
 /* Estilos para observaciones */

@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import { getFacultadesConCarreras, deleteFacultad } from "../services/api";
 import { Search, Plus } from "lucide-react";
 import { canManageFacultades } from "../services/permissions";
-import mascota from "../assets/mascota.png";
 import { useNavigate } from "react-router-dom";
-import ModalConfirmacion from "../components/ModalConfirmacion";
+import mascota from "../assets/mascota.png";
+import ModalConfirmacion from "../components/ModalConfirmacionEliminacion";
 import ModalOpciones from "../components/ModalOpciones";
+import ModalCrearFacultad from "../components/ModalCrearFacultad";
+import ModalEditarFacultad from "../components/ModalEditarFacultad";
 import "../styles/FacultadScreen.css";
 import useToast from "../hooks/useToast";
 
@@ -46,28 +48,27 @@ export default function FacultadScreen() {
   const [facultadAEliminar, setFacultadAEliminar] = useState(null);
   const [eliminando, setEliminando] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [modalCrearOpen, setModalCrearOpen] = useState(false);
+  const [modalEditarOpen, setModalEditarOpen] = useState(false);
+  const [facultadAEditar, setFacultadAEditar] = useState(null);
   const navigate = useNavigate();
   const toast = useToast();
   
+  const cargarFacultades = async () => {
+    try {
+      setLoading(true);
+      const facultadesData = await getFacultadesConCarreras();
+      setFacultadesConCarreras(facultadesData);
+    } catch (error) {
+      console.error('Error al cargar facultades:', error);
+      setFacultadesConCarreras([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   useEffect(() => {
-    const cargarDatos = async () => {
-      try {
-        setLoading(true);
-        
-        // Usar el endpoint optimizado que incluye el conteo de carreras
-        const facultadesData = await getFacultadesConCarreras();
-        console.log('Datos del endpoint optimizado:', facultadesData);
-        setFacultadesConCarreras(facultadesData);
-        
-      } catch (error) {
-        console.error('Error al cargar datos:', error);
-        setFacultadesConCarreras([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    cargarDatos();
+    cargarFacultades();
   }, []);
 
   const handleToggleOpciones = (id) => {
@@ -89,7 +90,15 @@ export default function FacultadScreen() {
   };
 
   const handleEditarFacultad = (facultadId) => {
-    navigate(`/facultad/editar/${facultadId}`);
+    setFacultadAEditar(facultadId);
+    setModalEditarOpen(true);
+  };
+
+  const handleFacultadEditada = () => {
+    // Recargar la lista de facultades
+    cargarFacultades();
+    setModalEditarOpen(false);
+    setFacultadAEditar(null);
   };
 
   const handleEliminarFacultad = (id, nombre) => {
@@ -125,7 +134,13 @@ export default function FacultadScreen() {
   };
 
   const handleAgregarFacultad = () => {
-    navigate("/facultad/crear"); 
+    setModalCrearOpen(true);
+  };
+
+  const handleFacultadCreada = (nuevaFacultad) => {
+    // Recargar la lista de facultades
+    cargarFacultades();
+    setModalCrearOpen(false);
   };
 
   const filteredFacultades = facultadesConCarreras.filter((f) =>
@@ -262,6 +277,24 @@ export default function FacultadScreen() {
         onConfirm={confirmarEliminacion}
         facultadNombre={facultadAEliminar?.nombre || ""}
         loading={eliminando}
+      />
+
+      {/* Modal de crear facultad */}
+      <ModalCrearFacultad
+        isOpen={modalCrearOpen}
+        onClose={() => setModalCrearOpen(false)}
+        onSuccess={handleFacultadCreada}
+      />
+
+      {/* Modal de editar facultad */}
+      <ModalEditarFacultad
+        isOpen={modalEditarOpen}
+        onClose={() => {
+          setModalEditarOpen(false);
+          setFacultadAEditar(null);
+        }}
+        onSuccess={handleFacultadEditada}
+        facultadId={facultadAEditar}
       />
     </div>
   );

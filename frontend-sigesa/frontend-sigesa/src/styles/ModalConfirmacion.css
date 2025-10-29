@@ -1,0 +1,134 @@
+/* Modal Confirmación Edición */
+.modal-confirmacion-edicion-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 20px;
+  opacity: 0;
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+.modal-confirmacion-edicion-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  max-width: 400px;
+  overflow: hidden;
+  transform: scale(0.95);
+  animation: slideIn 0.2s ease-out 0.1s forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  to {
+    transform: scale(1);
+  }
+}
+
+.modal-confirmacion-edicion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 0;
+}
+
+.modal-confirmacion-edicion-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.modal-confirmacion-edicion-close {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.modal-confirmacion-edicion-close:hover:not(:disabled) {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.modal-confirmacion-edicion-close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-confirmacion-edicion-content {
+  padding: 20px;
+  text-align: center;
+}
+
+.modal-confirmacion-edicion-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+.modal-confirmacion-edicion-message {
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.modal-confirmacion-edicion-footer {
+  display: flex;
+  gap: 12px;
+  padding: 0 20px 20px;
+}
+
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .modal-confirmacion-edicion-overlay {
+    padding: 16px;
+  }
+  
+  .modal-confirmacion-edicion-container {
+    max-width: 100%;
+  }
+  
+  .modal-confirmacion-edicion-footer {
+    flex-direction: column;
+  }
+  
+  .modal-confirmacion-edicion-btn {
+    width: 100%;
+  }
+}

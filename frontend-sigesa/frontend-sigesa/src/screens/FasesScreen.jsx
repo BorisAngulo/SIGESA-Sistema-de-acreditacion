@@ -21,7 +21,8 @@ import {
   asociarDocumentoASubfase,
   getDocumentosByFase,
   getDocumentosBySubfase,
-  getProcesoCompleto
+  getProcesoCompleto,
+  getAvanceFase
 } from '../services/api';
 import { 
   deleteSubfase
@@ -30,6 +31,7 @@ import ModalAgregarFase from '../components/ModalAgregarFase';
 import ModalConfirmacionFase from '../components/ModalConfirmacionFase'; 
 import ModalEscogerDocumento from '../components/ModalEscogerDocumento';
 import ModalDetallesFase from '../components/ModalDetallesFase';
+import ModalAgregarSubfase from '../components/ModalAgregarSubfase';
 import FinalizarAcreditacionModal from '../components/FinalizarAcreditacionModal';
 import FodaModal from '../components/FodaModal';
 import '../styles/FasesScreen.css';
@@ -233,6 +235,9 @@ const FasesScreen = () => {
   const [subfases, setSubfases] = useState({});
   // loadingSubfases removido - ya no es necesario con endpoint consolidado
 
+  // Estado para almacenar los avances reales de las fases
+  const [avancesFases, setAvancesFases] = useState({});
+
   const [showDetallesModal, setShowDetallesModal] = useState(false);
   const [detallesData, setDetallesData] = useState({
     tipo: null, // 'fase' o 'subfase'
@@ -247,6 +252,11 @@ const FasesScreen = () => {
   // Estados para modal FODA
   const [showFodaModal, setShowFodaModal] = useState(false);
   const [subfaseSeleccionada, setSubfaseSeleccionada] = useState(null);
+
+  // Estados para modal de subfase
+  const [showSubfaseModal, setShowSubfaseModal] = useState(false);
+  const [subfaseToEdit, setSubfaseToEdit] = useState(null);
+  const [faseParaSubfase, setFaseParaSubfase] = useState(null);
 
   // Estado para el modal de edición de fechas de proceso
   const [showEditDateModal, setShowEditDateModal] = useState(false);
@@ -343,7 +353,6 @@ const FasesScreen = () => {
           modalidadId: carreraModalidad.modalidad_id || prev.modalidadId,
           updated_at: carreraModalidad.updated_at
         }));
-        console.log('📋 fasesData actualizado con datos del endpoint consolidado');
       }
       
       if (procesoCompleto.fases && procesoCompleto.fases.length > 0) {
@@ -527,6 +536,38 @@ const FasesScreen = () => {
       verificandoEnProcesoRef.current = false;
     }
   }, [fasesData?.carreraId, fasesData?.modalidadId, fasesData?.carreraModalidadId, fasesData?.fromCarrerasModalidadesAdmin, fasesData?.fecha_ini_proceso, fasesData?.fecha_fin_proceso, fasesData?.estado_modalidad]);
+
+  // Función para cargar el avance real de todas las fases
+  const cargarAvancesFases = useCallback(async () => {
+    if (!fases || fases.length === 0) {
+      return;
+    }
+
+    try {
+      const nuevosAvances = {};
+      
+      // Cargar avance para cada fase en paralelo
+      const promesasAvance = fases.map(async (fase) => {
+        try {
+          const avance = await getAvanceFase(fase.id);
+          nuevosAvances[fase.id] = avance;
+        } catch (error) {
+          console.error(`Error al cargar avance de fase ${fase.id}:`, error);
+          nuevosAvances[fase.id] = {
+            porcentaje_avance: 0,
+            subfases_completadas: 0,
+            total_subfases: 0
+          };
+        }
+      });
+
+      await Promise.all(promesasAvance);
+      setAvancesFases(nuevosAvances);
+      
+    } catch (error) {
+      console.error('Error al cargar avances de fases:', error);
+    }
+  }, [fases]);
 
   useEffect(() => {
     const processLocationData = async () => {
@@ -742,6 +783,13 @@ const FasesScreen = () => {
     fasesData?.fecha_fin_proceso, // Agregar esta dependencia
     fasesData?.fecha_ini_proceso 
   ]);
+
+  // useEffect para cargar avances de fases cuando las fases estén disponibles
+  useEffect(() => {
+    if (fases && fases.length > 0) {
+      cargarAvancesFases();
+    }
+  }, [fases, cargarAvancesFases]);
 
   const toggleFase = (faseId) => {
     setFases(fases.map(fase => 
@@ -965,6 +1013,11 @@ const FasesScreen = () => {
       setShowModal(false);
       setEditingFase(null);
       
+      // Recargar avances después de crear/actualizar fase
+      setTimeout(() => {
+        cargarAvancesFases();
+      }, 500);
+      
     } catch (error) {
       console.error('💥 Error al guardar fase:', error);
       
@@ -1105,36 +1158,37 @@ const FasesScreen = () => {
   const handleAgregarSubfase = (faseId) => {
     const fase = fases.find(f => f.id === faseId);
     
-    navigate('/subfase', {
-      state: {
-        faseId: faseId,
-        faseNombre: fase.nombre,
-        carreraId: fasesData.carreraId,
-        modalidadId: fasesData.modalidadId,
-        facultadId: fasesData.facultadId,
-        carreraNombre: fasesData.carreraNombre,
-        facultadNombre: fasesData.facultadNombre,
-        modalidad: fasesData.modalidad
-      }
+    setFaseParaSubfase({
+      faseId: faseId,
+      faseNombre: fase.nombre,
+      carreraId: fasesData.carreraId,
+      modalidadId: fasesData.modalidadId,
+      facultadId: fasesData.facultadId,
+      carreraNombre: fasesData.carreraNombre,
+      facultadNombre: fasesData.facultadNombre,
+      modalidad: fasesData.modalidad
     });
+    
+    setSubfaseToEdit(null);
+    setShowSubfaseModal(true);
   };
 
   const handleEditarSubfase = (subfase, faseId) => {
     const fase = fases.find(f => f.id === faseId);
     
-    navigate('/subfase', {
-      state: {
-        subfase: subfase, 
-        faseId: faseId,
-        faseNombre: fase.nombre,
-        carreraId: fasesData.carreraId,
-        modalidadId: fasesData.modalidadId,
-        facultadId: fasesData.facultadId,
-        carreraNombre: fasesData.carreraNombre,
-        facultadNombre: fasesData.facultadNombre,
-        modalidad: fasesData.modalidad
-      }
+    setFaseParaSubfase({
+      faseId: faseId,
+      faseNombre: fase.nombre,
+      carreraId: fasesData.carreraId,
+      modalidadId: fasesData.modalidadId,
+      facultadId: fasesData.facultadId,
+      carreraNombre: fasesData.carreraNombre,
+      facultadNombre: fasesData.facultadNombre,
+      modalidad: fasesData.modalidad
     });
+    
+    setSubfaseToEdit(subfase);
+    setShowSubfaseModal(true);
   };
 
   const handleEliminarSubfase = async (subfase, faseId) => {
@@ -1150,6 +1204,11 @@ const FasesScreen = () => {
           }));
 
           toast.success('Subfase eliminada exitosamente');
+          
+          // Recargar avances después de eliminar subfase
+          setTimeout(() => {
+            cargarAvancesFases();
+          }, 500);
         } else {
           throw new Error(result.error || 'Error al eliminar la subfase');
         }
@@ -1338,13 +1397,20 @@ const FasesScreen = () => {
     }
   };
 
-  const handleCerrarDetallesModal = () => {
+  const handleCerrarDetallesModal = (huboCambios = false) => {
     setShowDetallesModal(false);
     setDetallesData({
       tipo: null,
       data: null,
       documentos: []
     });
+    
+    // Si hubo cambios (como aprobaciones), recargar avances
+    if (huboCambios) {
+      setTimeout(() => {
+        cargarAvancesFases();
+      }, 500);
+    }
   };
 
   // Funciones para manejar modal FODA
@@ -1358,8 +1424,75 @@ const FasesScreen = () => {
     setSubfaseSeleccionada(null);
   };
 
-  const getStatusIcon = (completada, progreso) => {
-    if (completada || progreso === 100) {
+  // Funciones para manejar modal de subfase
+  const handleCerrarSubfaseModal = () => {
+    setShowSubfaseModal(false);
+    setSubfaseToEdit(null);
+    setFaseParaSubfase(null);
+  };
+
+  const handleSubfaseSuccess = async (nuevaSubfase) => {
+    try {
+      // Actualizar la lista de subfases localmente
+      if (subfaseToEdit) {
+        // Editando subfase existente
+        setSubfases(prev => ({
+          ...prev,
+          [faseParaSubfase.faseId]: prev[faseParaSubfase.faseId].map(s => 
+            s.id === subfaseToEdit.id 
+              ? {
+                  ...s,
+                  nombre: nuevaSubfase.nombre_subfase || nuevaSubfase.nombre,
+                  descripcion: nuevaSubfase.descripcion_subfase || nuevaSubfase.descripcion,
+                  fechaInicio: nuevaSubfase.fecha_inicio_subfase || nuevaSubfase.fechaInicio,
+                  fechaFin: nuevaSubfase.fecha_fin_subfase || nuevaSubfase.fechaFin,
+                  url_subfase: nuevaSubfase.url_subfase || nuevaSubfase.urlDrive,
+                  tiene_foda: nuevaSubfase.tiene_foda,
+                  tiene_plame: nuevaSubfase.tiene_plame,
+                  updatedAt: new Date().toISOString()
+                }
+              : s
+          )
+        }));
+      } else {
+        // Nueva subfase
+        const nuevaSubfaseTransformada = {
+          id: nuevaSubfase.id,
+          nombre: nuevaSubfase.nombre_subfase,
+          descripcion: nuevaSubfase.descripcion_subfase,
+          fechaInicio: nuevaSubfase.fecha_inicio_subfase,
+          fechaFin: nuevaSubfase.fecha_fin_subfase,
+          url_subfase: nuevaSubfase.url_subfase,
+          urlDrive: nuevaSubfase.url_subfase,
+          estadoSubfase: nuevaSubfase.estado_subfase || false,
+          faseId: nuevaSubfase.fase_id,
+          tiene_foda: nuevaSubfase.tiene_foda || false,
+          tiene_plame: nuevaSubfase.tiene_plame || false,
+          createdAt: nuevaSubfase.created_at || new Date().toISOString(),
+          updatedAt: nuevaSubfase.updated_at || new Date().toISOString(),
+          progreso: 0,
+          completada: false
+        };
+
+        setSubfases(prev => ({
+          ...prev,
+          [faseParaSubfase.faseId]: [...(prev[faseParaSubfase.faseId] || []), nuevaSubfaseTransformada]
+        }));
+      }
+
+      // Recargar avances después de crear/editar subfase
+      setTimeout(() => {
+        cargarAvancesFases();
+      }, 500);
+
+    } catch (error) {
+      console.error('Error al actualizar subfases localmente:', error);
+    }
+  };
+
+  const getStatusIcon = (estadoFase, completada, progreso) => {
+    // Priorizar estadoFase (true = aprobada/completa)
+    if (estadoFase === true || completada || progreso === 100) {
       return (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="status-icon completed">
           <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1381,8 +1514,9 @@ const FasesScreen = () => {
     }
   };
 
-  const getSubfaseStatusIcon = (completada) => {
-    if (completada) {
+  const getSubfaseStatusIcon = (estadoSubfase, completada) => {
+    // Priorizar estadoSubfase (true = aprobada/completa)
+    if (estadoSubfase === true || completada) {
       return (
         <div className="subfase-status completed">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -1591,8 +1725,14 @@ const FasesScreen = () => {
                       </button>
                     )}
                   </div>                  <div className="fase-progress">
-                    <span className="progress-text">{fase.progreso}%</span>
-                    {getStatusIcon(fase.completada, fase.progreso)}
+                    <span className="progress-text">
+                      {avancesFases[fase.id] ? `${avancesFases[fase.id].porcentaje_avance}%` : `${fase.progreso}%`}
+                    </span>
+                    {getStatusIcon(
+                      fase.estadoFase, 
+                      fase.completada, 
+                      avancesFases[fase.id] ? avancesFases[fase.id].porcentaje_avance : fase.progreso
+                    )}
                   </div>
                   
                   <div className={`expand-icon ${fase.expandida ? 'expanded' : ''}`}>
@@ -1700,7 +1840,7 @@ const FasesScreen = () => {
                                 </button>
                               )}
                               
-                              {getSubfaseStatusIcon(subfase.completada)}
+                              {getSubfaseStatusIcon(subfase.estadoSubfase, subfase.completada)}
                             </div>
                           </div>
                         </div>
@@ -1776,6 +1916,21 @@ const FasesScreen = () => {
         isOpen={showFodaModal}
         onClose={handleCerrarFoda}
         subfase={subfaseSeleccionada}
+      />
+
+      <ModalAgregarSubfase
+        isOpen={showSubfaseModal}
+        onClose={handleCerrarSubfaseModal}
+        onSuccess={handleSubfaseSuccess}
+        faseId={faseParaSubfase?.faseId}
+        faseNombre={faseParaSubfase?.faseNombre}
+        carreraId={faseParaSubfase?.carreraId}
+        modalidadId={faseParaSubfase?.modalidadId}
+        facultadId={faseParaSubfase?.facultadId}
+        carreraNombre={faseParaSubfase?.carreraNombre}
+        facultadNombre={faseParaSubfase?.facultadNombre}
+        modalidad={faseParaSubfase?.modalidad}
+        subfaseToEdit={subfaseToEdit}
       />
 
       {/* Modal de edición de fechas del proceso */}
