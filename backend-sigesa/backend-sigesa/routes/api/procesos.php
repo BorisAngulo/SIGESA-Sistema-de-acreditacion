@@ -49,6 +49,10 @@ Route::get('fases/{fase}/subfases/activas', [SubfaseController::class, 'getActiv
 Route::get('fases/{fase}/progreso', [FaseController::class, 'getProgreso'])
     ->name('fases.progreso');
 
+// Obtener el avance en porcentaje de una fase (público)
+Route::get('fases/{fase}/avance', [FaseController::class, 'getAvance'])
+    ->name('fases.avance');
+
 // Obtener el progreso de una subfase (público)
 Route::get('subfases/{subfase}/progreso', [SubfaseController::class, 'getProgreso'])
     ->name('subfases.progreso');

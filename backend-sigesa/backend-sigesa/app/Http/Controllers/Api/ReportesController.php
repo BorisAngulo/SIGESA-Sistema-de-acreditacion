@@ -15,359 +15,147 @@ use Carbon\Carbon;
 
 class ReportesController extends Controller
 {
-
     /**
-     * Obtener KPIs generales del sistema
+     * Encontrar la acreditación vigente en una fecha específica
      */
-    public function getKPIs(Request $request)
+    private function encontrarAcreditacionVigente($acreditaciones, $fechaReferencia)
     {
-        try {
-            $year = $request->get('year');
-            $facultadId = $request->get('facultad_id');
-            $modalidadId = $request->get('modalidad_id');
-
-            // Query base para carreras con filtros
-            $carrerasQuery = Carrera::query();
-            
-            if ($facultadId && $facultadId !== 'todas') {
-                $carrerasQuery->where('facultad_id', $facultadId);
-            }
-
-            // Si hay filtro de año, considerar solo acreditaciones de ese año
-            $carreraModalidadesQuery = CarreraModalidad::query();
-            
-            if ($year && $year !== 'todos') {
-                $carreraModalidadesQuery->whereYear('created_at', $year);
-            }
-            
-            if ($modalidadId && $modalidadId !== 'todas') {
-                $carreraModalidadesQuery->where('modalidad_id', $modalidadId);
-            }
-
-            // KPIs principales
-            $kpis = [
-                'facultades_activas' => Facultad::count(),
-                'carreras_totales' => $carrerasQuery->count(),
-                'acreditaciones_ceub' => $carreraModalidadesQuery->whereHas('modalidad', function($q) {
-                    $q->where('nombre_modalidad', 'like', '%CEUB%');
-                })->count(),
-                'acreditaciones_arcusur' => $carreraModalidadesQuery->whereHas('modalidad', function($q) {
-                    $q->where('nombre_modalidad', 'like', '%ARCU%');
-                })->count(),
-                'crecimiento_anual' => $this->calcularCrecimientoAnual($year)
-            ];
-
-            return $this->successResponse($kpis, 'KPIs obtenidos exitosamente');
-
-        } catch (\Exception $e) {
-            return $this->errorResponse('Error al obtener KPIs: ' . $e->getMessage(), 500);
+        if ($acreditaciones->isEmpty()) {
+            return null;
         }
-    }
 
-    /**
-     * Obtener análisis por facultades
-     */
-    public function getAnalisisFacultades(Request $request)
-    {
-        try {
-            $year = $request->get('year');
-            $modalidadId = $request->get('modalidad_id');
+        $acreditacionVigente = null;
+        $acreditacionMasRecienteVigente = null;
 
-            $facultades = Facultad::with(['carreras' => function($query) use ($year, $modalidadId) {
-                if ($modalidadId && $modalidadId !== 'todas') {
-                    $query->whereHas('modalidades', function($q) use ($modalidadId, $year) {
-                        $q->where('modalidad_id', $modalidadId);
-                        if ($year && $year !== 'todos') {
-                            $q->whereYear('carrera_modalidad.created_at', $year);
-                        }
-                    });
-                }
-            }, 'carreras.modalidades'])->get();
+        // Debug: Log de entrada
+        \Log::info("=== ENCONTRAR ACREDITACION VIGENTE ===");
+        \Log::info("Fecha referencia: " . $fechaReferencia->format('Y-m-d H:i:s'));
+        \Log::info("Total acreditaciones: " . $acreditaciones->count());
 
-            $analisis = $facultades->map(function($facultad) use ($year) {
-                $totalCarreras = $facultad->carreras->count();
+        foreach ($acreditaciones as $acreditacion) {
+            $esVigente = false;
+
+            \Log::info("Evaluando acreditación ID: " . $acreditacion->id);
+            \Log::info("Carrera: " . $acreditacion->carrera_id);
+            \Log::info("Modalidad: " . ($acreditacion->modalidad->nombre_modalidad ?? 'N/A'));
+            \Log::info("Fecha ini aprobación: " . ($acreditacion->fecha_ini_aprobacion ?? 'null'));
+            \Log::info("Fecha fin aprobación: " . ($acreditacion->fecha_fin_aprobacion ?? 'null'));
+
+            // Si tiene fechas de aprobación, verificar si estaba vigente en la fecha de referencia
+            if ($acreditacion->fecha_ini_aprobacion && $acreditacion->fecha_fin_aprobacion) {
+                $fechaInicioAprobacion = Carbon::parse($acreditacion->fecha_ini_aprobacion);
+                $fechaFinAprobacion = Carbon::parse($acreditacion->fecha_fin_aprobacion);
                 
-                // Contar acreditaciones CEUB
-                $ceub = $facultad->carreras->filter(function($carrera) use ($year) {
-                    return $carrera->modalidades->filter(function($modalidad) use ($year) {
-                        $esCeub = stripos($modalidad->nombre_modalidad, 'CEUB') !== false;
-                        if ($year && $year !== 'todos') {
-                            return $esCeub && $modalidad->pivot->created_at->year == $year;
-                        }
-                        return $esCeub;
-                    })->count() > 0;
-                })->count();
-
-                // Contar acreditaciones ARCU-SUR
-                $arcusur = $facultad->carreras->filter(function($carrera) use ($year) {
-                    return $carrera->modalidades->filter(function($modalidad) use ($year) {
-                        $esArcu = stripos($modalidad->nombre_modalidad, 'ARCU') !== false;
-                        if ($year && $year !== 'todos') {
-                            return $esArcu && $modalidad->pivot->created_at->year == $year;
-                        }
-                        return $esArcu;
-                    })->count() > 0;
-                })->count();
-
-                $carrerasAcreditadas = $ceub + $arcusur;
-                $porcentajeAcreditacion = $totalCarreras > 0 ? round(($carrerasAcreditadas / $totalCarreras) * 100, 1) : 0;
-
-                return [
-                    'facultad_id' => $facultad->id,
-                    'nombre_facultad' => $facultad->nombre_facultad,
-                    'codigo_facultad' => $facultad->codigo_facultad,
-                    'total_carreras' => $totalCarreras,
-                    'carreras_acreditadas' => $carrerasAcreditadas,
-                    'porcentaje_acreditacion' => $porcentajeAcreditacion,
-                    'ceub' => $ceub,
-                    'arcusur' => $arcusur
-                ];
-            });
-
-            return $this->successResponse($analisis, 'Análisis de facultades obtenido exitosamente');
-
-        } catch (\Exception $e) {
-            return $this->errorResponse('Error al obtener análisis de facultades: ' . $e->getMessage(), 500);
-        }
-    }
-
-    /**
-     * Obtener progreso por modalidades
-     */
-    public function getProgresoModalidades(Request $request)
-    {
-        try {
-            $year = $request->get('year');
-            $facultadId = $request->get('facultad_id');
-
-            $modalidades = Modalidad::with(['carreras' => function($query) use ($year, $facultadId) {
-                if ($year && $year !== 'todos') {
-                    $query->whereYear('carrera_modalidad.created_at', $year);
-                }
-                if ($facultadId && $facultadId !== 'todas') {
-                    $query->where('facultad_id', $facultadId);
-                }
-            }])->get();
-
-            $progreso = $modalidades->map(function($modalidad) use ($year, $facultadId) {
-                // Total de carreras elegibles (todas las carreras o filtradas por facultad)
-                $totalCarrerasQuery = Carrera::query();
-                if ($facultadId && $facultadId !== 'todas') {
-                    $totalCarrerasQuery->where('facultad_id', $facultadId);
-                }
-                $totalCarreras = $totalCarrerasQuery->count();
-
-                // Carreras activas en esta modalidad
-                $carrerasActivas = $modalidad->carreras->count();
-
-                // Simular carreras en proceso (puedes ajustar esta lógica según tu modelo de datos)
-                $carrerasEnProceso = floor($carrerasActivas * 0.3); // 30% están en proceso
-
-                $porcentajeCompletado = $totalCarreras > 0 ? 
-                    round(($carrerasActivas / $totalCarreras) * 100, 1) : 0;
-
-                return [
-                    'modalidad_id' => $modalidad->id,
-                    'nombre_modalidad' => $modalidad->nombre_modalidad,
-                    'descripcion' => $modalidad->descripcion,
-                    'total_carreras' => $totalCarreras,
-                    'carreras_activas' => $carrerasActivas,
-                    'carreras_en_proceso' => $carrerasEnProceso,
-                    'porcentaje_completado' => $porcentajeCompletado
-                ];
-            });
-
-            return $this->successResponse($progreso, 'Progreso por modalidades obtenido exitosamente');
-
-        } catch (\Exception $e) {
-            return $this->errorResponse('Error al obtener progreso de modalidades: ' . $e->getMessage(), 500);
-        }
-    }
-
-    /**
-     * Obtener tendencias temporales
-     */
-    public function getTendenciasTemporales(Request $request)
-    {
-        try {
-            $facultadId = $request->get('facultad_id');
-            $modalidadId = $request->get('modalidad_id');
-
-            // Obtener datos por año de los últimos 5 años
-            $anos = collect(range(date('Y') - 4, date('Y')));
-            
-            $tendencias = $anos->map(function($ano) use ($facultadId, $modalidadId) {
-                $carreraModalidadesQuery = CarreraModalidad::whereYear('created_at', $ano);
+                \Log::info("Evaluando rango: " . $fechaInicioAprobacion->format('Y-m-d') . " <= " . $fechaReferencia->format('Y-m-d') . " <= " . $fechaFinAprobacion->format('Y-m-d'));
                 
-                if ($facultadId && $facultadId !== 'todas') {
-                    $carreraModalidadesQuery->whereHas('carrera', function($q) use ($facultadId) {
-                        $q->where('facultad_id', $facultadId);
-                    });
+                if ($fechaReferencia->between($fechaInicioAprobacion, $fechaFinAprobacion)) {
+                    $esVigente = true;
+                    \Log::info("✅ VIGENTE: Está dentro del rango de aprobación");
+                } else {
+                    \Log::info("❌ NO VIGENTE: Fuera del rango de aprobación");
                 }
-
-                if ($modalidadId && $modalidadId !== 'todas') {
-                    $carreraModalidadesQuery->where('modalidad_id', $modalidadId);
-                }
-
-                // Contar por tipo de modalidad
-                $ceub = (clone $carreraModalidadesQuery)->whereHas('modalidad', function($q) {
-                    $q->where('nombre_modalidad', 'like', '%CEUB%');
-                })->count();
-
-                $arcusur = (clone $carreraModalidadesQuery)->whereHas('modalidad', function($q) {
-                    $q->where('nombre_modalidad', 'like', '%ARCU%');
-                })->count();
-
-                // Total de carreras para este año
-                $totalCarrerasQuery = Carrera::query();
-                if ($facultadId && $facultadId !== 'todas') {
-                    $totalCarrerasQuery->where('facultad_id', $facultadId);
-                }
-                $totalCarreras = $totalCarrerasQuery->count();
-
-                return [
-                    'año' => $ano,
-                    'ceub' => $ceub,
-                    'arcusur' => $arcusur,
-                    'total_carreras' => $totalCarreras,
-                    'total_acreditaciones' => $ceub + $arcusur
-                ];
-            });
-
-            return $this->successResponse($tendencias, 'Tendencias temporales obtenidas exitosamente');
-
-        } catch (\Exception $e) {
-            return $this->errorResponse('Error al obtener tendencias temporales: ' . $e->getMessage(), 500);
-        }
-    }
-
-    /**
-     * Obtener distribución de estados
-     */
-    public function getDistribucionEstados(Request $request)
-    {
-        try {
-            $year = $request->get('year');
-            $facultadId = $request->get('facultad_id');
-            $modalidadId = $request->get('modalidad_id');
-
-            // Query para acreditaciones con filtros
-            $carreraModalidadesQuery = CarreraModalidad::query();
-            
-            if ($year && $year !== 'todos') {
-                $carreraModalidadesQuery->whereYear('created_at', $year);
             }
-            
-            if ($facultadId && $facultadId !== 'todas') {
-                $carreraModalidadesQuery->whereHas('carrera', function($q) use ($facultadId) {
-                    $q->where('facultad_id', $facultadId);
-                });
-            }
-            
-            if ($modalidadId && $modalidadId !== 'todas') {
-                $carreraModalidadesQuery->where('modalidad_id', $modalidadId);
+            // Si no tiene aprobación pero tiene proceso, verificar si el proceso estaba activo
+            elseif ($acreditacion->fecha_ini_proceso) {
+                $fechaInicioProceso = Carbon::parse($acreditacion->fecha_ini_proceso);
+                
+                // Verificar si el proceso había iniciado en la fecha de referencia
+                if ($fechaReferencia->greaterThanOrEqualTo($fechaInicioProceso)) {
+                    // Si tiene fecha fin de proceso, verificar que no haya terminado
+                    if ($acreditacion->fecha_fin_proceso) {
+                        $fechaFinProceso = Carbon::parse($acreditacion->fecha_fin_proceso);
+                        if ($fechaReferencia->lessThanOrEqualTo($fechaFinProceso)) {
+                            $esVigente = true;
+                        }
+                    } else {
+                        // Si no tiene fecha fin, se considera activo si ya había iniciado
+                        $esVigente = true;
+                    }
+                }
             }
 
-            $totalAcreditaciones = $carreraModalidadesQuery->count();
-
-            // Para esta versión, simularemos los estados
-            // En el futuro puedes agregar campos de estado en tu tabla carrera_modalidad
-            $activas = floor($totalAcreditaciones * 0.7); // 70% activas
-            $enProceso = floor($totalAcreditaciones * 0.25); // 25% en proceso
-            $pausadas = $totalAcreditaciones - $activas - $enProceso; // El resto pausadas
-
-            $distribucion = [
-                [
-                    'name' => 'Activas',
-                    'value' => $activas,
-                    'color' => '#10b981'
-                ],
-                [
-                    'name' => 'En Proceso',
-                    'value' => $enProceso,
-                    'color' => '#f59e0b'
-                ],
-                [
-                    'name' => 'Pausadas',
-                    'value' => $pausadas,
-                    'color' => '#ef4444'
-                ]
-            ];
-
-            return $this->successResponse($distribucion, 'Distribución de estados obtenida exitosamente');
-
-        } catch (\Exception $e) {
-            return $this->errorResponse('Error al obtener distribución de estados: ' . $e->getMessage(), 500);
-        }
-    }
-
-    /**
-     * Obtener carreras con detalles de acreditación por facultad
-     */
-    public function getCarrerasConAcreditacion($facultadId)
-    {
-        try {
-            $carreras = Carrera::where('facultad_id', $facultadId)
-                ->with(['modalidades', 'subfases.fase'])
-                ->get();
-
-            $carrerasConDetalle = $carreras->map(function($carrera) {
-                $acreditaciones = [];
-
-                // Procesar modalidades
-                foreach ($carrera->modalidades as $modalidad) {
-                    $tipoModalidad = stripos($modalidad->nombre_modalidad, 'CEUB') !== false ? 'ceub' : 'arcusur';
+            // Si es vigente, verificar si es la más reciente
+            if ($esVigente) {
+                if (!$acreditacionMasRecienteVigente) {
+                    $acreditacionMasRecienteVigente = $acreditacion;
+                } else {
+                    // Usar fecha_ini_aprobacion como criterio principal, luego fecha_ini_proceso
+                    $fechaComparacionActual = $acreditacion->fecha_ini_aprobacion 
+                        ? Carbon::parse($acreditacion->fecha_ini_aprobacion)
+                        : ($acreditacion->fecha_ini_proceso ? Carbon::parse($acreditacion->fecha_ini_proceso) : null);
                     
-                    // Buscar fase actual en subfases
-                    $faseActual = $carrera->subfases->last();
+                    $fechaComparacionExistente = $acreditacionMasRecienteVigente->fecha_ini_aprobacion 
+                        ? Carbon::parse($acreditacionMasRecienteVigente->fecha_ini_aprobacion)
+                        : ($acreditacionMasRecienteVigente->fecha_ini_proceso ? Carbon::parse($acreditacionMasRecienteVigente->fecha_ini_proceso) : null);
                     
-                    $acreditaciones[$tipoModalidad] = [
-                        'estado' => 'activa',
-                        'fecha_vencimiento' => now()->addYears(3)->format('Y-m-d'), // 3 años de validez
-                        'fase_actual' => $faseActual ? $faseActual->fase->nombre_fase : 'Fase Inicial'
-                    ];
+                    // Si ambas tienen fechas válidas, tomar la más reciente
+                    if ($fechaComparacionActual && $fechaComparacionExistente) {
+                        if ($fechaComparacionActual->greaterThan($fechaComparacionExistente)) {
+                            $acreditacionMasRecienteVigente = $acreditacion;
+                        }
+                    } elseif ($fechaComparacionActual && !$fechaComparacionExistente) {
+                        // Si solo la actual tiene fecha, tomarla
+                        $acreditacionMasRecienteVigente = $acreditacion;
+                    }
+                    // Si solo la existente tiene fecha, mantenerla (no hacer nada)
                 }
-
-                return [
-                    'id' => $carrera->id,
-                    'nombre_carrera' => $carrera->nombre_carrera,
-                    'codigo_carrera' => $carrera->codigo_carrera,
-                    'acreditaciones' => $acreditaciones
-                ];
-            });
-
-            return $this->successResponse($carrerasConDetalle, 'Carreras con acreditación obtenidas exitosamente');
-
-        } catch (\Exception $e) {
-            return $this->errorResponse('Error al obtener carreras con acreditación: ' . $e->getMessage(), 500);
+            }
         }
+
+        \Log::info("Resultado final: " . ($acreditacionMasRecienteVigente ? 'ID ' . $acreditacionMasRecienteVigente->id : 'null'));
+        \Log::info("=== FIN ENCONTRAR ACREDITACION ===");
+
+        return $acreditacionMasRecienteVigente;
     }
 
     /**
-     * Calcular crecimiento anual
+     * Clasificar una acreditación según su estado actual
      */
-    private function calcularCrecimientoAnual($year = null)
+    private function clasificarAcreditacion($acreditacion, $estadisticas, $fechaReferencia)
     {
-        try {
-            if (!$year || $year === 'todos') {
-                return 15.5; // Valor promedio general
+        // Si tiene fechas de aprobación, verificar si estaba vigente en la fecha de referencia
+        if ($acreditacion->fecha_ini_aprobacion && $acreditacion->fecha_fin_aprobacion) {
+            $fechaInicioAprobacion = Carbon::parse($acreditacion->fecha_ini_aprobacion);
+            $fechaFinAprobacion = Carbon::parse($acreditacion->fecha_fin_aprobacion);
+            
+            if ($fechaReferencia->between($fechaInicioAprobacion, $fechaFinAprobacion)) {
+                // Acreditación vigente en la fecha de referencia
+                $estadisticas['acreditadas']++;
+            } else {
+                // Fuera del período de aprobación en la fecha de referencia
+                $estadisticas['vencidas']++;
             }
-
-            $currentYear = (int) $year;
-            $previousYear = $currentYear - 1;
-
-            $currentCount = CarreraModalidad::whereYear('created_at', $currentYear)->count();
-            $previousCount = CarreraModalidad::whereYear('created_at', $previousYear)->count();
-
-            if ($previousCount == 0) {
-                return $currentCount > 0 ? 100 : 0;
+        } 
+        // Si tiene fecha de proceso pero no de aprobación
+        elseif ($acreditacion->fecha_ini_proceso && $acreditacion->estado_modalidad) {
+            $fechaInicio = Carbon::parse($acreditacion->fecha_ini_proceso);
+            
+            // Verificar si el proceso estaba activo en la fecha de referencia
+            if ($fechaReferencia->greaterThanOrEqualTo($fechaInicio)) {
+                if ($acreditacion->fecha_fin_proceso) {
+                    $fechaFin = Carbon::parse($acreditacion->fecha_fin_proceso);
+                    if ($fechaReferencia->lessThanOrEqualTo($fechaFin)) {
+                        // En proceso activo en la fecha de referencia
+                        $estadisticas['en_proceso']++;
+                    } else {
+                        // Proceso terminado en la fecha de referencia
+                        $estadisticas['vencidas']++;
+                    }
+                } else {
+                    // Proceso sin fecha fin, activo si ya había iniciado
+                    $estadisticas['en_proceso']++;
+                }
+            } else {
+                // El proceso aún no había iniciado en la fecha de referencia
+                $estadisticas['vencidas']++;
             }
-
-            return round((($currentCount - $previousCount) / $previousCount) * 100, 1);
-
-        } catch (\Exception $e) {
-            return 0;
         }
+        // Si existe el registro pero no tiene fechas válidas
+        else {
+            $estadisticas['vencidas']++;
+        }
+
+        return $estadisticas;
     }
 
     /**
@@ -376,11 +164,15 @@ class ReportesController extends Controller
     public function getReporteFacultades(Request $request)
     {
         try {
-            $year = $request->get('year');
+            $fecha = $request->get('fecha');
             $facultadId = $request->get('facultad_id');
+            $modalidadTipo = $request->get('modalidad_tipo', 'todos');
+
+            // Si no se proporciona fecha, usar la fecha actual
+            $fechaReferencia = $fecha ? Carbon::parse($fecha) : Carbon::now();
 
             // Query base para facultades
-            $facultadesQuery = Facultad::with(['carreras.modalidades']);
+            $facultadesQuery = Facultad::with(['carreras']);
             
             if ($facultadId && $facultadId !== 'todas') {
                 $facultadesQuery->where('id', $facultadId);
@@ -388,63 +180,214 @@ class ReportesController extends Controller
 
             $facultades = $facultadesQuery->get();
 
-            $reporteFacultades = $facultades->map(function ($facultad) use ($year) {
+            $reporteFacultades = $facultades->map(function ($facultad) use ($modalidadTipo, $fechaReferencia) {
                 // Obtener todas las carreras de la facultad
                 $carreras = $facultad->carreras;
-                
-                // Contar acreditaciones por modalidad
-                $acreditacionesCEUB = 0;
-                $acreditacionesARCUSUR = 0;
                 $totalCarreras = $carreras->count();
                 
-                // Obtener carreras con acreditaciones activas
+                // Inicializar contadores para ambas modalidades
+                $estadisticasCEUB = [
+                    'acreditadas' => 0,          // Con fecha de aprobación vigente
+                    'en_proceso' => 0,           // Con fecha de proceso vigente
+                    'no_acreditadas' => 0,       // Sin carrera-modalidad
+                    'vencidas' => 0              // Fecha de aprobación expirada
+                ];
+                
+                $estadisticasARCUSUR = [
+                    'acreditadas' => 0,
+                    'en_proceso' => 0,
+                    'no_acreditadas' => 0,
+                    'vencidas' => 0
+                ];
+
+                // Analizar cada carrera
                 foreach ($carreras as $carrera) {
-                    $carreraModalidadesQuery = CarreraModalidad::where('carrera_id', $carrera->id)
-                        ->where('estado_modalidad', true);
-                    
-                    // Filtro por año si se especifica
-                    if ($year && $year !== 'todos') {
-                        $carreraModalidadesQuery->whereYear('fecha_ini_proceso', $year);
+                    // Buscar acreditaciones CEUB para esta carrera (aplicando filtro modalidadTipo)
+                    $acreditacionCEUB = null;
+                    if ($modalidadTipo === 'todos' || $modalidadTipo === 'ambas' || $modalidadTipo === 'ceub') {
+                        // Obtener todas las acreditaciones CEUB para encontrar la vigente en la fecha de referencia
+                        $acreditacionesCEUB = CarreraModalidad::where('carrera_id', $carrera->id)
+                            ->whereHas('modalidad', function($q) {
+                                $q->where('nombre_modalidad', 'like', '%CEUB%');
+                            })
+                            ->get();
+                        
+                        // Filtrar y encontrar la acreditación vigente en la fecha de referencia
+                        $acreditacionCEUB = $this->encontrarAcreditacionVigente($acreditacionesCEUB, $fechaReferencia);
                     }
-                    
-                    $acreditaciones = $carreraModalidadesQuery->with('modalidad')->get();
-                    
-                    foreach ($acreditaciones as $acreditacion) {
-                        if (stripos($acreditacion->modalidad->nombre_modalidad, 'CEUB') !== false) {
-                            $acreditacionesCEUB++;
-                        } elseif (stripos($acreditacion->modalidad->nombre_modalidad, 'ARCUSUR') !== false) {
-                            $acreditacionesARCUSUR++;
-                        }
+
+                    // Buscar acreditaciones ARCUSUR para esta carrera (aplicando filtro modalidadTipo)
+                    $acreditacionARCUSUR = null;
+                    if ($modalidadTipo === 'todos' || $modalidadTipo === 'ambas' || $modalidadTipo === 'arcusur') {
+                        // Obtener todas las acreditaciones ARCUSUR para encontrar la vigente en la fecha de referencia
+                        $acreditacionesARCUSUR = CarreraModalidad::where('carrera_id', $carrera->id)
+                            ->whereHas('modalidad', function($q) {
+                                $q->where('nombre_modalidad', 'like', '%ARCUSUR%');
+                            })
+                            ->get();
+                        
+                        // Filtrar y encontrar la acreditación vigente en la fecha de referencia
+                        $acreditacionARCUSUR = $this->encontrarAcreditacionVigente($acreditacionesARCUSUR, $fechaReferencia);
+                    }
+
+                    // Clasificar CEUB
+                    if ($acreditacionCEUB) {
+                        $estadisticasCEUB = $this->clasificarAcreditacion($acreditacionCEUB, $estadisticasCEUB, $fechaReferencia);
+                    } else {
+                        $estadisticasCEUB['no_acreditadas']++;
+                    }
+
+                    // Clasificar ARCUSUR
+                    if ($acreditacionARCUSUR) {
+                        $estadisticasARCUSUR = $this->clasificarAcreditacion($acreditacionARCUSUR, $estadisticasARCUSUR, $fechaReferencia);
+                    } else {
+                        $estadisticasARCUSUR['no_acreditadas']++;
                     }
                 }
 
-                $totalAcreditadas = $acreditacionesCEUB + $acreditacionesARCUSUR;
-                $porcentajeCobertura = $totalCarreras > 0 ? round(($totalAcreditadas / $totalCarreras) * 100, 1) : 0;
+                // Calcular totales (una carrera acreditada si tiene CEUB O ARCUSUR, no ambas)
+                $carrerasAcreditadas = 0;
+                $carrerasEnProceso = 0;
+                $carrerasVencidas = 0;
+                
+                // Contar carreras únicas por estado (no sumar modalidades)
+                foreach ($carreras as $carrera) {
+                    $tieneAcreditacionActiva = false;
+                    $tieneProcesoActivo = false;
+                    $tieneAcreditacionVencida = false;
+                    
+                    // Verificar CEUB (solo si modalidadTipo permite)
+                    $acreditacionCEUB = null;
+                    if ($modalidadTipo === 'todos' || $modalidadTipo === 'ambas' || $modalidadTipo === 'ceub') {
+                        $acreditacionesCEUB = CarreraModalidad::where('carrera_id', $carrera->id)
+                            ->whereHas('modalidad', function($q) {
+                                $q->where('nombre_modalidad', 'like', '%CEUB%');
+                            })
+                            ->get();
+                        
+                        $acreditacionCEUB = $this->encontrarAcreditacionVigente($acreditacionesCEUB, $fechaReferencia);
+                    }
+                    
+                    // Verificar ARCUSUR (solo si modalidadTipo permite)
+                    $acreditacionARCUSUR = null;
+                    if ($modalidadTipo === 'todos' || $modalidadTipo === 'ambas' || $modalidadTipo === 'arcusur') {
+                        $acreditacionesARCUSUR = CarreraModalidad::where('carrera_id', $carrera->id)
+                            ->whereHas('modalidad', function($q) {
+                                $q->where('nombre_modalidad', 'like', '%ARCUSUR%');
+                            })
+                            ->get();
+                        
+                        $acreditacionARCUSUR = $this->encontrarAcreditacionVigente($acreditacionesARCUSUR, $fechaReferencia);
+                    }
+                    
+                    // Evaluar estado de la carrera basado en cualquiera de las modalidades a la fecha de referencia
+                    foreach ([$acreditacionCEUB, $acreditacionARCUSUR] as $acreditacion) {
+                        if ($acreditacion) {
+                            if ($acreditacion->fecha_ini_aprobacion && $acreditacion->fecha_fin_aprobacion) {
+                                $fechaInicioAprobacion = Carbon::parse($acreditacion->fecha_ini_aprobacion);
+                                $fechaFinAprobacion = Carbon::parse($acreditacion->fecha_fin_aprobacion);
+                                if ($fechaReferencia->between($fechaInicioAprobacion, $fechaFinAprobacion)) {
+                                    $tieneAcreditacionActiva = true;
+                                } else {
+                                    $tieneAcreditacionVencida = true;
+                                }
+                            } elseif ($acreditacion->fecha_ini_proceso && $acreditacion->estado_modalidad) {
+                                $fechaInicio = Carbon::parse($acreditacion->fecha_ini_proceso);
+                                // Verificar si el proceso estaba activo en la fecha de referencia
+                                if ($fechaReferencia->greaterThanOrEqualTo($fechaInicio)) {
+                                    if ($acreditacion->fecha_fin_proceso) {
+                                        $fechaFin = Carbon::parse($acreditacion->fecha_fin_proceso);
+                                        if ($fechaReferencia->lessThanOrEqualTo($fechaFin)) {
+                                            $tieneProcesoActivo = true;
+                                        } else {
+                                            $tieneAcreditacionVencida = true;
+                                        }
+                                    } else {
+                                        // Proceso sin fecha fin, activo si ya había iniciado
+                                        $tieneProcesoActivo = true;
+                                    }
+                                } else {
+                                    // El proceso aún no había iniciado en la fecha de referencia
+                                    $tieneAcreditacionVencida = true;
+                                }
+                            } else {
+                                $tieneAcreditacionVencida = true;
+                            }
+                        }
+                    }
+                    
+                    // Asignar estado de la carrera (prioridad: activa > proceso > vencida)
+                    if ($tieneAcreditacionActiva) {
+                        $carrerasAcreditadas++;
+                    } elseif ($tieneProcesoActivo) {
+                        $carrerasEnProceso++;
+                    } elseif ($tieneAcreditacionVencida) {
+                        $carrerasVencidas++;
+                    }
+                    // Si no tiene ninguna modalidad, se cuenta en no_acreditadas (ya calculado arriba)
+                }
+                
+                $totalNoAcreditadas = min($estadisticasCEUB['no_acreditadas'], $estadisticasARCUSUR['no_acreditadas']);
+
+                $porcentajeCobertura = $totalCarreras > 0 ? 
+                    round((($carrerasAcreditadas + $carrerasEnProceso) / $totalCarreras) * 100, 1) : 0;
 
                 return [
                     'id' => $facultad->id,
                     'nombre_facultad' => $facultad->nombre_facultad,
                     'codigo_facultad' => $facultad->codigo_facultad,
                     'total_carreras' => $totalCarreras,
-                    'carreras_acreditadas' => $totalAcreditadas,
-                    'acreditaciones_ceub' => $acreditacionesCEUB,
-                    'acreditaciones_arcusur' => $acreditacionesARCUSUR,
+                    
+                    // Estadísticas CEUB
+                    'ceub' => $estadisticasCEUB,
+                    'ceub_total' => $estadisticasCEUB['acreditadas'] + $estadisticasCEUB['en_proceso'],
+                    
+                    // Estadísticas ARCUSUR
+                    'arcusur' => $estadisticasARCUSUR,
+                    'arcusur_total' => $estadisticasARCUSUR['acreditadas'] + $estadisticasARCUSUR['en_proceso'],
+                    
+                    // Totales generales (carreras únicas, no suma de modalidades)
+                    'total_acreditadas' => $carrerasAcreditadas,
+                    'total_en_proceso' => $carrerasEnProceso,
+                    'total_no_acreditadas' => $totalNoAcreditadas,
+                    'total_vencidas' => $carrerasVencidas,
                     'porcentaje_cobertura' => $porcentajeCobertura,
-                    'carreras' => $carreras->map(function ($carrera) use ($year) {
-                        return $this->obtenerDatosCarreraParaReporte($carrera, $year);
-                    })
+                    
+                    // Para compatibilidad con frontend existente
+                    'carreras_acreditadas' => $carrerasAcreditadas,
+                    'porcentaje_acreditacion' => $porcentajeCobertura
                 ];
             });
 
-            // Estadísticas generales
-            $estadisticas = [
+            // Estadísticas generales consolidadas
+            $estadisticasGenerales = [
                 'total_facultades' => $facultades->count(),
                 'total_carreras' => $reporteFacultades->sum('total_carreras'),
-                'total_acreditadas' => $reporteFacultades->sum('carreras_acreditadas'),
-                'total_ceub' => $reporteFacultades->sum('acreditaciones_ceub'),
-                'total_arcusur' => $reporteFacultades->sum('acreditaciones_arcusur'),
-                'promedio_cobertura' => $facultades->count() > 0 ? 
-                    round($reporteFacultades->avg('porcentaje_cobertura'), 1) : 0
+                
+                // Totales por estado
+                'total_acreditadas' => $reporteFacultades->sum('total_acreditadas'),
+                'total_en_proceso' => $reporteFacultades->sum('total_en_proceso'),
+                'total_no_acreditadas' => $reporteFacultades->sum('total_no_acreditadas'),
+                'total_vencidas' => $reporteFacultades->sum('total_vencidas'),
+                
+                // Totales por modalidad
+                'ceub_acreditadas' => $reporteFacultades->sum('ceub.acreditadas'),
+                'ceub_en_proceso' => $reporteFacultades->sum('ceub.en_proceso'),
+                'ceub_no_acreditadas' => $reporteFacultades->sum('ceub.no_acreditadas'),
+                'ceub_vencidas' => $reporteFacultades->sum('ceub.vencidas'),
+                
+                'arcusur_acreditadas' => $reporteFacultades->sum('arcusur.acreditadas'),
+                'arcusur_en_proceso' => $reporteFacultades->sum('arcusur.en_proceso'),
+                'arcusur_no_acreditadas' => $reporteFacultades->sum('arcusur.no_acreditadas'),
+                'arcusur_vencidas' => $reporteFacultades->sum('arcusur.vencidas'),
+                
+                // Porcentajes
+                'porcentaje_cobertura_global' => $facultades->count() > 0 ? 
+                    round($reporteFacultades->avg('porcentaje_cobertura'), 1) : 0,
+                
+                // Procesos activos y completados para compatibilidad
+                'procesos_activos' => $reporteFacultades->sum('total_en_proceso'),
+                'procesos_completados' => $reporteFacultades->sum('total_acreditadas')
             ];
 
             return response()->json([
@@ -453,10 +396,11 @@ class ReportesController extends Controller
                 'mensaje' => 'Reporte de facultades generado exitosamente',
                 'datos' => [
                     'facultades' => $reporteFacultades,
-                    'estadisticas_generales' => $estadisticas,
+                    'estadisticas_generales' => $estadisticasGenerales,
                     'filtros_aplicados' => [
-                        'year' => $year ?? 'todos',
-                        'facultad_id' => $facultadId ?? 'todas'
+                        'fecha' => $fecha ?? $fechaReferencia->format('Y-m-d'),
+                        'facultad_id' => $facultadId ?? 'todas',
+                        'modalidad_tipo' => $modalidadTipo
                     ]
                 ]
             ], 200);
@@ -473,13 +417,14 @@ class ReportesController extends Controller
     /**
      * Obtener datos detallados de una carrera para el reporte
      */
-    private function obtenerDatosCarreraParaReporte($carrera, $year = null)
+    private function obtenerDatosCarreraParaReporte($carrera, $fechaReferencia = null)
     {
         $acreditacionesQuery = CarreraModalidad::where('carrera_id', $carrera->id)
-            ->with(['modalidad', 'fases.subfases']);
+            ->with(['modalidad', 'fases']);
 
-        if ($year && $year !== 'todos') {
-            $acreditacionesQuery->whereYear('fecha_ini_proceso', $year);
+        if ($fechaReferencia) {
+            $acreditacionesQuery->where('fecha_ini_aprobacion', '<=', $fechaReferencia)
+                               ->where('fecha_fin_aprobacion', '>=', $fechaReferencia);
         }
 
         $acreditaciones = $acreditacionesQuery->get();
@@ -532,23 +477,207 @@ class ReportesController extends Controller
     public function getEstadisticasFacultad(Request $request, $facultadId)
     {
         try {
-            $year = $request->get('year');
+            $fecha = $request->get('fecha');
+            $modalidadId = $request->get('modalidad_id');
+            $modalidadTipo = $request->get('modalidad_tipo', 'todos');
             
-            $facultad = Facultad::with(['carreras.modalidades'])->findOrFail($facultadId);
+            // Si no se proporciona fecha, usar la fecha actual
+            $fechaReferencia = $fecha ? Carbon::parse($fecha) : Carbon::now();
+            
+            $facultad = Facultad::with(['carreras'])->findOrFail($facultadId);
             
             $carreras = $facultad->carreras;
-            $carrerasConAcreditacion = [];
+            $totalCarreras = $carreras->count();
             
+            // Inicializar contadores para estadísticas de la facultad
+            $estadisticasCEUB = [
+                'acreditadas' => 0,
+                'en_proceso' => 0,
+                'no_acreditadas' => 0,
+                'vencidas' => 0
+            ];
+            
+            $estadisticasARCUSUR = [
+                'acreditadas' => 0,
+                'en_proceso' => 0,
+                'no_acreditadas' => 0,
+                'vencidas' => 0
+            ];
+
+            // Analizar cada carrera y generar datos detallados
+            $carrerasDetalladas = [];
+            $carrerasAcreditadas = 0;
+            $carrerasEnProceso = 0;
+            $carrerasVencidas = 0;
+            $carrerasNoAcreditadas = 0;
+
             foreach ($carreras as $carrera) {
-                $datosCarrera = $this->obtenerDatosCarreraParaReporte($carrera, $year);
-                if (!empty($datosCarrera['acreditaciones'])) {
-                    $carrerasConAcreditacion[] = $datosCarrera;
+                // Buscar acreditaciones para esta carrera (aplicando filtro modalidadTipo)
+                $acreditacionCEUB = null;
+                if ($modalidadTipo === 'todos' || $modalidadTipo === 'ambas' || $modalidadTipo === 'ceub') {
+                    $acreditacionesCEUB = CarreraModalidad::where('carrera_id', $carrera->id)
+                        ->whereHas('modalidad', function($q) {
+                            $q->where('nombre_modalidad', 'like', '%CEUB%');
+                        })
+                        ->when($modalidadId && $modalidadId !== 'todas', function($q) use ($modalidadId) {
+                            $q->where('modalidad_id', $modalidadId);
+                        })
+                        ->with('modalidad')
+                        ->get();
+                    
+                    $acreditacionCEUB = $this->encontrarAcreditacionVigente($acreditacionesCEUB, $fechaReferencia);
                 }
+
+                $acreditacionARCUSUR = null;
+                if ($modalidadTipo === 'todos' || $modalidadTipo === 'ambas' || $modalidadTipo === 'arcusur') {
+                    $acreditacionesARCUSUR = CarreraModalidad::where('carrera_id', $carrera->id)
+                        ->whereHas('modalidad', function($q) {
+                            $q->where('nombre_modalidad', 'like', '%ARCUSUR%');
+                        })
+                        ->when($modalidadId && $modalidadId !== 'todas', function($q) use ($modalidadId) {
+                            $q->where('modalidad_id', $modalidadId);
+                        })
+                        ->with('modalidad')
+                        ->get();
+                    
+                    $acreditacionARCUSUR = $this->encontrarAcreditacionVigente($acreditacionesARCUSUR, $fechaReferencia);
+                }
+
+                // Clasificar para estadísticas por modalidad
+                if ($acreditacionCEUB) {
+                    $estadisticasCEUB = $this->clasificarAcreditacion($acreditacionCEUB, $estadisticasCEUB, $fechaReferencia);
+                } else {
+                    $estadisticasCEUB['no_acreditadas']++;
+                }
+
+                if ($acreditacionARCUSUR) {
+                    $estadisticasARCUSUR = $this->clasificarAcreditacion($acreditacionARCUSUR, $estadisticasARCUSUR, $fechaReferencia);
+                } else {
+                    $estadisticasARCUSUR['no_acreditadas']++;
+                }
+
+                // Determinar estado general de la carrera
+                $tieneAcreditacionActiva = false;
+                $tieneProcesoActivo = false;
+                $tieneAcreditacionVencida = false;
+                
+                // Detalles específicos de cada modalidad para la carrera
+                $ceubDetalle = null;
+                $arcusurDetalle = null;
+
+                // Debug para carrera específica
+                if ($carrera->id == 44) {
+                    \Log::info("=== DEBUG CARRERA 44 ===");
+                    \Log::info("Modalidad tipo filtro: " . $modalidadTipo);
+                    \Log::info("Acreditación CEUB: " . ($acreditacionCEUB ? 'ID ' . $acreditacionCEUB->id : 'null'));
+                    \Log::info("Acreditación ARCUSUR: " . ($acreditacionARCUSUR ? 'ID ' . $acreditacionARCUSUR->id : 'null'));
+                }
+
+                foreach ([$acreditacionCEUB, $acreditacionARCUSUR] as $acreditacion) {
+                    if ($acreditacion) {
+                        $tipoModalidad = stripos($acreditacion->modalidad->nombre_modalidad, 'CEUB') !== false ? 'ceub' : 'arcusur';
+                        
+                        $detalle = [
+                            'activa' => false,
+                            'fecha_inicio' => $acreditacion->fecha_ini_proceso,
+                            'fecha_fin_proceso' => $acreditacion->fecha_fin_proceso,
+                            'fecha_vencimiento' => $acreditacion->fecha_fin_aprobacion,
+                            'estado_modalidad' => $acreditacion->estado_modalidad,
+                            'modalidad_nombre' => $acreditacion->modalidad->nombre_modalidad
+                        ];
+
+                        if ($acreditacion->fecha_ini_aprobacion && $acreditacion->fecha_fin_aprobacion) {
+                            $fechaInicioAprobacion = Carbon::parse($acreditacion->fecha_ini_aprobacion);
+                            $fechaFinAprobacion = Carbon::parse($acreditacion->fecha_fin_aprobacion);
+                            if ($fechaReferencia->between($fechaInicioAprobacion, $fechaFinAprobacion)) {
+                                $tieneAcreditacionActiva = true;
+                                $detalle['activa'] = true;
+                                $detalle['estado'] = 'acreditada';
+                            } else {
+                                $tieneAcreditacionVencida = true;
+                                $detalle['estado'] = 'vencida';
+                            }
+                        } elseif ($acreditacion->fecha_ini_proceso && $acreditacion->estado_modalidad) {
+                            $fechaInicio = Carbon::parse($acreditacion->fecha_ini_proceso);
+                            // Verificar si el proceso estaba activo en la fecha de referencia
+                            if ($fechaReferencia->greaterThanOrEqualTo($fechaInicio)) {
+                                if ($acreditacion->fecha_fin_proceso) {
+                                    $fechaFin = Carbon::parse($acreditacion->fecha_fin_proceso);
+                                    if ($fechaReferencia->lessThanOrEqualTo($fechaFin)) {
+                                        $tieneProcesoActivo = true;
+                                        $detalle['estado'] = 'en_proceso';
+                                    } else {
+                                        $tieneAcreditacionVencida = true;
+                                        $detalle['estado'] = 'proceso_terminado';
+                                    }
+                                } else {
+                                    $tieneProcesoActivo = true;
+                                    $detalle['estado'] = 'en_proceso';
+                                }
+                            } else {
+                                // El proceso aún no había iniciado en la fecha de referencia
+                                $tieneAcreditacionVencida = true;
+                                $detalle['estado'] = 'proceso_no_iniciado';
+                            }
+                        } else {
+                            $tieneAcreditacionVencida = true;
+                            $detalle['estado'] = 'inactiva';
+                        }
+
+                        if ($tipoModalidad === 'ceub') {
+                            $ceubDetalle = $detalle;
+                        } else {
+                            $arcusurDetalle = $detalle;
+                        }
+                    }
+                }
+
+                // Determinar estado general de la carrera
+                $estadoCarrera = 'no_acreditada';
+                if ($tieneAcreditacionActiva) {
+                    $carrerasAcreditadas++;
+                    $estadoCarrera = 'acreditada';
+                } elseif ($tieneProcesoActivo) {
+                    $carrerasEnProceso++;
+                    $estadoCarrera = 'en_proceso';
+                } elseif ($tieneAcreditacionVencida) {
+                    $carrerasVencidas++;
+                    $estadoCarrera = 'vencida';
+                } else {
+                    $carrerasNoAcreditadas++;
+                    $estadoCarrera = 'no_acreditada';
+                }
+
+                // Obtener modalidades disponibles para la carrera
+                $modalidades = $carrera->modalidades ?? [];
+
+                $carrerasDetalladas[] = [
+                    'id' => $carrera->id,
+                    'nombre_carrera' => $carrera->nombre_carrera,
+                    'codigo_carrera' => $carrera->codigo_carrera,
+                    'estado_general' => $estadoCarrera,
+                    'ceub_activa' => $ceubDetalle ? $ceubDetalle['activa'] : false,
+                    'ceub_estado' => $ceubDetalle ? $ceubDetalle['estado'] : null,
+                    'ceub_fecha_vencimiento' => $ceubDetalle ? $ceubDetalle['fecha_vencimiento'] : null,
+                    'ceub_fase_actual' => null, // Se puede implementar más adelante
+                    'arcusur_activa' => $arcusurDetalle ? $arcusurDetalle['activa'] : false,
+                    'arcusur_estado' => $arcusurDetalle ? $arcusurDetalle['estado'] : null,
+                    'arcusur_fecha_vencimiento' => $arcusurDetalle ? $arcusurDetalle['fecha_vencimiento'] : null,
+                    'arcusur_fase_actual' => null, // Se puede implementar más adelante
+                    'procesos_en_curso' => ($tieneProcesoActivo ? 1 : 0),
+                    'modalidades' => $modalidades->map(function($modalidad) {
+                        return [
+                            'id' => $modalidad->id,
+                            'nombre_modalidad' => $modalidad->nombre_modalidad
+                        ];
+                    })->toArray()
+                ];
             }
 
-            // Estadísticas de tiempo
-            $tiemposAcreditacion = $this->calcularTiemposAcreditacion($facultadId, $year);
-            
+            // Calcular porcentaje de cobertura
+            $porcentajeCobertura = $totalCarreras > 0 ? 
+                round((($carrerasAcreditadas + $carrerasEnProceso) / $totalCarreras) * 100, 1) : 0;
+
             return response()->json([
                 'exito' => true,
                 'estado' => 200,
@@ -559,13 +688,23 @@ class ReportesController extends Controller
                         'nombre' => $facultad->nombre_facultad,
                         'codigo' => $facultad->codigo_facultad
                     ],
-                    'carreras' => $carrerasConAcreditacion,
-                    'estadisticas_tiempo' => $tiemposAcreditacion,
                     'resumen' => [
-                        'total_carreras' => $carreras->count(),
-                        'carreras_acreditadas' => count($carrerasConAcreditacion),
-                        'porcentaje_acreditacion' => $carreras->count() > 0 ? 
-                            round((count($carrerasConAcreditacion) / $carreras->count()) * 100, 1) : 0
+                        'total_carreras' => $totalCarreras,
+                        'carreras_acreditadas' => $carrerasAcreditadas,
+                        'carreras_en_proceso' => $carrerasEnProceso,
+                        'carreras_vencidas' => $carrerasVencidas,
+                        'carreras_no_acreditadas' => $carrerasNoAcreditadas,
+                        'porcentaje_cobertura' => $porcentajeCobertura,
+                        
+                        // Estadísticas por modalidad
+                        'ceub' => $estadisticasCEUB,
+                        'arcusur' => $estadisticasARCUSUR
+                    ],
+                    'carreras' => $carrerasDetalladas,
+                    'filtros_aplicados' => [
+                        'fecha' => $fecha ?? $fechaReferencia->format('Y-m-d'),
+                        'modalidad_id' => $modalidadId ?? 'todas',
+                        'modalidad_tipo' => $modalidadTipo ?? 'todos'
                     ]
                 ]
             ], 200);
@@ -579,56 +718,4 @@ class ReportesController extends Controller
         }
     }
 
-    /**
-     * Calcular tiempos promedio de acreditación
-     */
-    private function calcularTiemposAcreditacion($facultadId, $year = null)
-    {
-        try {
-            $carrerasIds = Carrera::where('facultad_id', $facultadId)->pluck('id');
-            
-            $acreditacionesQuery = CarreraModalidad::whereIn('carrera_id', $carrerasIds)
-                ->whereNotNull('fecha_ini_proceso')
-                ->whereNotNull('fecha_fin_proceso');
-
-            if ($year && $year !== 'todos') {
-                $acreditacionesQuery->whereYear('fecha_ini_proceso', $year);
-            }
-
-            $acreditaciones = $acreditacionesQuery->get();
-
-            if ($acreditaciones->isEmpty()) {
-                return [
-                    'promedio_duracion_dias' => 0,
-                    'promedio_duracion_meses' => 0,
-                    'acreditacion_mas_rapida' => 0,
-                    'acreditacion_mas_lenta' => 0
-                ];
-            }
-
-            $duraciones = [];
-            foreach ($acreditaciones as $acreditacion) {
-                $inicio = Carbon::parse($acreditacion->fecha_ini_proceso);
-                $fin = Carbon::parse($acreditacion->fecha_fin_proceso);
-                $duraciones[] = $fin->diffInDays($inicio);
-            }
-
-            return [
-                'promedio_duracion_dias' => round(array_sum($duraciones) / count($duraciones)),
-                'promedio_duracion_meses' => round((array_sum($duraciones) / count($duraciones)) / 30, 1),
-                'acreditacion_mas_rapida' => min($duraciones),
-                'acreditacion_mas_lenta' => max($duraciones),
-                'total_procesos_analizados' => count($duraciones)
-            ];
-
-        } catch (\Exception $e) {
-            return [
-                'promedio_duracion_dias' => 0,
-                'promedio_duracion_meses' => 0,
-                'acreditacion_mas_rapida' => 0,
-                'acreditacion_mas_lenta' => 0,
-                'total_procesos_analizados' => 0
-            ];
-        }
-    }
 }

@@ -152,5 +152,85 @@ class FaseController extends BaseApiController
         } catch (\Exception $e) {
             return $this->handleGeneralException($e);
         }
-    }  
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/fases/{id}/avance",
+     *     summary="Obtener el porcentaje de avance de una fase",
+     *     description="Calcula el porcentaje de avance de una fase basado en las subfases completadas (estado_subfase=true)",
+     *     tags={"Fase"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID de la fase",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Porcentaje de avance obtenido exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=true),
+     *             @OA\Property(property="estado", type="integer", example=200),
+     *             @OA\Property(property="mensaje", type="string", example="Avance de fase obtenido exitosamente"),
+     *             @OA\Property(
+     *                 property="datos",
+     *                 type="object",
+     *                 @OA\Property(property="fase_id", type="integer", example=1),
+     *                 @OA\Property(property="nombre_fase", type="string", example="Fase de Autoevaluación"),
+     *                 @OA\Property(property="total_subfases", type="integer", example=5),
+     *                 @OA\Property(property="subfases_completadas", type="integer", example=3),
+     *                 @OA\Property(property="porcentaje_avance", type="integer", example=60)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Fase no encontrada",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=false),
+     *             @OA\Property(property="estado", type="integer", example=404),
+     *             @OA\Property(property="mensaje", type="string", example="Fase no encontrada"),
+     *             @OA\Property(property="error", type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function getAvance($id)
+    {
+        try {
+            $fase = Fase::with('subfases')->find($id);
+
+            if (!$fase) {
+                throw ApiException::notFound('fase', $id);
+            }
+
+            // Obtener todas las subfases de la fase
+            $totalSubfases = $fase->subfases->count();
+            
+            // Contar las subfases completadas (estado_subfase = true)
+            $subfasesCompletadas = $fase->subfases->where('estado_subfase', true)->count();
+
+            // Calcular el porcentaje de avance
+            $porcentajeAvance = $totalSubfases > 0 
+                ? (int) round(($subfasesCompletadas / $totalSubfases) * 100) 
+                : 0;
+
+            $resultado = [
+                'fase_id' => $fase->id,
+                'nombre_fase' => $fase->nombre_fase,
+                'total_subfases' => $totalSubfases,
+                'subfases_completadas' => $subfasesCompletadas,
+                'porcentaje_avance' => $porcentajeAvance
+            ];
+
+            return $this->successResponse($resultado, 'Avance de fase obtenido exitosamente');
+
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
 }

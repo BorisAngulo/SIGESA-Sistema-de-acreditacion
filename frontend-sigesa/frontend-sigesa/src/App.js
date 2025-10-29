@@ -21,7 +21,6 @@ import EditarFacultadScreen from './screens/EditarFacultadScreen';
 import EditarCarreraScreen from './screens/EditarCarreraScreen';
 import ModalidadesScreen from './screens/ModalidadesScreen';
 import BackupScreen from './screens/BackupScreen';
-import SubFaseScreen from './screens/SubFaseScreen';
 import DocumentosScreen from './screens/DocumentosScreen';
 import MiCarreraScreen from './screens/MiCarreraScreen';
 import CarrerasModalidadesAdmin from './screens/CarrerasModalidadesAdmin';
@@ -144,8 +143,6 @@ function App() {
                     <DocumentosScreen />
                   </ProtectedRoute>
                 } />
-                
-                <Route path="/subfase" element={<SubFaseScreen />} />
 
                 <Route path="/fases/:carreraId/:modalidadId" element={
                   <ProtectedRoute>

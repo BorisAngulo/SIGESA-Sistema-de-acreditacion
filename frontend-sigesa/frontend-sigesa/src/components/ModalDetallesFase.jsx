@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, User, ExternalLink, FileText, Download, Edit3, Save, MessageSquare, Trash2 } from 'lucide-react';
-import { downloadDocumento, updateObservacionFase, updateObservacionSubfase, updateUrlFaseRespuesta, updateUrlSubfaseRespuesta, eliminarDocumentoDeFase, eliminarDocumentoDeSubfase } from '../services/api';
+import { X, Calendar, User, ExternalLink, FileText, Download, Edit3, Save, MessageSquare, Trash2, CheckCircle } from 'lucide-react';
+import { downloadDocumento, updateObservacionFase, updateObservacionSubfase, updateUrlFaseRespuesta, updateUrlSubfaseRespuesta, eliminarDocumentoDeFase, eliminarDocumentoDeSubfase, updateFase, updateSubfase, getAvanceFase } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/ModalDetallesFase.css';
+import useToast from '../hooks/useToast';
 
 const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAsociados }) => {
-  const [loading, setLoading] = useState(false);
   const [editandoObservacion, setEditandoObservacion] = useState(false);
   const [observacionTemp, setObservacionTemp] = useState('');
   const [guardandoObservacion, setGuardandoObservacion] = useState(false);
@@ -13,8 +13,15 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
   const [urlRespuestaTemp, setUrlRespuestaTemp] = useState('');
   const [guardandoUrlRespuesta, setGuardandoUrlRespuesta] = useState(false);
   const [eliminandoDocumentos, setEliminandoDocumentos] = useState(new Set());
+  const [aprobando, setAprobando] = useState(false);
+  const [avanceFase, setAvanceFase] = useState(null);
+  const [cargandoAvance, setCargandoAvance] = useState(false);
+  const toast = useToast();
   
   const { user } = useAuth();
+
+  // Definir data antes de usarla en los useEffect
+  const data = tipo === 'fase' ? fase : subfase;
 
   useEffect(() => {
     if (isOpen) {
@@ -28,9 +35,26 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  // Cargar el avance de la fase cuando se abre el modal
+  useEffect(() => {
+    const cargarAvanceFase = async () => {
+      if (isOpen && tipo === 'fase' && data?.id) {
+        setCargandoAvance(true);
+        try {
+          const avance = await getAvanceFase(data.id);
+          setAvanceFase(avance);
+        } catch (error) {
+          console.error('Error al cargar avance de fase:', error);
+        } finally {
+          setCargandoAvance(false);
+        }
+      }
+    };
 
-  const data = tipo === 'fase' ? fase : subfase;
+    cargarAvanceFase();
+  }, [isOpen, tipo, data?.id]);
+
+  if (!isOpen) return null;
   const titulo = tipo === 'fase' ? 'Detalles de la Fase' : 'Detalles de la Subfase';
 
   const formatDate = (dateString) => {
@@ -206,7 +230,7 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
         await eliminarDocumentoDeSubfase(data.id, documento.id);
       }
       
-      alert(`La asociación del documento "${nombreDocumento}" ha sido eliminada exitosamente.`);
+      toast.success(`La asociación del documento "${nombreDocumento}" ha sido eliminada exitosamente.`);
       
       // Notificar al componente padre para recargar datos si es necesario
       if (onClose) {
@@ -215,7 +239,7 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
       
     } catch (error) {
       console.error('❌ Error al eliminar asociación de documento:', error);
-      alert('Error al eliminar la asociación del documento: ' + (error.message || 'Error desconocido'));
+      toast.error('Error al eliminar la asociación del documento: ' + (error.message || 'Error desconocido'));
     } finally {
       // Remover documento del set de eliminando
       setEliminandoDocumentos(prev => {
@@ -223,6 +247,60 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
         newSet.delete(documento.id);
         return newSet;
       });
+    }
+  };
+
+  // Función para verificar si el usuario puede aprobar
+  const puedeAprobar = () => {
+    const userRole = user?.roles?.[0]?.name;
+    return userRole === 'Admin' || userRole === 'Tecnico' || userRole === 'Coordinador';
+  };
+
+  // Función para aprobar fase/subfase
+  const aprobarElemento = async () => {
+    const confirmacion = window.confirm(
+      `¿Está seguro de que desea aprobar esta ${tipo}?\n\nEsta acción cambiará el estado a "Completo".`
+    );
+    
+    if (!confirmacion) return;
+
+    setAprobando(true);
+    try {
+      const data = tipo === 'fase' ? fase : subfase;
+      
+      if (tipo === 'fase') {
+        await updateFase(data.id, { estado_fase: true });
+        // Actualizar el dato local
+        fase.estado_fase = true;
+        fase.estadoFase = true; // Mantener ambos para compatibilidad
+      } else {
+        await updateSubfase(data.id, { estado_subfase: true });
+        // Actualizar el dato local
+        subfase.estado_subfase = true;
+        subfase.estadoSubfase = true; // Mantener ambos para compatibilidad
+      }
+
+      toast.success(`La ${tipo} ha sido aprobada exitosamente.`);
+
+      // Si es una subfase, recargar el avance de la fase padre
+      if (tipo === 'subfase' && data?.faseId) {
+        try {
+          await getAvanceFase(data.faseId);
+        } catch (error) {
+          console.error('Error al recargar avance de fase padre:', error);
+        }
+      }
+
+      // Notificar al componente padre para recargar datos si es necesario
+      if (onClose) {
+        onClose(true); // Pasar true para indicar que hubo cambios
+      }
+      
+    } catch (error) {
+      console.error(`❌ Error al aprobar ${tipo}:`, error);
+      toast.error(`Error al aprobar la ${tipo}: ` + (error.message || 'Error desconocido'));
+    } finally {
+      setAprobando(false);
     }
   };
 
@@ -298,12 +376,12 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
                 <label>Estado:</label>
                 <span className={`estado-badge ${
                   tipo === 'fase' 
-                    ? (data?.estadoFase ? 'completo' : 'en-proceso') 
-                    : (data?.estadoSubfase ? 'completo' : 'en-proceso')
+                    ? ((data?.estadoFase || data?.estado_fase) ? 'completo' : 'en-proceso') 
+                    : ((data?.estadoSubfase || data?.estado_subfase) ? 'completo' : 'en-proceso')
                 }`}>
                   {tipo === 'fase' 
-                    ? (data?.estadoFase ? 'Completo' : 'En proceso') 
-                    : (data?.estadoSubfase ? 'Completo' : 'En proceso')
+                    ? ((data?.estadoFase || data?.estado_fase) ? 'Completo' : 'En proceso') 
+                    : ((data?.estadoSubfase || data?.estado_subfase) ? 'Completo' : 'En proceso')
                   }
                 </span>
               </div>
@@ -568,19 +646,45 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
           {/* Progreso (solo para fases) */}
           {tipo === 'fase' && (
             <div className="detalles-section">
-              <h3 className="section-title">Progreso</h3>
-              <div className="progress-info">
-                <div className="progress-bar">
-                  <div 
-                    className="progress-fill" 
-                    style={{ width: `${data?.progreso || 0}%` }}
-                  ></div>
+              <h3 className="section-title">Progreso de Subfases</h3>
+              {cargandoAvance ? (
+                <div className="progress-loading">
+                  <span>Cargando avance...</span>
                 </div>
-                <span className="progress-text">{data?.progreso || 0}%</span>
-              </div>
+              ) : avanceFase ? (
+                <div className="progress-info">
+                  <div className="progress-details">
+                    <span className="progress-label">
+                      Subfases completadas: {avanceFase.subfases_completadas} de {avanceFase.total_subfases}
+                    </span>
+                  </div>
+                  <div className="progress-bar">
+                    <div 
+                      className="progress-fill" 
+                      style={{ width: `${avanceFase.porcentaje_avance}%` }}
+                    ></div>
+                  </div>
+                  <span className="progress-text">{avanceFase.porcentaje_avance}%</span>
+                </div>
+              ) : (
+                <div className="progress-info">
+                  <div className="progress-details">
+                    <span className="progress-label">
+                      No se pudo cargar el avance de la fase
+                    </span>
+                  </div>
+                  <div className="progress-bar">
+                    <div 
+                      className="progress-fill" 
+                      style={{ width: "0%" }}
+                    ></div>
+                  </div>
+                  <span className="progress-text">0%</span>
+                </div>
+              )}
               <div className="completion-status">
-                <span className={`completion-badge ${data?.completada ? 'completed' : 'pending'}`}>
-                  {data?.completada ? 'Completada' : 'En progreso'}
+                <span className={`completion-badge ${(data?.estadoFase || data?.estado_fase) ? 'completed' : 'pending'}`}>
+                  {(data?.estadoFase || data?.estado_fase) ? 'Fase Aprobada' : 'En progreso'}
                 </span>
               </div>
             </div>
@@ -588,6 +692,18 @@ const ModalDetallesFase = ({ isOpen, onClose, fase, subfase, tipo, documentosAso
         </div>
 
         <div className="modal-detalles-footer">
+          {/* Botón de aprobar - Solo visible si el usuario tiene permisos y la fase/subfase no está aprobada */}
+          {puedeAprobar() && !((tipo === 'fase' && (data?.estadoFase || data?.estado_fase)) || (tipo === 'subfase' && (data?.estadoSubfase || data?.estado_subfase))) && (
+            <button 
+              className="btn-aprobar"
+              onClick={aprobarElemento}
+              disabled={aprobando}
+            >
+              <CheckCircle size={16} />
+              {aprobando ? 'Aprobando...' : 'Aprobar'}
+            </button>
+          )}
+          
           <button 
             className="btn-close"
             onClick={onClose}
