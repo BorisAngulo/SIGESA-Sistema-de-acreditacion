@@ -174,7 +174,7 @@ const ModalAgregarFase = ({ isOpen, onClose, onSave, fase = null }) => {
                 placeholder="Ej: Fase 1: Planificación Inicial"
                 disabled={isLoading}
                 className={`form-input ${errors.nombre ? 'form-input-error' : ''}`}
-                maxLength={100}
+                maxLength={300}
               />
               {errors.nombre && (
                 <p className="error-message">{errors.nombre}</p>
@@ -195,10 +195,10 @@ const ModalAgregarFase = ({ isOpen, onClose, onSave, fase = null }) => {
                 rows="4"
                 disabled={isLoading}
                 className="form-input form-textarea"
-                maxLength={500}
+                maxLength={1000}
               />
               <div className="character-count">
-                {formData.descripcion.length}/500 caracteres
+                {formData.descripcion.length}/1000 caracteres
               </div>
             </div>
 

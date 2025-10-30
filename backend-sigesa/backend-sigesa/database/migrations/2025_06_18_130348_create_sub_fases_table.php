@@ -18,8 +18,8 @@ class CreateSubFasesTable extends Migration
             $table->foreignId('fase_id')
                     ->constrained('fases')
                     ->onDelete('cascade');
-            $table->string('nombre_subfase', 50);
-            $table->string('descripcion_subfase', 300)->nullable();
+            $table->string('nombre_subfase', 300);
+            $table->string('descripcion_subfase', 1000)->nullable();
             $table->date('fecha_inicio_subfase')->nullable();
             $table->date('fecha_fin_subfase')->nullable();
             $table->string('url_subfase')->nullable();
