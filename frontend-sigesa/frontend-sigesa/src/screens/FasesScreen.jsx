@@ -22,7 +22,8 @@ import {
   getDocumentosByFase,
   getDocumentosBySubfase,
   getProcesoCompleto,
-  getAvanceFase
+  getAvanceFase,
+  generarPlantillaFasesSubfases
 } from '../services/api';
 import { 
   deleteSubfase
@@ -1275,6 +1276,22 @@ const FasesScreen = () => {
       };
       
       const nuevaCarreraModalidad = await createCarreraModalidad(carreraModalidadData);
+      
+      // Si la modalidad es CEUB (id = 1), generar plantilla automáticamente
+      if (Number(pendingCarreraModalidadData.modalidad_id) === 1) {
+        try {
+          console.log('🎯 Generando plantilla CEUB automáticamente para carrera-modalidad:', nuevaCarreraModalidad.id);
+          await generarPlantillaFasesSubfases(nuevaCarreraModalidad.id);
+          console.log('✅ Plantilla CEUB generada exitosamente');
+          
+          // Mostrar mensaje específico de éxito
+          toast.success('¡Proceso CEUB creado exitosamente con plantilla de fases y subfases!');
+        } catch (plantillaError) {
+          console.error('❌ Error al generar plantilla CEUB:', plantillaError);
+          // Continuar con el proceso aunque falle la plantilla
+          toast.warning('Proceso creado exitosamente, pero hubo un error al generar la plantilla de fases.');
+        }
+      }
       
       // Actualizar el estado con la nueva carrera-modalidad
       setFasesData(prev => ({

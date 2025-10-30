@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Fase;
+use App\Models\Subfase;
 use App\Exceptions\ApiException;
+use App\Templates\FasesTemplate;
+use Illuminate\Support\Facades\DB;
 /**
 * @OA\Tag(
 *     name="Fase",
@@ -230,6 +233,153 @@ class FaseController extends BaseApiController
         } catch (ApiException $e) {
             return $this->handleApiException($e);
         } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/fases/generar-plantilla",
+     *     summary="Generar plantilla de fases y subfases",
+     *     description="Crea una plantilla completa de fases y subfases para una carrera-modalidad específica",
+     *     tags={"Fase"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"carrera_modalidad_id"},
+     *             @OA\Property(property="carrera_modalidad_id", type="integer", example=1, description="ID de la carrera-modalidad")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Plantilla generada exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=true),
+     *             @OA\Property(property="estado", type="integer", example=201),
+     *             @OA\Property(property="mensaje", type="string", example="Plantilla de fases y subfases generada exitosamente"),
+     *             @OA\Property(
+     *                 property="datos",
+     *                 type="object",
+     *                 @OA\Property(property="carrera_modalidad_id", type="integer", example=1),
+     *                 @OA\Property(property="fases_creadas", type="integer", example=4),
+     *                 @OA\Property(property="subfases_creadas", type="integer", example=19),
+     *                 @OA\Property(
+     *                     property="fases",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="nombre_fase", type="string", example="Fase de Autoevaluación"),
+     *                         @OA\Property(property="descripcion_fase", type="string", example="Proceso interno de evaluación"),
+     *                         @OA\Property(property="subfases_count", type="integer", example=5)
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Error de validación o fases ya existen",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=false),
+     *             @OA\Property(property="estado", type="integer", example=400),
+     *             @OA\Property(property="mensaje", type="string", example="Ya existen fases para esta carrera-modalidad"),
+     *             @OA\Property(property="error", type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function generarPlantilla(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'carrera_modalidad_id' => 'required|exists:carrera_modalidades,id'
+            ]);
+
+            $carreraModalidadId = $validated['carrera_modalidad_id'];
+
+            // Verificar si ya existen fases para esta carrera-modalidad
+            $fasesExistentes = Fase::where('carrera_modalidad_id', $carreraModalidadId)->count();
+            
+            if ($fasesExistentes > 0) {
+                return $this->errorResponse(
+                    'Ya existen fases para esta carrera-modalidad', 
+                    400, 
+                    'Debe eliminar las fases existentes antes de generar una nueva plantilla'
+                );
+            }
+
+            DB::beginTransaction();
+
+            $plantillaFases = FasesTemplate::getTemplate();
+            $fasesCreadas = [];
+            $totalSubfasesCreadas = 0;
+
+            foreach ($plantillaFases as $index => $plantillaFase) {
+                // Crear la fase
+                $fase = Fase::create([
+                    'carrera_modalidad_id' => $carreraModalidadId,
+                    'nombre_fase' => $plantillaFase['nombre_fase'],
+                    'descripcion_fase' => $plantillaFase['descripcion_fase'],
+                    'estado_fase' => false,
+                    'fecha_inicio_fase' => null,
+                    'fecha_fin_fase' => null,
+                    'url_fase' => null,
+                    'url_fase_respuesta' => null,
+                    'observacion_fase' => null,
+                    'id_usuario_updated_fase' => null
+                ]);
+
+                $subfasesCount = 0;
+
+                // Crear las subfases asociadas
+                foreach ($plantillaFase['subfases'] as $plantillaSubfase) {
+                    Subfase::create([
+                        'fase_id' => $fase->id,
+                        'nombre_subfase' => $plantillaSubfase['nombre_subfase'],
+                        'descripcion_subfase' => $plantillaSubfase['descripcion_subfase'],
+                        'estado_subfase' => $plantillaSubfase['estado_subfase'],
+                        'fecha_inicio_subfase' => null,
+                        'fecha_fin_subfase' => null,
+                        'url_subfase' => null,
+                        'url_subfase_respuesta' => null,
+                        'observacion_subfase' => null,
+                        'id_usuario_updated_subfase' => null
+                    ]);
+                    $subfasesCount++;
+                    $totalSubfasesCreadas++;
+                }
+
+                $fasesCreadas[] = [
+                    'id' => $fase->id,
+                    'nombre_fase' => $fase->nombre_fase,
+                    'descripcion_fase' => $fase->descripcion_fase,
+                    'subfases_count' => $subfasesCount
+                ];
+            }
+
+            DB::commit();
+
+            $resultado = [
+                'carrera_modalidad_id' => $carreraModalidadId,
+                'fases_creadas' => count($fasesCreadas),
+                'subfases_creadas' => $totalSubfasesCreadas,
+                'fases' => $fasesCreadas
+            ];
+
+            return $this->successResponse(
+                $resultado, 
+                'Plantilla de fases y subfases generada exitosamente', 
+                201
+            );
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return $this->handleValidationException($e);
+        } catch (ApiException $e) {
+            DB::rollBack();
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            DB::rollBack();
             return $this->handleGeneralException($e);
         }
     }

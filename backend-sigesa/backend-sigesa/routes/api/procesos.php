@@ -61,6 +61,10 @@ Route::get('subfases/{subfase}/progreso', [SubfaseController::class, 'getProgres
 // Operaciones de escritura que requieren usuario autenticado
 Route::middleware(['auth:sanctum'])->group(function () {
     // === FASES ===
+    // Generar plantilla de fases y subfases
+    Route::post('fases/generar-plantilla', [FaseController::class, 'generarPlantilla'])
+        ->name('fases.generar-plantilla');
+    
     // Crear fase
     Route::post('fases', [FaseController::class, 'store'])
         ->name('fases.store');

@@ -939,6 +939,30 @@ export const getAvanceFase  = async (faseId) => {
   }
 }
 
+//generar plantilla de fases y subfases por carrera_modalidad_id
+export const generarPlantillaFasesSubfases = async (carreraModalidadId) => {
+  try {
+    const res = await fetch(`${API_URL}/fases/generar-plantilla`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        carrera_modalidad_id: carreraModalidadId
+      })
+    });
+    const response = await res.json();
+
+    if (response.exito && response.datos) {
+      console.log('Plantilla de fases y subfases generada:', response.datos);
+      return response.datos;
+    } else {
+      console.error('Error en la respuesta:', response.error || 'Error desconocido');
+      throw new Error(response.error || 'Error al generar plantilla');
+    }
+  } catch (error) {
+    console.error('Error al generar plantilla de fases y subfases:', error);
+    throw error;
+  }
+};
 
 // Subfases
 export const getSubfases = async () => {

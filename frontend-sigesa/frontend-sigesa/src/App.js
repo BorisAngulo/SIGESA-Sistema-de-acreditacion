@@ -11,7 +11,6 @@ import UsuariosScreen from './screens/UsuariosScreen';
 import ActividadScreen from './screens/ActividadScreen';
 import TecnicoDUEA from './screens/TecnicoDUEA';
 import FacultadScreen from './screens/FacultadScreen';
-import AsignarCarreras from './screens/AsignarCarreras';
 import VisualizarCarreras from './screens/VisualizarCarreras';
 import InformacionCarrera from './screens/InformacionCarrera';
 import FasesScreen from './screens/FasesScreen';
@@ -75,12 +74,6 @@ function App() {
                 <Route path="/duea" element={
                   <ProtectedRoute allowedRoles={['Tecnico', 'Admin']}>
                     <TecnicoDUEA />
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="/facultades/asignar-carreras" element={
-                  <ProtectedRoute allowedRoles={['Admin', 'Tecnico']}>
-                    <AsignarCarreras />
                   </ProtectedRoute>
                 } />
 
