@@ -4,12 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Plame;
-use App\Models\FilaPlame;
-use App\Models\ColumnaPlame;
-use App\Models\RelacionPlame;
 use App\Models\CarreraModalidad;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Response;
 use App\Exceptions\ApiException;
 use App\Traits\ApiResponseTrait;
 
@@ -18,34 +17,40 @@ class PlameController extends BaseApiController
     use ApiResponseTrait;
 
     /**
-     * Verificar si existe PLAME para carrera-modalidad
-     */
-    public function verificarPlameExiste($carreraModalidadId)
-    {
-        try {
-            $carreraModalidad = CarreraModalidad::find($carreraModalidadId);
-            if (!$carreraModalidad) {
-                throw ApiException::notFound('carrera-modalidad', $carreraModalidadId);
-            }
-
-            $plameExiste = Plame::where('id_carreraModalidad', $carreraModalidadId)->exists();
-
-            return $this->successResponse([
-                'existe' => $plameExiste,
-                'carrera_modalidad_id' => $carreraModalidadId,
-                'carrera' => $carreraModalidad->carrera?->nombre,
-                'modalidad' => $carreraModalidad->modalidad?->nombre
-            ], $plameExiste ? 'PLAME existe para esta carrera-modalidad' : 'PLAME no existe para esta carrera-modalidad');
-
-        } catch (ApiException $e) {
-            return $this->handleApiException($e);
-        } catch (\Exception $e) {
-            return $this->handleGeneralException($e);
-        }
-    }
-
-    /**
-     * Obtener matriz PLAME por carrera-modalidad (crear si no existe)
+     * @OA\Get(
+     *     path="/api/plame/carrera-modalidad/{carreraModalidadId}",
+     *     summary="Obtener documento PLAME por carrera-modalidad",
+     *     tags={"PLAME"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="carreraModalidadId",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID de la carrera-modalidad"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Documento PLAME obtenido exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=true),
+     *             @OA\Property(property="mensaje", type="string", example="Documento PLAME obtenido exitosamente"),
+     *             @OA\Property(property="datos", type="object",
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="nombre_documento", type="string"),
+     *                 @OA\Property(property="descripcion_documento", type="string"),
+     *                 @OA\Property(property="nombre_archivo_original", type="string"),
+     *                 @OA\Property(property="tipo_mime", type="string"),
+     *                 @OA\Property(property="tamano_archivo", type="integer"),
+     *                 @OA\Property(property="tipo_documento", type="string"),
+     *                 @OA\Property(property="created_at", type="string", format="date-time"),
+     *                 @OA\Property(property="updated_at", type="string", format="date-time")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="No se encontró documento PLAME"),
+     *     @OA\Response(response=401, description="No autorizado")
+     * )
      */
     public function getPlameByCarreraModalidad($carreraModalidadId)
     {
@@ -55,63 +60,23 @@ class PlameController extends BaseApiController
                 throw ApiException::notFound('carrera-modalidad', $carreraModalidadId);
             }
 
-            // Obtener PLAME de la carrera-modalidad
             $plame = Plame::where('id_carreraModalidad', $carreraModalidadId)->first();
 
-            $esNuevo = false;
             if (!$plame) {
-                // Si no existe, crear uno nuevo
-                $plame = Plame::create([
-                    'id_carreraModalidad' => $carreraModalidadId,
-                    'tipo_evaluacion_plame' => 'matriz'
-                ]);
-                $esNuevo = true;
-                
-                \Log::info("Nueva matriz PLAME creada para carrera-modalidad: {$carreraModalidadId}");
+                return $this->successResponse(null, 'No existe documento PLAME para esta carrera-modalidad');
             }
 
-            // Obtener filas y columnas
-            $modalidadId = $carreraModalidad->modalidad_id;
-            
-            // Las filas dependen de la modalidad
-            $filas = FilaPlame::where('id_modalidad', $modalidadId)->get();
-            // Las columnas son genéricas para todas las modalidades
-            $columnas = ColumnaPlame::all();
-
-            // Obtener relaciones existentes
-            $relaciones = RelacionPlame::where('id_plame', $plame->id)
-                ->with(['filaPlame', 'columnaPlame'])
-                ->get();
-
-            // Crear matriz con las relaciones
-            $matriz = [];
-            foreach ($filas as $fila) {
-                $matriz[$fila->id] = [];
-                foreach ($columnas as $columna) {
-                    $relacion = $relaciones->where('id_fila_plame', $fila->id)
-                                          ->where('id_columna_plame', $columna->id)
-                                          ->first();
-                    
-                    $matriz[$fila->id][$columna->id] = [
-                        'valor' => $relacion ? $relacion->valor_relacion_plame : 0,
-                        'relacion_id' => $relacion ? $relacion->id : null
-                    ];
-                }
-            }
-
-            $mensaje = $esNuevo 
-                ? 'Nueva matriz PLAME creada y obtenida exitosamente' 
-                : 'Matriz PLAME obtenida exitosamente';
+            // No incluir el contenido del archivo en la respuesta por defecto
+            $plameData = $plame->makeHidden(['contenido_archivo'])->toArray();
 
             return $this->successResponse([
-                'plame' => $plame,
-                'carreraModalidad' => $carreraModalidad,
-                'filas' => $filas,
-                'columnas' => $columnas,
-                'matriz' => $matriz,
-                'relaciones' => $relaciones,
-                'esNuevo' => $esNuevo
-            ], $mensaje);
+                'plame' => $plameData,
+                'carreraModalidad' => [
+                    'id' => $carreraModalidad->id,
+                    'carrera' => $carreraModalidad->carrera?->nombre,
+                    'modalidad' => $carreraModalidad->modalidad?->nombre
+                ]
+            ], 'Documento PLAME obtenido exitosamente');
 
         } catch (ApiException $e) {
             return $this->handleApiException($e);
@@ -121,86 +86,73 @@ class PlameController extends BaseApiController
     }
 
     /**
-     * Actualizar valor en matriz PLAME
+     * @OA\Post(
+     *     path="/api/plame",
+     *     summary="Subir documento PLAME",
+     *     tags={"PLAME"},
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(property="id_carreraModalidad", type="integer", description="ID de carrera-modalidad"),
+     *                 @OA\Property(property="nombre_documento", type="string", description="Nombre del documento"),
+     *                 @OA\Property(property="descripcion_documento", type="string", description="Descripción del documento"),
+     *                 @OA\Property(property="tipo_documento", type="string", description="Tipo de documento PLAME"),
+     *                 @OA\Property(property="archivo", type="string", format="binary", description="Archivo a subir")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Documento PLAME subido exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="exito", type="boolean", example=true),
+     *             @OA\Property(property="mensaje", type="string"),
+     *             @OA\Property(property="datos", type="object")
+     *         )
+     *     )
+     * )
      */
-    public function updateRelacionPlame(Request $request)
+    public function subirPlame(Request $request)
     {
         try {
             $validated = $request->validate([
-                'id_plame' => 'required|exists:plames,id',
-                'id_fila_plame' => 'required|exists:fila_plames,id',
-                'id_columna_plame' => 'required|exists:columna_plames,id',
-                'valor_relacion_plame' => 'required|integer|min:0|max:5'
+                'id_carreraModalidad' => 'required|exists:carrera_modalidades,id',
+                'nombre_documento' => 'required|string|max:255',
+                'archivo' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx|max:10240' // 10MB max
             ]);
 
-            // Buscar relación existente
-            $relacion = RelacionPlame::where('id_plame', $validated['id_plame'])
-                ->where('id_fila_plame', $validated['id_fila_plame'])
-                ->where('id_columna_plame', $validated['id_columna_plame'])
-                ->first();
-
-            if ($relacion) {
-                // Actualizar relación existente
-                $relacion->update(['valor_relacion_plame' => $validated['valor_relacion_plame']]);
-            } else {
-                // Crear nueva relación
-                $relacion = RelacionPlame::create($validated);
+            // Verificar si ya existe un PLAME para esta carrera-modalidad
+            $plameExistente = Plame::where('id_carreraModalidad', $validated['id_carreraModalidad'])->first();
+            
+            if ($plameExistente) {
+                return $this->errorResponse('Ya existe un documento PLAME para esta carrera-modalidad', 409);
             }
 
-            return $this->successResponse(
-                $relacion->load(['plame', 'filaPlame', 'columnaPlame']),
-                'Relación PLAME actualizada exitosamente'
-            );
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return $this->validationErrorResponse($e);
-        } catch (\Exception $e) {
-            return $this->handleGeneralException($e);
-        }
-    }
-
-    /**
-     * Actualizar múltiples relaciones PLAME
-     */
-    public function updateMatrizPlame(Request $request)
-    {
-        try {
-            $validated = $request->validate([
-                'id_plame' => 'required|exists:plames,id',
-                'relaciones' => 'required|array',
-                'relaciones.*.id_fila_plame' => 'required|exists:fila_plames,id',
-                'relaciones.*.id_columna_plame' => 'required|exists:columna_plames,id',
-                'relaciones.*.valor_relacion_plame' => 'required|integer|min:0|max:5'
-            ]);
-
+            $archivo = $request->file('archivo');
+            
             DB::beginTransaction();
 
-            $relacionesActualizadas = [];
-
-            foreach ($validated['relaciones'] as $relacionData) {
-                $relacion = RelacionPlame::updateOrCreate(
-                    [
-                        'id_plame' => $validated['id_plame'],
-                        'id_fila_plame' => $relacionData['id_fila_plame'],
-                        'id_columna_plame' => $relacionData['id_columna_plame']
-                    ],
-                    [
-                        'valor_relacion_plame' => $relacionData['valor_relacion_plame']
-                    ]
-                );
-
-                $relacionesActualizadas[] = $relacion;
-            }
+            $plame = Plame::create([
+                'id_carreraModalidad' => $validated['id_carreraModalidad'],
+                'nombre_documento' => $validated['nombre_documento'],
+                'nombre_archivo_original' => $archivo->getClientOriginalName(),
+                'tipo_mime' => $archivo->getMimeType(),
+                'contenido_archivo' => base64_encode(file_get_contents($archivo->getPathname())),
+                'tamano_archivo' => $archivo->getSize()
+            ]);
 
             DB::commit();
 
             return $this->successResponse(
-                $relacionesActualizadas,
-                'Matriz PLAME actualizada exitosamente'
+                $plame->makeHidden(['contenido_archivo']),
+                'Documento PLAME subido exitosamente',
+                201
             );
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            DB::rollBack();
             return $this->validationErrorResponse($e);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -209,61 +161,132 @@ class PlameController extends BaseApiController
     }
 
     /**
-     * Obtener filas PLAME por modalidad
+     * @OA\Put(
+     *     path="/api/plame/{id}",
+     *     summary="Actualizar documento PLAME",
+     *     tags={"PLAME"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID del documento PLAME"
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(property="nombre_documento", type="string"),
+     *                 @OA\Property(property="descripcion_documento", type="string"),
+     *                 @OA\Property(property="tipo_documento", type="string"),
+     *                 @OA\Property(property="archivo", type="string", format="binary", description="Nuevo archivo (opcional)")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Documento PLAME actualizado exitosamente")
+     * )
      */
-    public function getFilasByModalidad($modalidadId)
+    public function actualizarPlame(Request $request, $id)
     {
         try {
-            $filas = FilaPlame::where('id_modalidad', $modalidadId)->get();
-            return $this->successResponse($filas, 'Filas PLAME obtenidas exitosamente');
-        } catch (\Exception $e) {
-            return $this->handleGeneralException($e);
-        }
-    }
-
-    /**
-     * Obtener columnas PLAME (genéricas para todas las modalidades)
-     * Nota: Mantiene el parámetro modalidadId por compatibilidad con rutas existentes
-     */
-    public function getColumnasByModalidad($modalidadId = null)
-    {
-        try {
-            // Las columnas son genéricas, no dependen de la modalidad
-            $columnas = ColumnaPlame::all();
-            return $this->successResponse($columnas, 'Columnas PLAME obtenidas exitosamente');
-        } catch (\Exception $e) {
-            return $this->handleGeneralException($e);
-        }
-    }
-
-    /**
-     * Obtener todas las columnas PLAME
-     */
-    public function getColumnas()
-    {
-        try {
-            $columnas = ColumnaPlame::all();
-            return $this->successResponse($columnas, 'Columnas PLAME obtenidas exitosamente');
-        } catch (\Exception $e) {
-            return $this->handleGeneralException($e);
-        }
-    }
-
-    /**
-     * Resetear matriz PLAME
-     */
-    public function resetMatrizPlame($plameId)
-    {
-        try {
-            $plame = Plame::find($plameId);
+            $plame = Plame::find($id);
             if (!$plame) {
-                throw ApiException::notFound('PLAME', $plameId);
+                throw ApiException::notFound('documento PLAME', $id);
             }
 
-            // Eliminar todas las relaciones
-            RelacionPlame::where('id_plame', $plameId)->delete();
+            $validated = $request->validate([
+                'nombre_documento' => 'sometimes|string|max:255',
+                'archivo' => 'sometimes|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx|max:10240'
+            ]);
 
-            return $this->successResponse(null, 'Matriz PLAME reseteada exitosamente');
+            DB::beginTransaction();
+
+            // Actualizar campos de texto
+            if (isset($validated['nombre_documento'])) {
+                $plame->nombre_documento = $validated['nombre_documento'];
+            }
+            if (array_key_exists('descripcion_documento', $validated)) {
+                $plame->descripcion_documento = $validated['descripcion_documento'];
+            }
+            if (isset($validated['tipo_documento'])) {
+                $plame->tipo_documento = $validated['tipo_documento'];
+            }
+
+            // Si se proporciona un nuevo archivo, actualizarlo
+            if ($request->hasFile('archivo')) {
+                $archivo = $request->file('archivo');
+                $plame->nombre_archivo_original = $archivo->getClientOriginalName();
+                $plame->tipo_mime = $archivo->getMimeType();
+                $plame->contenido_archivo = base64_encode(file_get_contents($archivo->getPathname()));
+                $plame->tamano_archivo = $archivo->getSize();
+            }
+
+            $plame->save();
+
+            DB::commit();
+
+            return $this->successResponse(
+                $plame->makeHidden(['contenido_archivo']),
+                'Documento PLAME actualizado exitosamente'
+            );
+
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse($e);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/plame/{id}/descargar",
+     *     summary="Descargar documento PLAME",
+     *     tags={"PLAME"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID del documento PLAME"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Archivo descargado exitosamente",
+     *         @OA\MediaType(
+     *             mediaType="application/octet-stream"
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Documento no encontrado")
+     * )
+     */
+    public function descargarPlame($id)
+    {
+        try {
+            $plame = Plame::find($id);
+            if (!$plame) {
+                throw ApiException::notFound('documento PLAME', $id);
+            }
+
+            if (!$plame->contenido_archivo) {
+                return $this->errorResponse('El documento no tiene contenido disponible', 404);
+            }
+
+            $contenido = base64_decode($plame->contenido_archivo);
+
+            return Response::make($contenido, 200, [
+                'Content-Type' => $plame->tipo_mime,
+                'Content-Disposition' => 'attachment; filename="' . $plame->nombre_archivo_original . '"',
+                'Content-Length' => strlen($contenido),
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0'
+            ]);
 
         } catch (ApiException $e) {
             return $this->handleApiException($e);
@@ -273,39 +296,207 @@ class PlameController extends BaseApiController
     }
 
     /**
-     * Obtener estadísticas de la matriz PLAME
+     * @OA\Get(
+     *     path="/api/plame/{id}/visualizar",
+     *     summary="Visualizar documento PLAME en el navegador",
+     *     tags={"PLAME"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID del documento PLAME"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Archivo mostrado en el navegador",
+     *         @OA\MediaType(
+     *             mediaType="application/pdf"
+     *         )
+     *     )
+     * )
      */
-    public function getEstadisticasPlame($plameId)
+    public function visualizarPlame($id)
     {
         try {
-            $plame = Plame::find($plameId);
+            $plame = Plame::find($id);
             if (!$plame) {
-                throw ApiException::notFound('PLAME', $plameId);
+                throw ApiException::notFound('documento PLAME', $id);
             }
 
-            $relaciones = RelacionPlame::where('id_plame', $plameId)->get();
+            if (!$plame->contenido_archivo) {
+                return $this->errorResponse('El documento no tiene contenido disponible', 404);
+            }
 
-            $estadisticas = [
-                'total_relaciones' => $relaciones->count(),
-                'valores_por_nivel' => [
-                    '0' => $relaciones->where('valor_relacion_plame', 0)->count(),
-                    '1' => $relaciones->where('valor_relacion_plame', 1)->count(),
-                    '2' => $relaciones->where('valor_relacion_plame', 2)->count(),
-                    '3' => $relaciones->where('valor_relacion_plame', 3)->count(),
-                    '4' => $relaciones->where('valor_relacion_plame', 4)->count(),
-                    '5' => $relaciones->where('valor_relacion_plame', 5)->count(),
-                ],
-                'promedio' => $relaciones->avg('valor_relacion_plame'),
-                'maximo' => $relaciones->max('valor_relacion_plame'),
-                'minimo' => $relaciones->min('valor_relacion_plame')
+            $contenido = base64_decode($plame->contenido_archivo);
+
+            return Response::make($contenido, 200, [
+                'Content-Type' => $plame->tipo_mime,
+                'Content-Disposition' => 'inline; filename="' . $plame->nombre_archivo_original . '"',
+                'Content-Length' => strlen($contenido),
+                'Cache-Control' => 'public, max-age=3600',
+                'X-Frame-Options' => 'SAMEORIGIN'
+            ]);
+
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/plame/{id}",
+     *     summary="Eliminar documento PLAME",
+     *     tags={"PLAME"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID del documento PLAME"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Documento PLAME eliminado exitosamente"
+     *     )
+     * )
+     */
+    public function eliminarPlame($id)
+    {
+        try {
+            $plame = Plame::find($id);
+            if (!$plame) {
+                throw ApiException::notFound('documento PLAME', $id);
+            }
+
+            DB::beginTransaction();
+
+            $plame->delete();
+
+            DB::commit();
+
+            return $this->successResponse(null, 'Documento PLAME eliminado exitosamente');
+
+        } catch (ApiException $e) {
+            return $this->handleApiException($e);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/plame",
+     *     summary="Listar todos los documentos PLAME",
+     *     tags={"PLAME"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="carrera_modalidad_id",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="integer"),
+     *         description="Filtrar por carrera-modalidad"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de documentos PLAME obtenida exitosamente"
+     *     )
+     * )
+     */
+    public function listarPlames(Request $request)
+    {
+        try {
+            $query = Plame::with(['carreraModalidad.carrera', 'carreraModalidad.modalidad']);
+
+            // Filtro opcional por carrera-modalidad
+            if ($request->has('carrera_modalidad_id')) {
+                $query->where('id_carreraModalidad', $request->carrera_modalidad_id);
+            }
+
+            $plames = $query->get()->map(function ($plame) {
+                return $plame->makeHidden(['contenido_archivo']);
+            });
+
+            return $this->successResponse($plames, 'Documentos PLAME obtenidos exitosamente');
+
+        } catch (\Exception $e) {
+            return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/plame/{id}/info",
+     *     summary="Obtener información detallada del documento PLAME",
+     *     tags={"PLAME"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID del documento PLAME"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Información del documento obtenida exitosamente"
+     *     )
+     * )
+     */
+    public function obtenerInfoPlame($id)
+    {
+        try {
+            $plame = Plame::with(['carreraModalidad.carrera', 'carreraModalidad.modalidad'])->find($id);
+            
+            if (!$plame) {
+                throw ApiException::notFound('documento PLAME', $id);
+            }
+
+            $info = [
+                'id' => $plame->id,
+                'nombre_documento' => $plame->nombre_documento,
+                'descripcion_documento' => $plame->descripcion_documento,
+                'nombre_archivo_original' => $plame->nombre_archivo_original,
+                'tipo_mime' => $plame->tipo_mime,
+                'tamano_archivo' => $plame->tamano_archivo,
+                'tamano_archivo_legible' => $this->formatearTamanoArchivo($plame->tamano_archivo),
+                'tipo_documento' => $plame->tipo_documento,
+                'created_at' => $plame->created_at,
+                'updated_at' => $plame->updated_at,
+                'carrera_modalidad' => [
+                    'id' => $plame->carreraModalidad->id,
+                    'carrera' => $plame->carreraModalidad->carrera?->nombre,
+                    'modalidad' => $plame->carreraModalidad->modalidad?->nombre
+                ]
             ];
 
-            return $this->successResponse($estadisticas, 'Estadísticas PLAME obtenidas exitosamente');
+            return $this->successResponse($info, 'Información del documento PLAME obtenida exitosamente');
 
         } catch (ApiException $e) {
             return $this->handleApiException($e);
         } catch (\Exception $e) {
             return $this->handleGeneralException($e);
+        }
+    }
+
+    /**
+     * Formatear el tamaño del archivo en formato legible
+     */
+    private function formatearTamanoArchivo($bytes)
+    {
+        if ($bytes >= 1073741824) {
+            return number_format($bytes / 1073741824, 2) . ' GB';
+        } elseif ($bytes >= 1048576) {
+            return number_format($bytes / 1048576, 2) . ' MB';
+        } elseif ($bytes >= 1024) {
+            return number_format($bytes / 1024, 2) . ' KB';
+        } else {
+            return $bytes . ' bytes';
         }
     }
 }

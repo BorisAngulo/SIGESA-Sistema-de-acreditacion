@@ -14,7 +14,7 @@ const useToast = () => {
 
     switch (type) {
       case 'success':
-        toast.success(`✅ ${message}`, defaultOptions);
+        toast.success(`${message}`, defaultOptions);
         break;
       case 'error':
         toast.error(`❌ ${message}`, {

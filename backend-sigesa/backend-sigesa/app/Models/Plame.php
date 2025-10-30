@@ -13,7 +13,11 @@ class Plame extends Model
 
     protected $fillable = [
         'id_carreraModalidad',
-        'tipo_evaluacion_plame',
+        'nombre_documento',
+        'nombre_archivo_original',
+        'tipo_mime',
+        'contenido_archivo',
+        'tamano_archivo'
     ];
 
     public function carreraModalidad()

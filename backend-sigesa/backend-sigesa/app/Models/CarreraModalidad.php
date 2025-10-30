@@ -60,4 +60,12 @@ class CarreraModalidad extends Model
     {
         return $this->hasManyThrough(SubFase::class, Fase::class, 'carrera_modalidad_id', 'fase_id');
     }
+
+    /**
+     * Relación con el documento PLAME de esta carrera-modalidad
+     */
+    public function plame()
+    {
+        return $this->hasOne(Plame::class, 'id_carreraModalidad');
+    }
 }

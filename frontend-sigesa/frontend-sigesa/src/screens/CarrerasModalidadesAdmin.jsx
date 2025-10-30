@@ -15,17 +15,19 @@ import {
   Upload,
   Award,
   Trash2,
-  Grid3X3
 } from 'lucide-react';
 import { 
-  getCarrerasModalidadesDetallesCompletos, 
+  getCarrerasModalidadesConPlame,
   subirCertificadoCarreraModalidad, 
   descargarCertificadoCarreraModalidad,
-  eliminarCarreraModalidad
+  eliminarCarreraModalidad,
+  getUrlDescargaPlame
 } from '../services/api';
 import ModalSubirCertificado from '../components/ModalSubirCertificado';
-import PlameModal from '../components/PlameModal';
-import '../styles/CarrerasModalidadesAdmin.css';import '../styles/ModalGeneral.css';
+import ModalSubirPlame from '../components/ModalSubirPlame';
+import '../styles/CarrerasModalidadesAdmin.css';
+import '../styles/ModalGeneral.css';
+import '../styles/ModalSubirPlame.css';
 
 const CarrerasModalidadesAdmin = () => {
   const navigate = useNavigate();
@@ -51,6 +53,10 @@ const CarrerasModalidadesAdmin = () => {
   // Estados para modal PLAME
   const [showPlameModal, setShowPlameModal] = useState(false);
   const [selectedCarreraModalidadPlame, setSelectedCarreraModalidadPlame] = useState(null);
+  
+  // Estados para gestión de documentos PLAME
+  const [plameDocuments, setPlameDocuments] = useState({}); // { carreraModalidadId: plameData }
+  const [loadingPlame, setLoadingPlame] = useState({}); // { carreraModalidadId: boolean }
 
   useEffect(() => {
     cargarCarrerasModalidades();
@@ -59,14 +65,31 @@ const CarrerasModalidadesAdmin = () => {
   const cargarCarrerasModalidades = async () => {
     try {
       setLoading(true);
-      const data = await getCarrerasModalidadesDetallesCompletos();
+      console.log('🚀 Cargando carreras-modalidades con información de PLAME optimizada...');
+      
+      // Usar la nueva función optimizada que obtiene todo en una sola petición
+      const data = await getCarrerasModalidadesConPlame();
+      
       if (data && data.length > 0) {
-        console.log('Primer elemento:', data[0]);
+        console.log('📊 Carreras-modalidades cargadas:', data.length);
+        console.log('📄 Con PLAME:', data.filter(cm => cm.tiene_plame).length);
+        
+        // Mapear los datos para el estado local
+        const plameDocuments = {};
+        data.forEach(cm => {
+          if (cm.tiene_plame && cm.info_plame) {
+            plameDocuments[cm.id] = cm.info_plame;
+          }
+        });
+        
+        setPlameDocuments(plameDocuments);
+        console.log('✅ Documentos PLAME cargados en estado:', Object.keys(plameDocuments).length);
       }
+      
       setCarrerasModalidades(data);
     } catch (err) {
       setError('Error al cargar las carreras-modalidades');
-      console.error('Error completo:', err);
+      console.error('💥 Error completo:', err);
     } finally {
       setLoading(false);
     }
@@ -190,13 +213,41 @@ const CarrerasModalidadesAdmin = () => {
 
   // Funciones para manejar el modal PLAME
   const handleAbrirPlame = (carreraModalidad) => {
-    setSelectedCarreraModalidadPlame(carreraModalidad);
-    setShowPlameModal(true);
+    const tieneDocumento = plameDocuments[carreraModalidad.id];
+    
+    if (tieneDocumento) {
+      // Si existe documento, descargar directamente
+      handleDescargarPlame(carreraModalidad.id);
+    } else {
+      // Si no existe, abrir modal para subir
+      setSelectedCarreraModalidadPlame(carreraModalidad);
+      setShowPlameModal(true);
+    }
   };
 
   const handleCerrarPlame = () => {
     setShowPlameModal(false);
     setSelectedCarreraModalidadPlame(null);
+  };
+
+  const handleDescargarPlame = (carreraModalidadId) => {
+    const plameDoc = plameDocuments[carreraModalidadId];
+    if (plameDoc) {
+      const url = getUrlDescargaPlame(plameDoc.id);
+      // Abrir en nueva ventana para descargar
+      window.open(url, '_blank');
+    }
+  };
+
+  const handlePlameSubido = (carreraModalidadId, nuevoPlame) => {
+    // Actualizar el estado local con el nuevo documento
+    setPlameDocuments(prev => ({
+      ...prev,
+      [carreraModalidadId]: nuevoPlame
+    }));
+    
+    // Cerrar modal
+    handleCerrarPlame();
   };
 
   // Validar que carrerasModalidades sea un array (memoizado)
@@ -486,11 +537,26 @@ const CarrerasModalidadesAdmin = () => {
                       e.stopPropagation();
                       handleAbrirPlame(cm);
                     }}
-                    className="btn-plame"
-                    title="Matriz PLAME"
+                    className={`btn-plame ${plameDocuments[cm.id] ? 'has-document' : 'no-document'}`}
+                    title={plameDocuments[cm.id] ? 'Descargar documento PLAME' : 'Subir documento PLAME'}
+                    disabled={loadingPlame[cm.id]}
                   >
-                    <Grid3X3 size={16} />
-                    PLAME
+                    {loadingPlame[cm.id] ? (
+                      <>
+                        <Clock size={16} className="animate-spin" />
+                        Cargando...
+                      </>
+                    ) : plameDocuments[cm.id] ? (
+                      <>
+                        <FileText size={16} />
+                        Descargar PLAME
+                      </>
+                    ) : (
+                      <>
+                        <Upload size={16} />
+                        Subir PLAME
+                      </>
+                    )}
                   </button>
                   
                   {/* Botón de eliminar */}
@@ -706,9 +772,11 @@ const CarrerasModalidadesAdmin = () => {
       
       {/* Modal PLAME */}
       {showPlameModal && selectedCarreraModalidadPlame && (
-        <PlameModal
-          carreraModalidad={selectedCarreraModalidadPlame}
+        <ModalSubirPlame
+          isOpen={showPlameModal}
           onClose={handleCerrarPlame}
+          onUpload={handlePlameSubido}
+          carreraModalidad={selectedCarreraModalidadPlame}
         />
       )}
     </div>

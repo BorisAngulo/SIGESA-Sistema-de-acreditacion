@@ -29,6 +29,10 @@ Route::get('modalidades/{modalidad}', [ModalidadController::class, 'show'])
 Route::get('acreditacion-carreras', [CarreraModalidadController::class, 'index'])
     ->name('acreditacion-carreras.index');
 
+// Obtener carreras-modalidad con parámetros opcionales (público)
+Route::get('carrera-modalidad', [CarreraModalidadController::class, 'index'])
+    ->name('carrera-modalidad.index');
+
 // Obtener una acreditación específica (público)
 Route::get('acreditacion-carreras/{acreditacion_carrera}', [CarreraModalidadController::class, 'show'])
     ->name('acreditacion-carreras.show');
