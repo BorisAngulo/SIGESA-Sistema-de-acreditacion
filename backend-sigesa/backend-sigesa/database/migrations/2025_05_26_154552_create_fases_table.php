@@ -18,8 +18,8 @@ class CreateFasesTable extends Migration
             $table->foreignId('carrera_modalidad_id')
                     ->constrained('carrera_modalidades')
                     ->onDelete('cascade');
-            $table->string('nombre_fase', 50);
-            $table->string('descripcion_fase', 300)->nullable();
+            $table->string('nombre_fase', 300);
+            $table->string('descripcion_fase', 1000)->nullable();
             $table->date('fecha_inicio_fase')->nullable();
             $table->date('fecha_fin_fase')->nullable();
             $table->string('url_fase')->nullable();

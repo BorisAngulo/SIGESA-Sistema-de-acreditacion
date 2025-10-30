@@ -5,42 +5,48 @@ use App\Http\Controllers\Api\PlameController;
 
 /*
 |--------------------------------------------------------------------------
-| RUTAS API - MATRIZ PLAME
+| RUTAS API - DOCUMENTOS PLAME
 |--------------------------------------------------------------------------
 */
 
+// === RUTAS PÚBLICAS (SIN AUTENTICACIÓN) ===
+Route::prefix('plame')->name('plame.')->group(function () {
+    
+    // Visualizar documento PLAME en el navegador (sin autenticación)
+    Route::get('/{id}/visualizar', [PlameController::class, 'visualizarPlame'])
+        ->name('visualizar');
+    
+    // Descargar documento PLAME (sin autenticación)
+    Route::get('/{id}/descargar', [PlameController::class, 'descargarPlame'])
+        ->name('descargar');
+});
+
+// === RUTAS PROTEGIDAS (CON AUTENTICACIÓN) ===
 Route::middleware(['auth:sanctum'])->prefix('plame')->name('plame.')->group(function () {
     
-    // === VERIFICAR EXISTENCIA PLAME ===
-    Route::get('/verificar/{carreraModalidadId}', [PlameController::class, 'verificarPlameExiste'])
-        ->name('verificar-existe');
+    // === GESTIÓN DE DOCUMENTOS PLAME ===
     
-    // === OBTENER MATRIZ PLAME ===
+    // Listar todos los documentos PLAME
+    Route::get('/', [PlameController::class, 'listarPlames'])
+        ->name('listar');
+    
+    // Obtener documento PLAME por carrera-modalidad
     Route::get('/carrera-modalidad/{carreraModalidadId}', [PlameController::class, 'getPlameByCarreraModalidad'])
         ->name('get-by-carrera-modalidad');
     
-    // === ACTUALIZAR MATRIZ PLAME ===
-    Route::put('/relacion', [PlameController::class, 'updateRelacionPlame'])
-        ->name('update-relacion');
-        
-    Route::put('/matriz', [PlameController::class, 'updateMatrizPlame'])
-        ->name('update-matriz');
+    // Obtener información detallada del documento PLAME
+    Route::get('/{id}/info', [PlameController::class, 'obtenerInfoPlame'])
+        ->name('info');
     
-    // === RESETEAR MATRIZ ===
-    Route::delete('/reset/{plameId}', [PlameController::class, 'resetMatrizPlame'])
-        ->name('reset');
+    // Subir nuevo documento PLAME
+    Route::post('/', [PlameController::class, 'subirPlame'])
+        ->name('subir');
     
-    // === ESTADÍSTICAS ===
-    Route::get('/estadisticas/{plameId}', [PlameController::class, 'getEstadisticasPlame'])
-        ->name('estadisticas');
+    // Actualizar documento PLAME existente
+    Route::put('/{id}', [PlameController::class, 'actualizarPlame'])
+        ->name('actualizar');
     
-    // === FILAS Y COLUMNAS ===
-    Route::get('/filas/modalidad/{modalidadId}', [PlameController::class, 'getFilasByModalidad'])
-        ->name('filas-by-modalidad');
-        
-    Route::get('/columnas/modalidad/{modalidadId}', [PlameController::class, 'getColumnasByModalidad'])
-        ->name('columnas-by-modalidad');
-        
-    Route::get('/columnas', [PlameController::class, 'getColumnas'])
-        ->name('columnas');
+    // Eliminar documento PLAME
+    Route::delete('/{id}', [PlameController::class, 'eliminarPlame'])
+        ->name('eliminar');
 });

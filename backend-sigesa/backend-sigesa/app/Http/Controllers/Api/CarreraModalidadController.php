@@ -348,10 +348,33 @@ class CarreraModalidadController extends BaseApiController
         }
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $carrerasModalidades = CarreraModalidad::with(['carrera', 'modalidad'])->get();
+            $incluirPlame = $request->query('incluir_plame', false);
+            
+            $query = CarreraModalidad::with(['carrera', 'modalidad']);
+            
+            // Si se solicita incluir información de PLAME
+            if ($incluirPlame) {
+                $query->with(['plame' => function($query) {
+                    // Solo incluir campos básicos, no el contenido del archivo
+                    $query->select('id', 'id_carreraModalidad', 'nombre_documento', 'descripcion_documento', 
+                                   'nombre_archivo_original', 'tipo_mime', 'tamano_archivo', 'tipo_documento', 
+                                   'created_at', 'updated_at');
+                }]);
+            }
+            
+            $carrerasModalidades = $query->get();
+
+            // Agregar campo booleano para indicar si tiene PLAME
+            if ($incluirPlame) {
+                $carrerasModalidades->each(function($cm) {
+                    $cm->tiene_plame = !is_null($cm->plame);
+                    $cm->info_plame = $cm->plame; // Información del documento si existe
+                    unset($cm->plame); // Limpiar la relación original
+                });
+            }
 
             return $this->successResponse(
                 $carrerasModalidades,
@@ -460,17 +483,31 @@ class CarreraModalidadController extends BaseApiController
         }
     }
 
-    public function getDetallesCompletos()
+    public function getDetallesCompletos(Request $request)
     {
         try {
-            $carrerasModalidades = CarreraModalidad::with([
+            $incluirPlame = $request->query('incluir_plame', false);
+            
+            $query = CarreraModalidad::with([
                 'carrera.facultad',
                 'fases.subfases',
                 'modalidad'
-            ])->get();
+            ]);
+            
+            // Si se solicita incluir información de PLAME
+            if ($incluirPlame) {
+                $query->with(['plame' => function($query) {
+                    // Solo incluir campos básicos, no el contenido del archivo
+                    $query->select('id', 'id_carreraModalidad', 'nombre_documento', 
+                                   'nombre_archivo_original', 'tipo_mime', 'tamano_archivo', 
+                                   'created_at', 'updated_at');
+                }]);
+            }
+            
+            $carrerasModalidades = $query->get();
 
-            $resultado = $carrerasModalidades->map(function ($carreraModalidad) {
-                return [
+            $resultado = $carrerasModalidades->map(function ($carreraModalidad) use ($incluirPlame) {
+                $resultado = [
                     'id' => $carreraModalidad->id,
                     'carrera_id' => $carreraModalidad->carrera_id,
                     'modalidad_id' => $carreraModalidad->modalidad_id,
@@ -508,6 +545,14 @@ class CarreraModalidadController extends BaseApiController
                         'nombre' => $carreraModalidad->modalidad->nombre_modalidad,
                     ]
                 ];
+
+                // Agregar información de PLAME si se solicita
+                if ($incluirPlame) {
+                    $resultado['tiene_plame'] = !is_null($carreraModalidad->plame);
+                    $resultado['info_plame'] = $carreraModalidad->plame;
+                }
+
+                return $resultado;
             });
 
             return $this->successResponse(

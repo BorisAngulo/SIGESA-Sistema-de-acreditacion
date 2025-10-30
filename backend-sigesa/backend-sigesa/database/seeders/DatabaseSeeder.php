@@ -21,11 +21,9 @@ class DatabaseSeeder extends Seeder
             AcreditacionesSeeder::class, // Nuevo seeder para acreditaciones
             RoleSeeder::class,
             UserSeeder::class,
-            // Seeders para análisis FODA y PLAME
+            // Seeders para análisis FODA
             CategoriaFodaSeeder::class,
             EstrategiaFodaSeeder::class,
-            FilaPlameSeeder::class,
-            ColumnaPlameSeeder::class,
         ]);
 
         $this->command->info('🎉 Base de datos poblada exitosamente!');
