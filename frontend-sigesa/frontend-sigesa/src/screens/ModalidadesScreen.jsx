@@ -160,7 +160,7 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
             {modalidad === 'arco-sur' ? 'SISTEMA ARCU SUR' : 'SISTEMA CEUB'}
           </h1>
           
-          <div className="description">
+<div className="description">
               {modalidad === 'arco-sur' ? (
                   <div>
                       <p>
@@ -168,6 +168,13 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
                           es un mecanismo permanente de evaluación y garantía de calidad para carreras de grado en la región. 
                           Surge como evolución del Mecanismo Experimental de Acreditación (MEXA) que evaluó carreras de 
                           Agronomía, Ingeniería y Medicina entre 1998 y 2004.
+                      </p>
+                      <p>
+                          <strong>Adhesión al MERCOSUR:</strong> La incorporación de carreras al sistema ARCU-SUR se 
+                          realiza mediante convocatorias oficiales emitidas por el Sistema Nacional de Acreditación de 
+                          Carreras Universitarias (SENACU). Estas convocatorias establecen los requisitos, plazos y 
+                          procedimientos que las instituciones de educación superior deben seguir para postular sus 
+                          carreras al proceso de acreditación regional.
                       </p>
                       <p>
                           <strong>Duración de la acreditación:</strong> La acreditación ARCU-SUR tiene una validez de 
@@ -181,7 +188,19 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
                       <p>
                           Actualmente participan Argentina, Brasil, Paraguay, Uruguay, Bolivia y Chile, evaluando 
                           carreras en áreas prioritarias para el desarrollo regional. El sistema promueve la movilidad 
-                          académica y el reconocimiento mutuo de titulaciones en los países miembros.
+                          académica y el reconocimiento mutuo de titulaciones en los países miembros del MERCOSUR.
+                      </p>
+                      <p className="info-adicional">
+                          <strong>Para saber más sobre las convocatorias vigentes, requisitos y proceso de adhesión, 
+                          visite el sitio oficial:</strong>{' '}
+                          <a 
+                            href="https://www.arcusur.org/?page_id=298" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="enlace-arcusur"
+                          >
+                            www.arcusur.org - Convocatorias
+                          </a>
                       </p>
                   </div>
               ) : (
@@ -205,6 +224,18 @@ const ModalidadesScreen = ({ modalidad = 'arco-sur' }) => {
                           El CEUB promueve la mejora continua mediante procesos periódicos de evaluación, asegurando 
                           que las carreras mantengan altos estándares de enseñanza, infraestructura adecuada y pertinencia 
                           social de sus programas académicos.
+                      </p>
+                        <p className="info-adicional">
+                          <strong>Para saber más sobre las convocatorias vigentes, requisitos y proceso de adhesión, 
+                          visite el sitio oficial:</strong>{' '}
+                          <a 
+                            href="https://ceub.edu.bo/" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="enlace-arcusur"
+                          >
+                            www.ceub.edu.bo
+                          </a>
                       </p>
                   </div>
               )}
