@@ -98,7 +98,7 @@ const DateProcessModal = ({
 
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal-content date-process-modal">
+      <div className="date-process-modal">
         <div className="modal-header">
           <h2>Configurar Fechas del Proceso</h2>
           <button 
@@ -117,40 +117,42 @@ const DateProcessModal = ({
           </div>
           
           <form onSubmit={handleSubmit} className="date-form">
-            <div className="form-group">
-              <label htmlFor="fecha_ini_proceso">
-                Fecha de Inicio del Proceso *
-              </label>
-              <input
-                type="date"
-                id="fecha_ini_proceso"
-                name="fecha_ini_proceso"
-                value={formData.fecha_ini_proceso}
-                onChange={handleInputChange}
-                className={errors.fecha_ini_proceso ? 'error' : ''}
-                disabled={loading}
-              />
-              {errors.fecha_ini_proceso && (
-                <span className="field-error">{errors.fecha_ini_proceso}</span>
-              )}
-            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="fecha_ini_proceso">
+                  Fecha de Inicio del Proceso *
+                </label>
+                <input
+                  type="date"
+                  id="fecha_ini_proceso"
+                  name="fecha_ini_proceso"
+                  value={formData.fecha_ini_proceso}
+                  onChange={handleInputChange}
+                  className={errors.fecha_ini_proceso ? 'error' : ''}
+                  disabled={loading}
+                />
+                {errors.fecha_ini_proceso && (
+                  <span className="field-error">{errors.fecha_ini_proceso}</span>
+                )}
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="fecha_fin_proceso">
-                Fecha de Fin del Proceso *
-              </label>
-              <input
-                type="date"
-                id="fecha_fin_proceso"
-                name="fecha_fin_proceso"
-                value={formData.fecha_fin_proceso}
-                onChange={handleInputChange}
-                className={errors.fecha_fin_proceso ? 'error' : ''}
-                disabled={loading}
-              />
-              {errors.fecha_fin_proceso && (
-                <span className="field-error">{errors.fecha_fin_proceso}</span>
-              )}
+              <div className="form-group">
+                <label htmlFor="fecha_fin_proceso">
+                  Fecha de Fin del Proceso *
+                </label>
+                <input
+                  type="date"
+                  id="fecha_fin_proceso"
+                  name="fecha_fin_proceso"
+                  value={formData.fecha_fin_proceso}
+                  onChange={handleInputChange}
+                  className={errors.fecha_fin_proceso ? 'error' : ''}
+                  disabled={loading}
+                />
+                {errors.fecha_fin_proceso && (
+                  <span className="field-error">{errors.fecha_fin_proceso}</span>
+                )}
+              </div>
             </div>
 
             <div className="modal-actions">

@@ -25,15 +25,15 @@ class SubfaseController extends BaseApiController
         try {
             $validated = $request->validate([
                 'fase_id' => 'required|exists:fases,id',
-                'nombre_subfase' => 'required|string|max:50',
-                'descripcion_subfase' => 'nullable|string|max:300',
+                'nombre_subfase' => 'required|string|max:500',
+                'descripcion_subfase' => 'nullable|string|max:1000',
                 'fecha_inicio_subfase' => 'nullable|date',
                 'fecha_fin_subfase' => 'nullable|date',
                 'url_subfase' => 'nullable|string',
                 'url_subfase_respuesta' => 'nullable|string',
                 'estado_subfase' => 'nullable|boolean',
                 'id_usuario_updated_subfase' => 'nullable|integer',
-                'observacion_subfase' => 'nullable|string|max:300',
+                'observacion_subfase' => 'nullable|string|max:1000',
                 'tiene_foda' => 'nullable|boolean',
                 'tiene_plame' => 'nullable|boolean',
             ]);
@@ -98,14 +98,14 @@ class SubfaseController extends BaseApiController
 
             $validated = $request->validate([
                 'fase_id' => 'sometimes|required|exists:fases,id',
-                'nombre_subfase' => 'sometimes|required|string|max:50',
-                'descripcion_subfase' => 'nullable|string|max:300',
+                'nombre_subfase' => 'sometimes|required|string|max:500',
+                'descripcion_subfase' => 'nullable|string|max:1000',
                 'fecha_inicio_subfase' => 'nullable|date',
                 'fecha_fin_subfase' => 'nullable|date',
                 'url_subfase' => 'nullable|string',
                 'url_subfase_respuesta' => 'nullable|string',
                 'estado_subfase' => 'nullable|boolean',
-                'observacion_subfase' => 'nullable|string|max:300',
+                'observacion_subfase' => 'nullable|string|max:1000',
                 'id_usuario_updated_subfase' => 'nullable|integer',
                 'tiene_foda' => 'nullable|boolean',
                 'tiene_plame' => 'nullable|boolean',
