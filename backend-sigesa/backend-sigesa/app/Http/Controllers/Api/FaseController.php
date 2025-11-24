@@ -8,6 +8,7 @@ use App\Models\Fase;
 use App\Models\Subfase;
 use App\Exceptions\ApiException;
 use App\Templates\FasesTemplate;
+use App\Templates\FasesArcusurTemplate;
 use Illuminate\Support\Facades\DB;
 /**
 * @OA\Tag(
@@ -27,8 +28,8 @@ class FaseController extends BaseApiController
         try {
             $validated = $request->validate([
                 'carrera_modalidad_id' => 'required|exists:carrera_modalidades,id',
-                'nombre_fase' => 'required|string|max:50',
-                'descripcion_fase' => 'nullable|string|max:300',
+                'nombre_fase' => 'required|string|max:500',
+                'descripcion_fase' => 'nullable|string|max:1000',
                 'fecha_inicio_fase' => 'nullable|date',
                 'fecha_fin_fase' => 'nullable|date',
                 'url_fase' => 'nullable|string',
@@ -105,13 +106,13 @@ class FaseController extends BaseApiController
 
             $validated = $request->validate([
                 'carrera_modalidad_id' => 'sometimes|required|exists:carrera_modalidades,id',
-                'nombre_fase' => 'sometimes|required|string|max:50',
-                'descripcion_fase' => 'nullable|string|max:300',
+                'nombre_fase' => 'sometimes|required|string|max:500',
+                'descripcion_fase' => 'nullable|string|max:1000',
                 'fecha_inicio_fase' => 'nullable|date',
                 'fecha_fin_fase' => 'nullable|date',
                 'url_fase' => 'nullable|string',
                 'url_fase_respuesta' => 'nullable|string',
-                'observacion_fase' => 'nullable|string|max:300',
+                'observacion_fase' => 'nullable|string|max:1000',
                 'estado_fase' => 'nullable|boolean',
                 'id_usuario_updated_fase' => 'nullable|integer',
             ]);
@@ -295,6 +296,8 @@ class FaseController extends BaseApiController
                 'carrera_modalidad_id' => 'required|exists:carrera_modalidades,id'
             ]);
 
+            $modalidad = $request->input('modalidad');
+
             $carreraModalidadId = $validated['carrera_modalidad_id'];
 
             // Verificar si ya existen fases para esta carrera-modalidad
@@ -309,8 +312,11 @@ class FaseController extends BaseApiController
             }
 
             DB::beginTransaction();
-
-            $plantillaFases = FasesTemplate::getTemplate();
+            if($modalidad === 'arcusur'){
+                $plantillaFases = FasesArcusurTemplate::getTemplate();
+            }else{
+                $plantillaFases = FasesTemplate::getTemplate();
+            }
             $fasesCreadas = [];
             $totalSubfasesCreadas = 0;
 

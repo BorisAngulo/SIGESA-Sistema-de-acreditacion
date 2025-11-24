@@ -1291,6 +1291,19 @@ const FasesScreen = () => {
           // Continuar con el proceso aunque falle la plantilla
           toast.warning('Proceso creado exitosamente, pero hubo un error al generar la plantilla de fases.');
         }
+      }else if (Number(pendingCarreraModalidadData.modalidad_id) === 2) {
+        try {
+          console.log('🎯 Generando plantilla Arcusur automáticamente para carrera-modalidad:', nuevaCarreraModalidad.id);
+          await generarPlantillaFasesSubfases(nuevaCarreraModalidad.id, 'arcusur');
+          console.log('✅ Plantilla Arcusur generada exitosamente');
+
+          // Mostrar mensaje específico de éxito
+          toast.success('¡Proceso Arcusur creado exitosamente con plantilla de fases y subfases!');
+        } catch (plantillaError) {
+          console.error('❌ Error al generar plantilla Arcusur:', plantillaError);
+          // Continuar con el proceso aunque falle la plantilla
+          toast.warning('Proceso creado exitosamente, pero hubo un error al generar la plantilla de fases.');
+        }
       }
       
       // Actualizar el estado con la nueva carrera-modalidad

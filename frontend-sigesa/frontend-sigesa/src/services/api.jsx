@@ -966,15 +966,18 @@ export const getAvanceFase  = async (faseId) => {
 }
 
 //generar plantilla de fases y subfases por carrera_modalidad_id
-export const generarPlantillaFasesSubfases = async (carreraModalidadId) => {
+export const generarPlantillaFasesSubfases = async (carreraModalidadId, modalidad='ceub') => {
   try {
+    // Realizar la petición única (ambas modalidades usan el mismo endpoint)
     const res = await fetch(`${API_URL}/fases/generar-plantilla`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({
-        carrera_modalidad_id: carreraModalidadId
+        carrera_modalidad_id: carreraModalidadId,
+        modalidad: modalidad
       })
     });
+    
     const response = await res.json();
 
     if (response.exito && response.datos) {

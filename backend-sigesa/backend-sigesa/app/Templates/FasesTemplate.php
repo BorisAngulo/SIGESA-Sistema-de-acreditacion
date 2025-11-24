@@ -8,7 +8,7 @@ class FasesTemplate
     {
         return [
             [
-                'nombre_fase' => 'Aprobación del HCF HCC',
+                'nombre_fase' => 'Fase 1: Aprobación del HCF HCC',
                 'descripcion_fase' => 'De nombramiento a Entrega de CEUB',
                 'subfases' => [
                     [
@@ -54,6 +54,19 @@ class FasesTemplate
                         'estado_subfase' => false
                     ]
                 ]
+            ],
+            [
+                'nombre_fase' => 'Fase 2: Evaluación externa',
+                'descripcion_fase' => 'Es la evaluación externa de la carrera por tres días, conformado por 4 pares nacionales y 1 par internacional y un coordinador de la SNEA. 
+                                        El tercer día emiten la nota de la acreditación y las recomendaciones de los pares externos',
+                
+            ],
+            [
+                'nombre_fase' => 'Fase 3: Seguimiento de la acreditación',
+                'descripcion_fase' => 'Seguimiento al cumplimiento del plan de mejoras y las recomendaciones emitidas por los pares externos. Realizamos envio de nota de la Direccion Universitaria
+                                    de Evaluacion y Acreditacion a la unidad acreditada para el seguimiento. La carrera emite un informe del grado de cumplimiento a los 2 años de haber recibido 
+                                    su acreditacion a la Direccion Universitaria de Evaluacion y Acreditacion.',
+                
             ]
         ];
     }

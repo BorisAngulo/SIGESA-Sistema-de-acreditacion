@@ -459,28 +459,6 @@ const ReporteFacultades = () => {
         <div style={styles.headerContent}>
           <h1 style={styles.mainTitle}>📊 Reporte Integral de Facultades</h1>
           <p style={styles.subtitle}>Sistema de Análisis de Acreditación Académica</p>
-          <div style={styles.headerStats}>
-            <div style={styles.headerStatItem}>
-              <span style={styles.headerStatValue}>
-                {reporteData?.estadisticas_generales?.total_facultades || 0}
-              </span>
-              <span style={styles.headerStatLabel}>Facultades</span>
-            </div>
-            <div style={styles.headerStatDivider}></div>
-            <div style={styles.headerStatItem}>
-              <span style={styles.headerStatValue}>
-                {reporteData?.estadisticas_generales?.total_carreras || 0}
-              </span>
-              <span style={styles.headerStatLabel}>Carreras</span>
-            </div>
-            <div style={styles.headerStatDivider}></div>
-            <div style={styles.headerStatItem}>
-              <span style={styles.headerStatValue}>
-                {reporteData?.estadisticas_generales?.total_acreditadas || 0}
-              </span>
-              <span style={styles.headerStatLabel}>Acreditadas</span>
-            </div>
-          </div>
         </div>
       </div>
 
