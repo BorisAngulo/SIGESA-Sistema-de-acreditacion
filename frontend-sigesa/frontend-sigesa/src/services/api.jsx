@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = "http://167.157.7.70:8000/api";
 
 // Obtener token del localStorage
 const getAuthToken = () => localStorage.getItem('token');
